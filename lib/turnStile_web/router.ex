@@ -17,11 +17,6 @@ defmodule TurnStileWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", TurnStileWeb do
-    pipe_through :browser
-
-    get "/", PageController, :index
-  end
 
   # Other scopes may use custom stacks.
   # scope "/api", TurnStileWeb do
@@ -88,5 +83,14 @@ defmodule TurnStileWeb.Router do
     post "/admins/confirm", AdminConfirmationController, :create
     get "/admins/confirm/:token", AdminConfirmationController, :edit
     post "/admins/confirm/:token", AdminConfirmationController, :update
+  end
+
+  scope "/", TurnStileWeb do
+    pipe_through :browser
+
+    get "/", PageController, :index
+
+    resources "/admins", AdminController
+
   end
 end

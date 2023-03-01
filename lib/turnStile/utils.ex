@@ -3,7 +3,8 @@ defmodule TurnStile.Utils do
   def sum(a, b) do
     a + b
   end
-  def parens_list(roles_list) do
+  # convert a list to a string with parenthese "()"
+  def convert_to_parens_string(roles_list) do
     Enum.with_index(roles_list)
     |> Enum.map(fn x ->
       value = elem(x, 0)

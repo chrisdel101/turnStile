@@ -350,4 +350,93 @@ defmodule TurnStile.Administration do
       {:error, :admin, changeset, _} -> {:error, changeset}
     end
   end
+
+  alias TurnStile.Administration.Admin
+
+  @doc """
+  Returns the list of admins.
+
+  ## Examples
+
+      iex> list_admins()
+      [%Admin{}, ...]
+
+  """
+  def list_admins do
+    raise "TODO"
+  end
+
+  @doc """
+  Gets a single admin.
+
+  Raises if the Admin does not exist.
+
+  ## Examples
+
+      iex> get_admin!(123)
+      %Admin{}
+
+  """
+  def get_admin!(id), do: raise "TODO"
+
+  @doc """
+  Creates a admin.
+
+  ## Examples
+
+      iex> create_admin(%{field: value})
+      {:ok, %Admin{}}
+
+      iex> create_admin(%{field: bad_value})
+      {:error, ...}
+
+  """
+  def create_admin(attrs \\ %{}) do
+    raise "TODO"
+  end
+
+  @doc """
+  Updates a admin.
+
+  ## Examples
+
+      iex> update_admin(admin, %{field: new_value})
+      {:ok, %Admin{}}
+
+      iex> update_admin(admin, %{field: bad_value})
+      {:error, ...}
+
+  """
+  def update_admin(%Admin{} = admin, attrs) do
+    raise "TODO"
+  end
+
+  @doc """
+  Deletes a Admin.
+
+  ## Examples
+
+      iex> delete_admin(admin)
+      {:ok, %Admin{}}
+
+      iex> delete_admin(admin)
+      {:error, ...}
+
+  """
+  def delete_admin(%Admin{} = admin) do
+    raise "TODO"
+  end
+
+  @doc """
+  Returns a data structure for tracking admin changes.
+
+  ## Examples
+
+      iex> change_admin(admin)
+      %Todo{...}
+
+  """
+  def change_admin(%Admin{} = admin, _attrs \\ %{}) do
+    raise "TODO"
+  end
 end

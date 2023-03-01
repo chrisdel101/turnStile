@@ -7,13 +7,33 @@
     </div>
   <% end %>
 
+  <%= label f, :first_name %>
+  <%= text_input f, :first_name %>
+  <%= error_tag f, :first_name %>
+
+  <%= label f, :last_name %>
+  <%= text_input f, :last_name %>
+  <%= error_tag f, :last_name %>
+
+  <%= label f, :role %>
+  <%= select f, :role, Enum.map(AdminRolesEnum.get_roles(), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true
+%>
   <%= label f, :email %>
-  <%= email_input f, :email, required: true %>
+  <%= text_input f, :email %>
   <%= error_tag f, :email %>
 
-  <%= label f, :password %>
-  <%= password_input f, :password, required: true %>
+  <%= label f, "Confirm Email" %>
+  <%= text_input f, :conf_email %>
+  <%= error_tag f, :conf_email %>
+
+  <%= label f, "Create Temp Password" %>
+  <%= text_input f, :password %>
   <%= error_tag f, :password %>
+
+  <%= label f, "Confirm Temp Password" %>
+  <%= text_input f, :conf_password %>
+  <%= error_tag f, :conf_password %>
+
 
   <div>
     <%= submit "Register" %>

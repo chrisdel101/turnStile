@@ -28,4 +28,18 @@ defmodule TurnStile.AdministrationFixtures do
     [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
     token
   end
+
+  @doc """
+  Generate a admin.
+  """
+  def admin_fixture(attrs \\ %{}) do
+    {:ok, admin} =
+      attrs
+      |> Enum.into(%{
+
+      })
+      |> TurnStile.Administration.create_admin()
+
+    admin
+  end
 end
