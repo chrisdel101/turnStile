@@ -8,8 +8,7 @@ defmodule TurnStile.Administration.Admin do
     field :first_name, :string
     field :last_name, :string
     # FIX: must be added as atom
-    # field :role, Ecto.Enum, values:
-    AdminRolesEnum.get_roles()
+    field :role, :string
     # has_many :users, WaitingRoom.Patient.User
     # admin sends alerts
     # has_many :alerts, WaitingRoom.Alert

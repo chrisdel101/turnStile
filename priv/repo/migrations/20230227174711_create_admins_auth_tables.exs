@@ -1,12 +1,10 @@
 defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
   use Ecto.Migration
 
-  # use constants.AdminRolesEnum
-
-
+  # roles = AdminRolesEnum.get_roles()
+  # IO.puts(TurnStile.Utils.parens_list(roles))
   def change do
-
-    execute("create type roles as enum #{Enum.map(AdminRolesEnum.get_roles(), fn x -> Atom.to_string(x) end)}")
+    execute("create type role as enum #{TurnStile.Utils.parens_list(AdminRolesEnum.get_roles())}")
 
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
@@ -34,4 +32,5 @@ defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
     create index(:admins_tokens, [:admin_id])
     create unique_index(:admins_tokens, [:context, :token])
   end
+
 end
