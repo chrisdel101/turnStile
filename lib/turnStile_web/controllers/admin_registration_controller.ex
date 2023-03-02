@@ -28,9 +28,4 @@ defmodule TurnStileWeb.AdminRegistrationController do
     end
   end
 
-  def confrim_emails_match(email1, email2) do
-    if email1 !== email2 do
-      "todo"
-    end
-  end
 end

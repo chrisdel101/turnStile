@@ -2,7 +2,6 @@ defmodule TurnStile.Administration.Admin do
   use Ecto.Schema
   import Ecto.Changeset
 
-  # use constants.AdminRolesEnum
 
   schema "admins" do
     field :first_name, :string
@@ -36,7 +35,13 @@ defmodule TurnStile.Administration.Admin do
       validations on a LiveView form), this option can be set to `false`.
       Defaults to `true`.
   """
+
   def registration_changeset(admin, attrs, opts \\ []) do
+    IO.puts("opts")
+    IO.inspect(opts)
+    IO.puts("attrs")
+    IO.inspect(attrs)
+
     admin
     |> cast(attrs, [:email, :password])
     |> validate_email()
@@ -44,10 +49,13 @@ defmodule TurnStile.Administration.Admin do
   end
 
   defp validate_email(changeset) do
+    IO.inspect(changeset)
     changeset
     |> validate_required([:email])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
+    |> validate_confirmation(:email, message: "Emails do not match")
+    |> validate_confirmation(:password, message: "Passwords do not match")
     |> unsafe_validate_unique(:email, TurnStile.Repo)
     |> unique_constraint(:email)
   end
@@ -55,7 +63,8 @@ defmodule TurnStile.Administration.Admin do
   defp validate_password(changeset, opts) do
     changeset
     |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
+    # make it 6 in dev - change back later
+    |> validate_length(:password, min: 6, max: 72)
     # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
     # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
