@@ -391,9 +391,11 @@ defmodule TurnStile.Administration do
       {:error, ...}
 
   """
-  def create_admin(attrs \\ %{}) do
-    raise "TODO"
+  def create_admin(%Admin{} = admin, attrs \\ %{}) do
+    IO.puts("TRTERTE")
+    Admin.changeset(admin, attrs)
   end
+
 
   @doc """
   Updates a admin.

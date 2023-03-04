@@ -10,6 +10,14 @@ defmodule TurnStileWeb.AdminController do
   end
 
   def new(conn, _params) do
+       # IO.puts("HELLO")
+    role = handle_permission_roles(conn)
+    cond do
+      role === "owner" ->
+        changeset = Administration.create_admin(%Admin{})
+        render(conn, "new.html", changeset: changeset)
+    end
+    IO.puts(role)
     changeset = Administration.change_admin(%Admin{})
     render(conn, "new.html", changeset: changeset)
   end
@@ -59,4 +67,25 @@ defmodule TurnStileWeb.AdminController do
     |> put_flash(:info, "Admin deleted successfully.")
     |> redirect(to: Routes.admin_path(conn, :index))
   end
+
+  def handle_permission_roles(conn) do
+    current_role = conn.assigns[:current_admin].role
+    # IO.inspect(current_role)
+    # IO.inspect(to_string(Enum.at(AdminRolesEnum.get_roles, 0)))
+    # IO.inspect(to_string(Enum.at(AdminRolesEnum.get_roles, 0)) === current_role)
+    cond do
+      # owner
+      current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 0))  ->
+        to_string(Enum.at(AdminRolesEnum.get_roles, 0))
+      # admin
+      current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 1))  ->
+        to_string(Enum.at(AdminRolesEnum.get_roles, 1))
+      # developer
+      current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 2))  ->
+        to_string(Enum.at(AdminRolesEnum.get_roles, 2))
+
+
+    end
+  end
+
 end
