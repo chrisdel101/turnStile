@@ -35,26 +35,35 @@ defmodule TurnStile.Administration.Admin do
         Defaults to `true`.
     """
 
-  # Used for owners to use admins/new only
+  # Used for owners to create admins maybe
   def changeset(admin, attrs, opts \\ []) do
-    IO.puts("attrs")
+    IO.puts("admin changeset")
     IO.inspect(attrs)
     admin
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password])
     |> validate_email()
     |> validate_password(opts)
-    |> maybe_hash_password(opts)
+    |> hash_password(opts)
   end
 
   def registration_changeset(admin, attrs, opts \\ []) do
-    IO.puts("attrs")
+    IO.puts("admim registration_changeset")
+    # IO.puts("attrs")
     IO.inspect(attrs)
     admin
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password])
     |> validate_email()
     |> validate_password(opts)
-    |> maybe_hash_password(opts)
+    |> hash_password(opts)
+    # |> valdiate_has_permissions(admin)
   end
+
+  # defp valdiate_has_permissions(changeset,  current_admin) do
+  #   if current_admin.role != "owner" or current_admin.role != "admin" or current_admin != role.developer do
+  #     false
+  #   end
+  #   true
+  # end
 
   defp validate_email(changeset) do
     IO.inspect(changeset)
@@ -78,7 +87,7 @@ defmodule TurnStile.Administration.Admin do
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
   end
 
-  defp maybe_hash_password(changeset, opts) do
+  defp hash_password(changeset, opts) do
     hash_password? = Keyword.get(opts, :hash_password, true)
     password = get_change(changeset, :password)
 

@@ -1,5 +1,5 @@
-<h1>Register</h1>
-
+<h1>Register A New Admin</h1>
+<h3>Owners and Admins can register new Admins</h3>
 <.form let={f} for={@changeset} action={Routes.admin_registration_path(@conn, :create)}>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -16,8 +16,11 @@
   <%= error_tag f, :last_name %>
 
   <%= label f, :role %>
-  <%= select f, :role, Enum.map(AdminRolesEnum.get_roles(), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true
-%>
+  <!-- show all roles for owner -->
+  <%= if Map.has_key?(@current_admin, :role) and (@current_admin.role === "owner") do%>
+    <%= select f, :role, Enum.map(AdminRolesEnum.get_roles(), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+
+  <% end %>
   <%= label f, :email %>
   <%= text_input f, :email %>
   <%= error_tag f, :email %>

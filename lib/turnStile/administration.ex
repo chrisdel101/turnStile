@@ -77,7 +77,7 @@ defmodule TurnStile.Administration do
   def register_admin(attrs) do
     %Admin{}
     |> Admin.registration_changeset(attrs)
-    |> Repo.insert()
+    # |> Repo.insert()
   end
 
   @doc """
@@ -392,7 +392,6 @@ defmodule TurnStile.Administration do
 
   """
   def create_admin(%Admin{} = admin, attrs \\ %{}) do
-    IO.puts("TRTERTE")
     Admin.changeset(admin, attrs)
   end
 

@@ -17,7 +17,7 @@ defmodule TurnStileWeb.AdminController do
         changeset = Administration.create_admin(%Admin{})
         render(conn, "new.html", changeset: changeset)
     end
-    IO.puts(role)
+    # IO.puts(role)
     changeset = Administration.change_admin(%Admin{})
     render(conn, "new.html", changeset: changeset)
   end

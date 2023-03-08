@@ -55,10 +55,11 @@ defmodule TurnStileWeb.Router do
   ## Authentication routes
 
   scope "/", TurnStileWeb do
+    IO.puts("current_admin")
+    IO.puts(:current_admin)
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 
-    get "/admins/register", AdminRegistrationController, :new
-    post "/admins/register", AdminRegistrationController, :create
+
     get "/admins/log_in", AdminSessionController, :new
     post "/admins/log_in", AdminSessionController, :create
     get "/admins/reset_password", AdminResetPasswordController, :new
@@ -70,6 +71,8 @@ defmodule TurnStileWeb.Router do
   scope "/", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
 
+    get "/admins/register", AdminRegistrationController, :new
+    post "/admins/register", AdminRegistrationController, :create
     get "/admins/settings", AdminSettingsController, :edit
     put "/admins/settings", AdminSettingsController, :update
     get "/admins/settings/confirm_email/:token", AdminSettingsController, :confirm_email

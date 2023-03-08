@@ -112,10 +112,19 @@ defmodule TurnStileWeb.AdminAuth do
   Used for routes that require the admin to not be authenticated.
   """
   def redirect_if_admin_is_authenticated(conn, _opts) do
-    if conn.assigns[:current_admin] do
-      conn
-      |> redirect(to: signed_in_path(conn))
-      |> halt()
+    # if logged in
+    current_admin = conn.assigns[:current_admin]
+
+    if current_admin do
+      # if owner/admin - don't redirect from registartion
+      # if (current_admin.role != "owner" or current_admin.role != "admin") and
+      #      List.last(conn.path_info) != "register" do
+        conn
+        |> redirect(to: signed_in_path(conn))
+        |> halt()
+      # else
+        # conn
+      # end
     else
       conn
     end
