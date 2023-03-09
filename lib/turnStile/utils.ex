@@ -1,6 +1,22 @@
 defmodule TurnStile.Utils do
 
-# check with persmission level current user has
+# drop all values in list before index
+# IN: list of atoms - to check
+# IN: role - string
+# OUT: index of item
+  def display_forward_list_values(list_to_check, role_str) do
+    # return index of item
+    index = Enum.find_index(list_to_check, &(&1 == String.to_atom(role_str)))
+      if index do
+        Enum.drop(list_to_check, index)
+      else
+        raise ArgumentError, message: "Error in display_forward_list_values. Index not found"
+    end
+
+  end
+# checks persmission level of input role
+# IN: role: string
+# OUT: int 1-3 from PermissionValues
   def define_permissions_level(role) do
       # role = current_user.role
       IO.puts("define_permissions_level Role: ")
