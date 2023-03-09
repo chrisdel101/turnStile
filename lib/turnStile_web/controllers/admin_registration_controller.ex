@@ -5,6 +5,7 @@ defmodule TurnStileWeb.AdminRegistrationController do
   alias TurnStile.Administration.Admin
   alias TurnStileWeb.AdminAuth
 
+
   def new(conn, _params) do
     changeset = Administration.change_admin_registration(%Admin{})
     render(conn, "new.html", changeset: changeset)
@@ -14,9 +15,18 @@ defmodule TurnStileWeb.AdminRegistrationController do
     IO.inspect("Admin: create")
     # IO.inspect(%{"admin" => admin_params})
     current_admin = conn.assigns[:current_admin]
-
-    p_level = TurnStile.Utils.define_permissions_level(current_admin)
-    IO.inspect(p_level)
+    current_user_permission = TurnStile.Utils.define_permissions_level(current_admin.role)
+    registrant_permissions = TurnStile.Utils.define_permissions_level(Map.get(admin_params, "role"))
+    # if admin does not have permissions - flash and re-render
+    cond do
+      # current user can only register permissions level >= self
+      registrant_permissions > current_user_permission ->
+        changeset = Administration.change_admin_registration(%Admin{}, admin_params)
+      conn
+        |> put_flash(:error, "Invalid Permssions to create that user")
+        |> render("new.html", changeset: changeset)
+    end
+    # if p_level
   #  if current_admin
     case Administration.register_admin(admin_params) do
       {:ok, admin} ->

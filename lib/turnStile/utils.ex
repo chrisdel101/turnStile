@@ -1,7 +1,9 @@
 defmodule TurnStile.Utils do
-  def define_permissions_level(current_user) do
-      role = current_user.role
-      IO.puts("define_permissions_level")
+
+# check with persmission level current user has
+  def define_permissions_level(role) do
+      # role = current_user.role
+      IO.puts("define_permissions_level Role: ")
       IO.inspect(role)
       cond do
         # check if admin persmission
