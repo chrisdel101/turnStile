@@ -3,7 +3,7 @@ defmodule TurnStile.Administration do
   The Administration context.
   """
 
-  import Ecto.Query, warn: false
+  import Ecto.Query, only: [from: 2], warn: false
   alias TurnStile.Repo
 
   alias TurnStile.Administration.{Admin, AdminToken, AdminNotifier}
@@ -363,7 +363,9 @@ defmodule TurnStile.Administration do
 
   """
   def list_admins do
-    raise "TODO"
+    # query all
+    query = from(a in Admin, select: a)
+    Repo.all(query)
   end
 
   @doc """

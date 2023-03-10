@@ -11,7 +11,7 @@ defmodule TurnStileWeb.AdminController do
 
   def new(conn, _params) do
        # IO.puts("HELLO")
-    role = handle_permission_roles(conn)
+    role = assign_permission_role(conn)
     cond do
       role === "owner" ->
         changeset = Administration.create_admin(%Admin{})
@@ -67,8 +67,8 @@ defmodule TurnStileWeb.AdminController do
     |> put_flash(:info, "Admin deleted successfully.")
     |> redirect(to: Routes.admin_path(conn, :index))
   end
-
-  def handle_permission_roles(conn) do
+# takes the form value maps to correct permission role
+  def assign_permission_role(conn) do
     current_role = conn.assigns[:current_admin].role
     # IO.inspect(current_role)
     # IO.inspect(to_string(Enum.at(AdminRolesEnum.get_roles, 0)))
