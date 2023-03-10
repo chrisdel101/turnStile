@@ -3,10 +3,10 @@
 defmodule PermissionGroups do
   @admin_roles  [:owner, :developer, :admin]
   @employee_roles  [:editor, :contributor, :viewer]
-  def get_admimn_roles do
+  def get_admin_roles do
     @admin_roles #access attribute
   end
-  def get_admin_employeer_roles do
+  def get_admin_employee_roles do
     @employee_roles #access attribute
   end
 end
@@ -16,6 +16,9 @@ defmodule PermissionValues do
     "employee" => 2,
     "user" => 3
   }
+  def get_persmission_value(key) do
+    @permissions[key]
+  end
 end
 defmodule AdminRolesEnum do
   @roles  [:owner, :developer, :admin]

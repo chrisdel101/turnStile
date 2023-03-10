@@ -20,12 +20,13 @@ defmodule TurnStile.Utils do
   def define_permissions_level(role) do
       # role = current_user.role
       IO.puts("define_permissions_level Role: ")
+      # IO.inspect(Enum.member?(PermissionGroups.get_admin_roles, role))
       IO.inspect(role)
       cond do
         # check if admin persmission
-        Enum.member?(PermissionGroups.get_admimn_roles, role) -> 1
+        Enum.member?(PermissionGroups.get_admin_roles, role) -> 1
         # check if employee persmission
-        Enum.member?(PermissionGroups.get_admin_employeer_roles, role) -> 2
+        Enum.member?(PermissionGroups.get_admin_employee_roles, role) -> 2
         "default" -> 3
     end
   end
