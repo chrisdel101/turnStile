@@ -10,8 +10,18 @@
   <tbody>
 <%= for admin <- @admins do %>
     <tr>
-
       <td>
+      <span>
+        <%= admin.first_name %>
+      </span>
+      <span>
+        <%= admin.last_name %>
+        |
+      </span>
+      <span>
+        Role: <%= admin.role %>
+        |
+      </span>
         <span><%= link "Show", to: Routes.admin_path(@conn, :show, admin) %></span>
         <span><%= link "Edit", to: Routes.admin_path(@conn, :edit, admin) %></span>
         <span><%= link "Delete", to: Routes.admin_path(@conn, :delete, admin), method: :delete, data: [confirm: "Are you sure?"] %></span>
@@ -20,5 +30,3 @@
 <% end %>
   </tbody>
 </table>
-
-<span><%= link "New Admin", to: Routes.admin_path(@conn, :new) %></span>
