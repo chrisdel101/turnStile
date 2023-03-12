@@ -27,7 +27,7 @@ defmodule AdminRolesEnum do
   end
 end
 defmodule EmployeeRolesEnum do
-  @roles  [:owner, :developer, :admin, :editor, :contributor, :viewer]
+  @roles  [:editor, :contributor, :viewer]
   def get_roles do
     @roles #access attribute
   end

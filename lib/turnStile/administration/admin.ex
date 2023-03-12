@@ -58,13 +58,6 @@ defmodule TurnStile.Administration.Admin do
     # |> valdiate_has_permissions(admin)
   end
 
-  # defp valdiate_has_permissions(changeset,  current_admin) do
-  #   if current_admin.role != "owner" or current_admin.role != "admin" or current_admin != role.developer do
-  #     false
-  #   end
-  #   true
-  # end
-
   defp validate_email(changeset) do
     IO.inspect(changeset)
     changeset

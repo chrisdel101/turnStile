@@ -1,14 +1,14 @@
 defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
   use Ecto.Migration
   def change do
-    execute("create type role as enum #{TurnStile.Utils.convert_to_parens_string(AdminRolesEnum.get_roles())}")
-
+    # https://stackoverflow.com/a/37216214/5972531
+    execute("create type role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeeRolesEnum.get_roles())}")
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:admins) do
       add :first_name, :string
       add :last_name, :string
-      # FIX: must be added as atom
+      # role created above can be used here
       add :role, :role, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false

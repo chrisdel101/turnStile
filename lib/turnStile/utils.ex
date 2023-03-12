@@ -30,7 +30,7 @@ defmodule TurnStile.Utils do
         "default" -> 3
     end
   end
-  # convert a list to a string with parenthese "()"
+  # convert a list to a string with parenthese "()" - used for DB enum type syntax - https://stackoverflow.com/a/37216214/5972531
   def convert_to_parens_string(roles_list) do
     Enum.with_index(roles_list)
     |> Enum.map(fn x ->
