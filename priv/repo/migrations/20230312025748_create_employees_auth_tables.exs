@@ -1,33 +1,33 @@
-defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
+defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
   use Ecto.Migration
+
   def change do
     # https://stackoverflow.com/a/37216214/5972531
-    execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeeRolesEnum.get_roles())}")
+    execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeeRolesEnum.get_roles())}")
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
-    create table(:admins) do
+    create table(:employees) do
       add :first_name, :string
       add :last_name, :string
       # role created above can be used here
-      add :role, :admin_role, null: false
+      add :role, :employee_role, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
       timestamps()
     end
 
-    create unique_index(:admins, [:email])
+    create unique_index(:employees, [:email])
 
-    create table(:admins_tokens) do
-      add :admin_id, references(:admins, on_delete: :delete_all), null: false
+    create table(:employees_tokens) do
+      add :employee_id, references(:employees, on_delete: :delete_all), null: false
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string
       timestamps(updated_at: false)
     end
 
-    create index(:admins_tokens, [:admin_id])
-    create unique_index(:admins_tokens, [:context, :token])
+    create index(:employees_tokens, [:employee_id])
+    create unique_index(:employees_tokens, [:context, :token])
   end
-
 end
