@@ -58,8 +58,6 @@ defmodule TurnStileWeb.Router do
   ## Authentication routes
 
   scope "/", TurnStileWeb do
-    IO.puts("current_admin")
-    IO.puts(:current_admin)
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 
 
