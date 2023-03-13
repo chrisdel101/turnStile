@@ -7,6 +7,7 @@ defmodule TurnStile.Administration.Admin do
     field :first_name, :string
     field :last_name, :string
     field :role, :string
+    has_many :employess, TurnStile.Staff.Employee
     # has_many :users, WaitingRoom.Patient.User
     # admin sends alerts
     # has_many :alerts, WaitingRoom.Alert
