@@ -350,4 +350,93 @@ defmodule TurnStile.Staff do
       {:error, :employee, changeset, _} -> {:error, changeset}
     end
   end
+
+  alias TurnStile.Staff.Employee
+
+  @doc """
+  Returns the list of employees.
+
+  ## Examples
+
+      iex> list_employees()
+      [%Employee{}, ...]
+
+  """
+  def list_employees do
+    raise "TODO"
+  end
+
+  @doc """
+  Gets a single employee.
+
+  Raises if the Employee does not exist.
+
+  ## Examples
+
+      iex> get_employee!(123)
+      %Employee{}
+
+  """
+  def get_employee!(id), do: raise "TODO"
+
+  @doc """
+  Creates a employee.
+
+  ## Examples
+
+      iex> create_employee(%{field: value})
+      {:ok, %Employee{}}
+
+      iex> create_employee(%{field: bad_value})
+      {:error, ...}
+
+  """
+  def create_employee(attrs \\ %{}) do
+    raise "TODO"
+  end
+
+  @doc """
+  Updates a employee.
+
+  ## Examples
+
+      iex> update_employee(employee, %{field: new_value})
+      {:ok, %Employee{}}
+
+      iex> update_employee(employee, %{field: bad_value})
+      {:error, ...}
+
+  """
+  def update_employee(%Employee{} = employee, attrs) do
+    raise "TODO"
+  end
+
+  @doc """
+  Deletes a Employee.
+
+  ## Examples
+
+      iex> delete_employee(employee)
+      {:ok, %Employee{}}
+
+      iex> delete_employee(employee)
+      {:error, ...}
+
+  """
+  def delete_employee(%Employee{} = employee) do
+    raise "TODO"
+  end
+
+  @doc """
+  Returns a data structure for tracking employee changes.
+
+  ## Examples
+
+      iex> change_employee(employee)
+      %Todo{...}
+
+  """
+  def change_employee(%Employee{} = employee, _attrs \\ %{}) do
+    raise "TODO"
+  end
 end

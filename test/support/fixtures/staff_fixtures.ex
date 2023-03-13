@@ -28,4 +28,18 @@ defmodule TurnStile.StaffFixtures do
     [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
     token
   end
+
+  @doc """
+  Generate a employee.
+  """
+  def employee_fixture(attrs \\ %{}) do
+    {:ok, employee} =
+      attrs
+      |> Enum.into(%{
+
+      })
+      |> TurnStile.Staff.create_employee()
+
+    employee
+  end
 end
