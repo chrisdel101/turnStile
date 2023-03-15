@@ -19,7 +19,8 @@
               <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
             <% end %>
           </ul>
-          <li><%= link "Setup Organization", to: "/setup" %></li>
+          <li><%= link "Setup New Organization", to:  Routes.organization_path(@conn, :new)%></li>
+          <li><%= link "Organization Login", to: "/organizations/search" %></li>
           <!--
           <%= if !assigns[:admins] do %>
             <div>TODO setup</div>

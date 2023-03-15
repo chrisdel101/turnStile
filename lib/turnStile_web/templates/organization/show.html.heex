@@ -1,0 +1,23 @@
+<h1>Show Organization</h1>
+
+<ul>
+
+  <li>
+    <strong>Name:</strong>
+    <%= @organization.name %>
+  </li>
+
+  <li>
+    <strong>Email:</strong>
+    <%= @organization.email %>
+  </li>
+
+  <li>
+    <strong>Phone:</strong>
+    <%= @organization.phone %>
+  </li>
+
+</ul>
+
+<span><%= link "Edit", to: Routes.organization_path(@conn, :edit, @organization) %></span> |
+<span><%= link "Back", to: Routes.organization_path(@conn, :index) %></span>

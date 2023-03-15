@@ -1,0 +1,5 @@
+<h1>Search for Organization</h1>
+
+<%= render "search_form.html", Map.put(assigns, :action, "/organizations/search") %>
+
+<span><%= link "Back", to: Routes.organization_path(@conn, :index) %></span>
