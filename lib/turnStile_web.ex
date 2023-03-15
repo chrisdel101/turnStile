@@ -30,7 +30,7 @@ defmodule TurnStileWeb do
   def view do
     quote do
       use Phoenix.View,
-        root: "lib/turnStile_web/customer/templates",
+        root: "lib/turnStile_web/templates",
         namespace: TurnStileWeb
 
 
