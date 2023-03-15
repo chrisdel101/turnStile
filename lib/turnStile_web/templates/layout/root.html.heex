@@ -19,7 +19,7 @@
               <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
             <% end %>
           </ul>
-          <li><%= link "Setup Organization", to: Routes.admin_session_path(@conn, :delete), method: :delete %></li>
+          <li><%= link "Setup Organization", to: "/setup" %></li>
           <!--
           <%= if !assigns[:admins] do %>
             <div>TODO setup</div>

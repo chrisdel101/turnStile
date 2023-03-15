@@ -126,6 +126,7 @@ defmodule TurnStileWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/setup", SetupController, :new
 
     resources "/admins", AdminController
     resources "/employees", EmployeeController
