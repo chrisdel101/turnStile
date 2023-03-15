@@ -30,8 +30,9 @@ defmodule TurnStileWeb do
   def view do
     quote do
       use Phoenix.View,
-        root: "lib/turnStile_web/templates",
+        root: "lib/turnStile_web/customer/templates",
         namespace: TurnStileWeb
+
 
       # Import convenience functions from controllers
       import Phoenix.Controller,

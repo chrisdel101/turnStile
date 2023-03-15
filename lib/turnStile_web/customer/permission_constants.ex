@@ -1,5 +1,3 @@
-
-
 defmodule PermissionGroups do
   @admin_roles  [:owner, :developer, :admin]
   @employee_roles  [:editor, :contributor, :viewer]
