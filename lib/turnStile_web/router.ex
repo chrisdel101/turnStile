@@ -128,10 +128,14 @@ defmodule TurnStileWeb.Router do
     get "/", PageController, :index
     get "/setup", SetupController, :new
     get "/organizations/search", OrganizationController, :search
+    get "/organizations/:name", OrganizationController, :show
+
 
     resources "/admins", AdminController
     resources "/employees", EmployeeController
-    resources "/organizations", OrganizationController
+    resources "/organizations", OrganizationController #except: [:show]
+
+
 
 
 

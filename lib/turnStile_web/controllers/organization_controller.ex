@@ -5,6 +5,7 @@ defmodule TurnStileWeb.OrganizationController do
   alias TurnStile.Company.Organization
 
   def index(conn, _params) do
+    # only app in-company app developers can see this
     organizations = Company.list_organizations()
     render(conn, "index.html", organizations: organizations)
   end
@@ -33,9 +34,13 @@ defmodule TurnStileWeb.OrganizationController do
         render(conn, "new.html", changeset: changeset)
     end
   end
-
-  def show(conn, %{"id" => id}) do
-    organization = Company.get_organization!(id)
+  # takes company name, not ID
+  def show(conn, %{"name" => name}) do
+    IO.puts("!!!!!!HERE")
+    organization = Company.get_organization!(name)
+    # if !organization do
+    #   organization = Company.get_organization!(param)
+    # end
     render(conn, "show.html", organization: organization)
   end
 
