@@ -41,10 +41,7 @@ defmodule TurnStile.Company do
 
 
   def get_organization_by_name!(param) do
-    IO.inspect(param)
-    x = TurnStile.Repo.get_by!(TurnStile.Company.Organization, slug: param)
-    IO.inspect("HERE")
-    IO.inspect(x)
+    TurnStile.Repo.get_by!(TurnStile.Company.Organization, slug: param)
   end
   @doc """
   Creates a organization.

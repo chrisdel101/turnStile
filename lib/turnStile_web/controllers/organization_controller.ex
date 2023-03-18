@@ -42,11 +42,15 @@ defmodule TurnStileWeb.OrganizationController do
     # param is ID
     if TurnStile.Utils.is_digit(param) do
       organization = Company.get_organization!(param)
-      render(conn, "show.html", organization: organization)
+      reload_with_name_rest(conn, organization)
     else
       organization = Company.get_organization_by_name!(param)
       render(conn, "show.html", organization: organization)
     end
+  end
+
+  defp reload_with_name_rest(conn, organization_map) do
+    redirect(conn, to: "/organizations/#{organization_map.slug}")
   end
 
   def edit(conn, %{"id" => id}) do
