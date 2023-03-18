@@ -7,6 +7,7 @@ defmodule TurnStile.Company do
   alias TurnStile.Repo
 
   alias TurnStile.Company.Organization
+  alias TurnStile.Administration.Admin
 
   @doc """
   Returns the list of organizations.
@@ -105,8 +106,12 @@ defmodule TurnStile.Company do
 
   """
   def change_organization(%Organization{} = organization, attrs \\ %{}) do
-    IO.inspect(organization)
-    IO.inspect(attrs)
     Organization.changeset(organization, attrs)
+  end
+
+  def check_organization() do
+    q = from a in Admin,
+     select: a.id
+    Repo.query(q)
   end
 end

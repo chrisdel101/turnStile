@@ -49,10 +49,6 @@ defmodule TurnStileWeb.OrganizationController do
     end
   end
 
-  defp reload_with_name_rest(conn, organization_map) do
-    redirect(conn, to: "/organizations/#{organization_map.slug}")
-  end
-
   def edit(conn, %{"id" => id}) do
     organization = Company.get_organization!(id)
     changeset = Company.change_organization(organization)
@@ -80,5 +76,14 @@ defmodule TurnStileWeb.OrganizationController do
     conn
     |> put_flash(:info, "Organization deleted successfully.")
     |> redirect(to: Routes.organization_path(conn, :index))
+  end
+
+  # reload to display rest with :slug not :id
+  defp reload_with_name_rest(conn, organization_map) do
+    redirect(conn, to: "/organizations/#{organization_map.slug}")
+  end
+  # check if org has members
+  defp is_organiztion_setup do
+    IO.inpspect(Company.check_organization())
   end
 end

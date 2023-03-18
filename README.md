@@ -19,7 +19,9 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
   * Source: https://github.com/phoenixframework/phoenix
 
 
-## Steps used to build tables
+# Development Notes
+
+### Steps used to build tables
 
 1. Admin: Auth, schema, migration, auth html 
   - `mix phx.gen.auth Administrtion Admin admins`  
@@ -30,3 +32,15 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
   - `mix phx.gen.auth Staff Employee employees`
 5. Employee: complete html, route resources 
   - `mix phx.gen.html Staff Employee employees --no-schema`
+
+
+# Installation
+
+- install [postgres](https://www.postgresql.org/)
+- install [Phoenix](https://hexdocs.pm/phoenix/installation.html) 
+- clone application
+- `mix deps.get`
+- `mix ecto.setup`
+- `mix ecto.migrate`
+- `mix phx.server`
+-  Visit [localhost:4000](http://localhost:4000)
