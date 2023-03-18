@@ -5,6 +5,7 @@ defmodule TurnStile.Company.Organization do
   schema "organizations" do
     field :email, :string
     field :name, :string
+    field :slug, :string
     field :phone, :string
 
     timestamps()
@@ -12,8 +13,9 @@ defmodule TurnStile.Company.Organization do
 
   @doc false
   def changeset(organization, attrs) do
+    IO.inspect(attrs)
     organization
-    |> cast(attrs, [:name, :email, :phone])
-    |> validate_required([:name, :email, :phone])
+    |> cast(attrs, [:name, :email, :phone, :slug])
+    |> validate_required([:name, :email, :phone, :slug])
   end
 end

@@ -35,16 +35,16 @@ defmodule TurnStile.Company do
       ** (Ecto.NoResultsError)
 
   """
-  # def get_organization!(id)  do
-  #    Repo.get!(Organization, id)
-  # end
+  def get_organization!(id)  do
+     Repo.get!(Organization, id)
+  end
 
 
-  def get_organization!(name) do
+  def get_organization_by_name!(param) do
+    IO.inspect(param)
+    x = TurnStile.Repo.get_by!(TurnStile.Company.Organization, slug: param)
     IO.inspect("HERE")
-    x = TurnStile.Repo.get_by!(TurnStile.Company.Organization, name: "Apps Ure Us")
     IO.inspect(x)
-    # Repo.get!(Organization, name)
   end
   @doc """
   Creates a organization.

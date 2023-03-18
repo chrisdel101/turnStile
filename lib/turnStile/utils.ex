@@ -46,4 +46,11 @@ defmodule TurnStile.Utils do
     end)
     |> Enum.join(", ")
   end
+  def is_digit(str) do
+    case Integer.parse(str) do
+      {_, ""} -> true
+      _ -> false
+    end
+
+  end
 end

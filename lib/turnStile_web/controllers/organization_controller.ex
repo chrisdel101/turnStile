@@ -24,6 +24,9 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def create(conn, %{"organization" => organization_params}) do
+    slug = Slug.slugify(organization_params["name"])
+    organization_params = Map.put(organization_params, "slug", slug)
+    # IO.inspect(organization_params)
     case Company.create_organization(organization_params) do
       {:ok, organization} ->
         conn
@@ -34,14 +37,16 @@ defmodule TurnStileWeb.OrganizationController do
         render(conn, "new.html", changeset: changeset)
     end
   end
-  # takes company name, not ID
-  def show(conn, %{"name" => name}) do
-    IO.puts("!!!!!!HERE")
-    organization = Company.get_organization!(name)
-    # if !organization do
-    #   organization = Company.get_organization!(param)
-    # end
-    render(conn, "show.html", organization: organization)
+  # takes ID or name
+  def show(conn, %{"param" => param}) do
+    # param is ID
+    if TurnStile.Utils.is_digit(param) do
+      organization = Company.get_organization!(param)
+      render(conn, "show.html", organization: organization)
+    else
+      organization = Company.get_organization_by_name!(param)
+      render(conn, "show.html", organization: organization)
+    end
   end
 
   def edit(conn, %{"id" => id}) do
