@@ -9,14 +9,15 @@ defmodule TurnStileWeb.OrganizationController do
     organizations = Company.list_organizations()
     render(conn, "index.html", organizations: organizations)
   end
-
+  # display search bar for organizations
   def display_search(conn, _params) do
     changeset = Company.change_organization(%Organization{})
     organizations = Company.list_organizations()
     render(conn, "search.html", changeset: changeset, organizations: organizations)
   end
-
+  # execute search bar for organizations, direct to show page or show error
   def execute_search(conn, params) do
+    # slugigy param
     slug = Slug.slugify(params["organization"]["name"] || "")
     # check if org name exists
     organization = Company.get_organization_by_name!(slug)
@@ -25,8 +26,9 @@ defmodule TurnStileWeb.OrganizationController do
       |> put_flash(:error, "No organization by that name.")
       |> redirect(to: Routes.organization_path(conn, :display_search))
     else
-      # redirect to rest with slug name in URL
-      reload_with_name_rest(conn, slug)
+      # redirect to rest using ID - will redriect to name auto
+      # Kernal.inpsect makes id a string
+      show(conn, %{"param"=> Kernel.inspect(organization.id)})
     end
   end
 
@@ -51,15 +53,20 @@ defmodule TurnStileWeb.OrganizationController do
   end
   # takes ID or name
   def show(conn, %{"param" => param}) do
-    IO.inspect("XXX")
+    IO.inspect("SHOW")
     IO.inspect(param)
-    # param is ID
+
+    members? = is_organiztion_setup()
+
+    changeset = Company.change_organization(%Organization{})
+    # param is ID in URL
     if TurnStile.Utils.is_digit(param) do
       organization = Company.get_organization!(param)
-      reload_with_name_rest(conn, organization.slug)
+      reload_with_name_rest(conn, organization.slug, changeset: changeset)
     else
       organization = Company.get_organization_by_name!(param)
-      render(conn, "show.html", organization: organization)
+      # reload_with_name_rest(conn, organization.slug, changeset: changeset)
+      render(conn, "show.html", organization: organization, changeset: changeset, members?: members?)
     end
   end
 
@@ -93,11 +100,16 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # reload to display rest with :slug not :id
-  defp reload_with_name_rest(conn, organization_slug) do
-    redirect(conn, to: "/organizations/#{organization_slug}")
+  defp reload_with_name_rest(conn, organization_slug, changeset: changeset) do
+    redirect(conn, to: "/organizations/#{organization_slug}", changeset: changeset)
   end
   # check if org has members
   defp is_organiztion_setup do
-    IO.inspect(Company.check_organization())
+    members? = Company.check_organization()
+    if !members? or length(members?) === 0 do
+      false
+    else
+      true
+    end
   end
 end

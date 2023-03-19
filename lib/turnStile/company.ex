@@ -112,6 +112,6 @@ defmodule TurnStile.Company do
   def check_organization() do
     q = from a in Admin,
      select: a.id
-    Repo.query(q)
+    Repo.all(q)
   end
 end
