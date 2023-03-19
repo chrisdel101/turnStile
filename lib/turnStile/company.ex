@@ -37,12 +37,12 @@ defmodule TurnStile.Company do
 
   """
   def get_organization!(id)  do
-     Repo.get!(Organization, id)
+     Repo.get(Organization, id)
   end
 
 
-  def get_organization_by_name!(param) do
-    TurnStile.Repo.get_by!(TurnStile.Company.Organization, slug: param)
+  def get_organization_by_name!(slug) do
+    TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
   end
   @doc """
   Creates a organization.

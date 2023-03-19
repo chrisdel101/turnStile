@@ -10,12 +10,24 @@ defmodule TurnStileWeb.OrganizationController do
     render(conn, "index.html", organizations: organizations)
   end
 
-  def search(conn, _params) do
+  def display_search(conn, _params) do
     changeset = Company.change_organization(%Organization{})
     organizations = Company.list_organizations()
-    IO.inspect("HERE")
-    IO.inspect(organizations)
     render(conn, "search.html", changeset: changeset, organizations: organizations)
+  end
+
+  def execute_search(conn, params) do
+    slug = Slug.slugify(params["organization"]["name"] || "")
+    # check if org name exists
+    organization = Company.get_organization_by_name!(slug)
+    if !organization do
+      conn
+      |> put_flash(:error, "No organization by that name.")
+      |> redirect(to: Routes.organization_path(conn, :display_search))
+    else
+      # redirect to rest with slug name in URL
+      reload_with_name_rest(conn, slug)
+    end
   end
 
   def new(conn, _params) do
@@ -39,10 +51,12 @@ defmodule TurnStileWeb.OrganizationController do
   end
   # takes ID or name
   def show(conn, %{"param" => param}) do
+    IO.inspect("XXX")
+    IO.inspect(param)
     # param is ID
     if TurnStile.Utils.is_digit(param) do
       organization = Company.get_organization!(param)
-      reload_with_name_rest(conn, organization)
+      reload_with_name_rest(conn, organization.slug)
     else
       organization = Company.get_organization_by_name!(param)
       render(conn, "show.html", organization: organization)
@@ -79,11 +93,11 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # reload to display rest with :slug not :id
-  defp reload_with_name_rest(conn, organization_map) do
-    redirect(conn, to: "/organizations/#{organization_map.slug}")
+  defp reload_with_name_rest(conn, organization_slug) do
+    redirect(conn, to: "/organizations/#{organization_slug}")
   end
   # check if org has members
   defp is_organiztion_setup do
-    IO.inpspect(Company.check_organization())
+    IO.inspect(Company.check_organization())
   end
 end

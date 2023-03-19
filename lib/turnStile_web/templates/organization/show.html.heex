@@ -19,5 +19,7 @@
 
 </ul>
 
-<span><%= link "Edit", to: Routes.organization_path(@conn, :edit, @organization) %></span> |
+<%= if @current_admin do %>
+  <span><%= link "Edit", to: Routes.organization_path(@conn, :edit, @organization) %></span> |
+<% end%>
 <span><%= link "Back", to: Routes.organization_path(@conn, :index) %></span>
