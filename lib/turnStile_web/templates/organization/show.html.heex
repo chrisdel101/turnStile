@@ -40,8 +40,9 @@
     </div>
   </.form>
 <% else %>
+  <% IO.inspect(@organization) %>
   <div>No Organization Members exist</div>
-  <span><%= link "Add Members", to: Routes.admin_registration_path(@conn, :new) %></span>
+  <span><%= link "Add _Members", to: Routes.admin_registration_path(@conn, :new, @organization.id) %></span>
 <% end %>
 
 <%= if @current_admin do %>

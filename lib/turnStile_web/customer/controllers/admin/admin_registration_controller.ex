@@ -8,7 +8,10 @@ defmodule TurnStileWeb.AdminRegistrationController do
 
   def new(conn, _params) do
     changeset = Administration.change_admin_registration(%Admin{})
-    render(conn, "new.html", changeset: changeset)
+    IO.inspect("HERE")
+    organization_id = conn.path_params["id"]
+    IO.inspect(conn.path_params["id"])
+    render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
 
   def create(conn, %{"admin" => admin_params}) do

@@ -137,13 +137,15 @@ defmodule TurnStileWeb.AdminAuth do
   they use the application at all, here would be a good place.
   """
   def require_authenticated_admin(conn, _opts) do
+    id = conn.path_params["id"]
+    # IO.inspect(id)
     if conn.assigns[:current_admin] do
       conn
     else
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: Routes.admin_session_path(conn, :new))
+      |> redirect(to: Routes.admin_session_path(conn, :new, id))
       |> halt()
     end
   end

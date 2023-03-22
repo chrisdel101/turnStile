@@ -5,7 +5,8 @@ defmodule TurnStileWeb.AdminSessionController do
   alias TurnStileWeb.AdminAuth
 
   def new(conn, _params) do
-    render(conn, "new.html", error_message: nil)
+    IO.inspect(conn.path_params["id"])
+    render(conn, "new.html", error_message: nil, id: conn.path_params["id"])
   end
 
   def create(conn, %{"admin" => admin_params}) do

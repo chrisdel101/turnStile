@@ -4,6 +4,7 @@ defmodule TurnStileWeb.Router do
   import TurnStileWeb.EmployeeAuth
 
   import TurnStileWeb.AdminAuth
+  import TurnStileWeb.OrganizationController
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -57,7 +58,7 @@ defmodule TurnStileWeb.Router do
 
   ## Authentication routes
 
-  scope "/", TurnStileWeb do
+  scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 
 
@@ -69,17 +70,23 @@ defmodule TurnStileWeb.Router do
     put "/admins/reset_password/:token", AdminResetPasswordController, :update
   end
 
-  scope "/", TurnStileWeb do
+  scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
 
-    get "/admins/register", AdminRegistrationController, :new
-    post "/admins/register", AdminRegistrationController, :create
     get "/admins/settings", AdminSettingsController, :edit
     put "/admins/settings", AdminSettingsController, :update
     get "/admins/settings/confirm_email/:token", AdminSettingsController, :confirm_email
   end
 
-  scope "/", TurnStileWeb do
+  scope "/organizations/:id", TurnStileWeb do
+    pipe_through [:browser, :req_auth_after_org_setup?]
+
+    get "/admins/register", AdminRegistrationController, :new
+    post "/admins/register", AdminRegistrationController, :create
+
+  end
+
+  scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser]
 
     delete "/admins/log_out", AdminSessionController, :delete
@@ -91,7 +98,7 @@ defmodule TurnStileWeb.Router do
 
     ## Authentication routes
 
-    scope "/", TurnStileWeb do
+    scope "/organizations/:id", TurnStileWeb do
       pipe_through [:browser, :redirect_if_employee_is_authenticated]
 
       get "/employees/register", EmployeeRegistrationController, :new
@@ -104,7 +111,7 @@ defmodule TurnStileWeb.Router do
       put "/employees/reset_password/:token", EmployeeResetPasswordController, :update
     end
 
-    scope "/", TurnStileWeb do
+    scope "/organizations/:id", TurnStileWeb do
       pipe_through [:browser, :require_authenticated_employee]
 
       get "/employees/settings", EmployeeSettingsController, :edit
@@ -112,7 +119,7 @@ defmodule TurnStileWeb.Router do
       get "/employees/settings/confirm_email/:token", EmployeeSettingsController, :confirm_email
     end
 
-    scope "/", TurnStileWeb do
+    scope "/organizations/:id", TurnStileWeb do
       pipe_through [:browser]
 
       delete "/employees/log_out", EmployeeSessionController, :delete
@@ -127,13 +134,14 @@ defmodule TurnStileWeb.Router do
 
     get "/", PageController, :index
     get "/setup", SetupController, :new
-    get "/organizations/search", OrganizationController, :display_search
-    post "/organizations/search", OrganizationController, :execute_search
+    get "/organizations/search", OrganizationController, :search_get
+    post "/organizations/search", OrganizationController, :search_post
 
 
-    resources "/admins", AdminController
+    resources "/organizations", OrganizationController, except: [:show] do
+        resources "/admins", AdminController
+      end
     resources "/employees", EmployeeController
-    resources "/organizations", OrganizationController, except: [:show]
 
     get "/organizations/:param", OrganizationController, :show
 
