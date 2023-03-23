@@ -14,7 +14,7 @@ defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
-      add :admin_id, references("admins")
+      add :admin_id, references("admins"),  null: false
       timestamps()
     end
 

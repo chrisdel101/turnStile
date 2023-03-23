@@ -7,7 +7,7 @@ defmodule TurnStile.Company.Organization do
     field :name, :string
     field :slug, :string
     field :phone, :string
-
+    has_many :admin, TurnStile.Administration.Admin
     timestamps()
   end
 

@@ -4,6 +4,7 @@ defmodule TurnStileWeb.AdminRegistrationController do
   alias TurnStile.Administration
   alias TurnStile.Administration.Admin
   alias TurnStileWeb.AdminAuth
+  # alias TurnStile.Company.Organization
 
 
   def new(conn, _params) do
@@ -17,9 +18,6 @@ defmodule TurnStileWeb.AdminRegistrationController do
   def create(conn, %{"admin" => admin_params}) do
     IO.inspect("Admin: create")
     IO.inspect(%{"admin" => admin_params})
-    if  do
-
-    end
     current_admin = conn.assigns[:current_admin]
     current_user_permission = TurnStile.Utils.define_permissions_level(current_admin.role)
 
