@@ -16,7 +16,10 @@ defmodule TurnStileWeb.AdminRegistrationController do
 
   def create(conn, %{"admin" => admin_params}) do
     IO.inspect("Admin: create")
-    # IO.inspect(%{"admin" => admin_params})
+    IO.inspect(%{"admin" => admin_params})
+    if  do
+
+    end
     current_admin = conn.assigns[:current_admin]
     current_user_permission = TurnStile.Utils.define_permissions_level(current_admin.role)
 
