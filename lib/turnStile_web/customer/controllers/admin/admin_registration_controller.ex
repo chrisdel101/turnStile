@@ -70,6 +70,10 @@ defmodule TurnStileWeb.AdminRegistrationController do
         |> put_flash(:error, "Organization already setup. Login is required")
         |> redirect(to: Routes.page_path(conn, :index))
       else
+        # add organization_id
+        admin_params = Map.put(admin_params, "organization_id", organization_id)
+        IO.inspect('XXXXXXX')
+        IO.inspect(admin_params)
         # create owner
         case Administration.register_admin(admin_params) do
           {:ok, admin} ->
@@ -84,7 +88,7 @@ defmodule TurnStileWeb.AdminRegistrationController do
             |> AdminAuth.log_in_admin(admin)
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            render(conn, "new.html", changeset: changeset)
+            render(conn, "new.html", changeset: changeset, organization_id: organization_id)
         end
       end
     else

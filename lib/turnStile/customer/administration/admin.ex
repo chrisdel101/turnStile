@@ -14,7 +14,7 @@ defmodule TurnStile.Administration.Admin do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-    has_many :employess, TurnStile.Staff.Employee
+    has_many :employees, TurnStile.Staff.Employee
     belongs_to :organization, TurnStile.Company.Organization
     timestamps()
   end
@@ -37,12 +37,13 @@ defmodule TurnStile.Administration.Admin do
         Defaults to `true`.
     """
 
-  # Used for owners to create admins maybe
+  #Not sure of diff right now - Used for owners to create admins maybe?
   def changeset(admin, attrs, opts \\ []) do
     IO.puts("admin changeset")
     IO.inspect(attrs)
     admin
-    |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password])
+    |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password, :organization_id])
+    |> validate_required([:organization_id])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
@@ -53,7 +54,8 @@ defmodule TurnStile.Administration.Admin do
     # IO.puts("attrs")
     IO.inspect(attrs)
     admin
-    |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password])
+    |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password,  :organization_id])
+    |> validate_required([:organization_id])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
@@ -72,7 +74,7 @@ defmodule TurnStile.Administration.Admin do
     |> unique_constraint(:email)
   end
 
-  defp validate_password(changeset, opts) do
+  defp validate_password(changeset, _opts) do
     changeset
     |> validate_required([:password])
     # make it 6 in dev - change back later
