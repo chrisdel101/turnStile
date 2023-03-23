@@ -15,9 +15,9 @@ defmodule TurnStile.CompanyTest do
       assert Company.list_organizations() == [organization]
     end
 
-    test "get_organization!/1 returns the organization with given id" do
+    test "get_organization/1 returns the organization with given id" do
       organization = organization_fixture()
-      assert Company.get_organization!(organization.id) == organization
+      assert Company.get_organization(organization.id) == organization
     end
 
     test "create_organization/1 with valid data creates a organization" do
@@ -46,13 +46,13 @@ defmodule TurnStile.CompanyTest do
     test "update_organization/2 with invalid data returns error changeset" do
       organization = organization_fixture()
       assert {:error, %Ecto.Changeset{}} = Company.update_organization(organization, @invalid_attrs)
-      assert organization == Company.get_organization!(organization.id)
+      assert organization == Company.get_organization(organization.id)
     end
 
     test "delete_organization/1 deletes the organization" do
       organization = organization_fixture()
       assert {:ok, %Organization{}} = Company.delete_organization(organization)
-      assert_raise Ecto.NoResultsError, fn -> Company.get_organization!(organization.id) end
+      assert_raise Ecto.NoResultsError, fn -> Company.get_organization(organization.id) end
     end
 
     test "change_organization/1 returns a organization changeset" do

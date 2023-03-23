@@ -31,9 +31,9 @@ defmodule TurnStile.Utils do
 # checks persmission level of input role
 # IN: role: string
 # OUT: int 1-3 from PermissionValues
-  def define_permissions_level(role) do
+  def get_permissions_level_int(role) do
       # role = current_user.role
-      IO.puts("define_permissions_level Role: ")
+      IO.puts("get_permissions_level_int Role: ")
       # IO.inspect(Enum.member?(PermissionGroups.get_admin_roles, role))
       IO.inspect(role)
       cond do

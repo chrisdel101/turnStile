@@ -29,19 +29,19 @@ defmodule TurnStile.Company do
 
   ## Examples
 
-      iex> get_organization!(123)
+      iex> get_organization(123)
       %Organization{}
 
-      iex> get_organization!(456)
+      iex> get_organization(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_organization!(id)  do
+  def get_organization(id)  do
      Repo.get(Organization, id)
   end
 
 
-  def get_organization_by_name!(slug) do
+  def get_organization_by_name(slug) do
     TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
   end
   @doc """
@@ -109,8 +109,9 @@ defmodule TurnStile.Company do
     Organization.changeset(organization, attrs)
   end
 
-  def check_organization() do
+  def check_organization_has_admins(id) do
     q = from a in Admin,
+     where: a.organization_id == ^id,
      select: a.id
     Repo.all(q)
   end

@@ -79,7 +79,7 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations/:id", TurnStileWeb do
-    pipe_through [:browser, :req_auth_after_org_setup?]
+    pipe_through [:browser, :organization_setup?,:req_auth_after_org_setup?]
 
     get "/admins/register", AdminRegistrationController, :new
     post "/admins/register", AdminRegistrationController, :create

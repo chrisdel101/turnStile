@@ -34,28 +34,40 @@ defmodule TurnStileWeb.OrganizationController do
   def show(conn, %{"param" => param}) do
     IO.inspect("SHOW")
     IO.inspect(param)
-
-    members? = organization_has_members?()
-
+    # confirms org is setup
     changeset = Company.change_organization(%Organization{})
     # param is ID in URL
     if TurnStile.Utils.is_digit(param) do
-      organization = Company.get_organization!(param)
+      organization = Company.get_organization(param)
+       #  if org doesn't exist
+      if !organization do
+        conn
+        |> put_flash(:info, "That Organization doesn't exist. Create it to continue.")
+        |> redirect(to: Routes.organization_path(conn, :new))
+      end
       reload_with_name_rest(conn, organization.slug, changeset: changeset)
     else
-      organization = Company.get_organization_by_name!(param)
+      organization = Company.get_organization_by_name(param)
+      # if org doesn't exist
+      if !organization do
+        conn
+        |> put_flash(:info, "That Organization doesn't exist. Create it to continue.")
+        |> redirect(to: Routes.organization_path(conn, :new))
+      end
+
+      members? = organization_has_members?(organization.id)
       render(conn, "show.html", organization: organization, changeset: changeset, members?: members?)
     end
   end
 
   def edit(conn, %{"id" => id}) do
-    organization = Company.get_organization!(id)
+    organization = Company.get_organization(id)
     changeset = Company.change_organization(organization)
     render(conn, "edit.html", organization: organization, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "organization" => organization_params}) do
-    organization = Company.get_organization!(id)
+    organization = Company.get_organization(id)
 
     case Company.update_organization(organization, organization_params) do
       {:ok, organization} ->
@@ -69,7 +81,7 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def delete(conn, %{"id" => id}) do
-    organization = Company.get_organization!(id)
+    organization = Company.get_organization(id)
     {:ok, _organization} = Company.delete_organization(organization)
 
     conn
@@ -81,23 +93,41 @@ defmodule TurnStileWeb.OrganizationController do
   defp reload_with_name_rest(conn, organization_slug, changeset: changeset) do
     redirect(conn, to: "/organizations/#{organization_slug}", changeset: changeset)
   end
-  # check if org has members
-  def organization_has_members? do
-    members? = Company.check_organization()
+  # check if org has admin members
+  def organization_has_members?(id) do
+    members? = Company.check_organization_has_admins(id)
     if !members? or length(members?) === 0 do
       false
     else
       true
     end
   end
-  # used above func logic but use conn and halt ops
+  def organization_setup?(conn, _opts) do
+    organization_id = conn.params["id"]
+    organization? = Company.get_organization(organization_id)
+    IO.inspect("EREWER")
+    IO.inspect(organization?)
+    if !organization? do
+      conn
+      |> put_flash(:error, "That organization is not setup yet. Setup it to continue. ")
+      |> redirect(to: Routes.organization_path(conn, :new))
+    end
+    conn
+  end
+  # if org is not setup block request
+  # if org is setup, but as no members, allow first time setup reg
+  # else require auth
   def req_auth_after_org_setup?(conn, _opts) do
     # if members exist require auth
-    if organization_has_members?() do
+    organization_id = conn.params["id"]
+    if organization_has_members?(organization_id) do
+      assign(conn, :current_organization_setup, true)
       # this halts if not authenticated
+
       for_arity_error = [] # THIS NEED FIXING
       AdminAuth.require_authenticated_admin(conn, for_arity_error)
     else
+      assign(conn, :current_organization_setup, false)
       # if no members, allow first time setup reg
       conn
     end
@@ -114,7 +144,7 @@ defmodule TurnStileWeb.OrganizationController do
     # slugigy param
     slug = Slug.slugify(params["organization"]["name"] || "")
     # check if org name exists
-    organization = Company.get_organization_by_name!(slug)
+    organization = Company.get_organization_by_name(slug)
     if !organization do
       conn
       |> put_flash(:error, "No organization by that name.")
