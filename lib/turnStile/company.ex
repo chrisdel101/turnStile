@@ -109,10 +109,29 @@ defmodule TurnStile.Company do
     Organization.changeset(organization, attrs)
   end
 
+  # utilitites
   def check_organization_has_admins(id) do
     q = from a in Admin,
      where: a.organization_id == ^id,
      select: a.id
     Repo.all(q)
+  end
+
+  def check_organization_exists_by_id(id) do
+    q = from o in Organization,
+     where: o.id == ^id
+    #  select:
+    x = Repo.all(q)
+    IO.inspect('ORGANIZATION EXISTS?')
+    IO.inspect(x)
+  end
+
+  def check_organization_exists_by_slug(slug) do
+    q = from o in Organization,
+     where: o.slug == ^slug
+    #  select:
+    x = Repo.all(q)
+    IO.inspect('ORGANIZATION EXISTS?')
+    IO.inspect(x)
   end
 end

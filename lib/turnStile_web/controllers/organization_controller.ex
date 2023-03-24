@@ -19,17 +19,25 @@ defmodule TurnStileWeb.OrganizationController do
   def create(conn, %{"organization" => organization_params}) do
     slug = Slug.slugify(organization_params["name"])
     organization_params = Map.put(organization_params, "slug", slug)
-    # IO.inspect(organization_params)
-    case Company.create_organization(organization_params) do
-      {:ok, organization} ->
-        conn
-        |> put_flash(:info, "Organization created successfully.")
-        |> redirect(to: Routes.organization_path(conn, :show, organization))
-
+    organizations? = Company.check_organization_exists_by_slug(slug)
+    # don't allow duplicate org names
+    if length(organizations?) !== 0 do
+      conn
+      |> put_flash(:info, "That Organization already exists. Try another name.")
+      |> redirect(to: Routes.organization_path(conn, :new))
+    # if doesn't already exist, allow create
+    else
+      case Company.create_organization(organization_params) do
+        {:ok, organization} ->
+          conn
+          |> put_flash(:info, "Organization created successfully.")
+          |> redirect(to: Routes.organization_path(conn, :show, organization))
         {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
+          render(conn, "new.html", changeset: changeset)
+      end
     end
   end
+
   # takes ID or name
   def show(conn, %{"param" => param}) do
     IO.inspect("SHOW")
@@ -39,15 +47,18 @@ defmodule TurnStileWeb.OrganizationController do
     # param is ID in URL
     if TurnStile.Utils.is_digit(param) do
       organization = Company.get_organization(param)
-       #  if org doesn't exist
+      #  if org doesn't exist
       if !organization do
         conn
         |> put_flash(:info, "That Organization doesn't exist. Create it to continue.")
         |> redirect(to: Routes.organization_path(conn, :new))
       end
+
       reload_with_name_rest(conn, organization.slug, changeset: changeset)
     else
       organization = Company.get_organization_by_name(param)
+      IO.inspect("XXXX")
+      IO.inspect(organization)
       # if org doesn't exist
       if !organization do
         conn
@@ -56,7 +67,12 @@ defmodule TurnStileWeb.OrganizationController do
       end
 
       members? = organization_has_members?(organization.id)
-      render(conn, "show.html", organization: organization, changeset: changeset, members?: members?)
+
+      render(conn, "show.html",
+        organization: organization,
+        changeset: changeset,
+        members?: members?
+      )
     end
   end
 
@@ -75,9 +91,9 @@ defmodule TurnStileWeb.OrganizationController do
         |> put_flash(:info, "Organization updated successfully.")
         |> redirect(to: Routes.organization_path(conn, :show, organization))
 
-        {:error, %Ecto.Changeset{} = changeset} ->
-          render(conn, "edit.html", organization: organization, changeset: changeset)
-        end
+      {:error, %Ecto.Changeset{} = changeset} ->
+        render(conn, "edit.html", organization: organization, changeset: changeset)
+    end
   end
 
   def delete(conn, %{"id" => id}) do
@@ -93,38 +109,46 @@ defmodule TurnStileWeb.OrganizationController do
   defp reload_with_name_rest(conn, organization_slug, changeset: changeset) do
     redirect(conn, to: "/organizations/#{organization_slug}", changeset: changeset)
   end
+
   # check if org has admin members
   def organization_has_members?(id) do
     members? = Company.check_organization_has_admins(id)
+
     if !members? or length(members?) === 0 do
       false
     else
       true
     end
   end
+
   def organization_setup?(conn, _opts) do
     organization_id = conn.params["id"]
     organization? = Company.get_organization(organization_id)
     IO.inspect("EREWER")
     IO.inspect(organization?)
+
     if !organization? do
       conn
       |> put_flash(:error, "That organization is not setup yet. Setup it to continue. ")
       |> redirect(to: Routes.organization_path(conn, :new))
     end
+
     conn
   end
+
   # if org is not setup block request
   # if org is setup, but as no members, allow first time setup reg
   # else require auth
   def req_auth_after_org_setup?(conn, _opts) do
     # if members exist require auth
     organization_id = conn.params["id"]
+
     if organization_has_members?(organization_id) do
       assign(conn, :current_organization_setup, true)
       # this halts if not authenticated
 
-      for_arity_error = [] # THIS NEED FIXING
+      # THIS NEED FIXING
+      for_arity_error = []
       AdminAuth.require_authenticated_admin(conn, for_arity_error)
     else
       assign(conn, :current_organization_setup, false)
@@ -139,12 +163,14 @@ defmodule TurnStileWeb.OrganizationController do
     organizations = Company.list_organizations()
     render(conn, "search.html", changeset: changeset, organizations: organizations)
   end
+
   # execute search bar for organizations, direct to show page or show error
   def search_post(conn, params) do
     # slugigy param
     slug = Slug.slugify(params["organization"]["name"] || "")
     # check if org name exists
     organization = Company.get_organization_by_name(slug)
+
     if !organization do
       conn
       |> put_flash(:error, "No organization by that name.")
@@ -152,7 +178,7 @@ defmodule TurnStileWeb.OrganizationController do
     else
       # redirect to rest using ID - will redriect to name auto
       # Kernal.inpsect makes id a string
-      show(conn, %{"param"=> Kernel.inspect(organization.id)})
+      show(conn, %{"param" => Kernel.inspect(organization.id)})
     end
   end
 end
