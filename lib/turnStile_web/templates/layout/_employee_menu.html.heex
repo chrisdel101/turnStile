@@ -1,9 +1,9 @@
 <ul>
 <%= if @current_employee do %>
   <li><%= @current_employee.email %></li>
-  <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit) %></li>
-  <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete), method: :delete %></li>
+  <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit, 1) %></li>
+  <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete, 1), method: :delete %></li>
 <% else %>
-  <li><%= link "Employee Log in", to: Routes.employee_session_path(@conn, :new) %></li>
+  <li><%= link "Employee Log in", to: Routes.employee_session_path(@conn, :new, 1) %></li>
 <% end %>
 </ul>

@@ -439,7 +439,7 @@ defmodule TurnStile.Administration do
       %Todo{...}
 
   """
-  def change_admin(%Admin{} = admin, _attrs \\ %{}) do
-    raise "TODO"
+  def change_admin(%Admin{} = admin, attrs \\ %{}) do
+    Admin.changeset(admin, attrs)
   end
 end

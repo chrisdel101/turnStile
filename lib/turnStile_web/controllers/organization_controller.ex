@@ -1,9 +1,11 @@
 defmodule TurnStileWeb.OrganizationController do
   use TurnStileWeb, :controller
 
+  alias TurnStile.Administration
   alias TurnStile.Company
   alias TurnStile.Company.Organization
   alias TurnStileWeb.AdminAuth
+  alias TurnStile.Administration.Admin
 
   def index(conn, _params) do
     # only app in-company app developers can see this
@@ -43,7 +45,6 @@ defmodule TurnStileWeb.OrganizationController do
     IO.inspect("SHOW")
     IO.inspect(param)
     # confirms org is setup
-    changeset = Company.change_organization(%Organization{})
     # param is ID in URL
     if TurnStile.Utils.is_digit(param) do
       organization = Company.get_organization(param)
@@ -54,7 +55,7 @@ defmodule TurnStileWeb.OrganizationController do
         |> redirect(to: Routes.organization_path(conn, :new))
       end
 
-      reload_with_name_rest(conn, organization.slug, changeset: changeset)
+      reload_with_name_rest(conn, organization.slug)
     else
       organization = Company.get_organization_by_name(param)
       IO.inspect("XXXX")
@@ -67,11 +68,12 @@ defmodule TurnStileWeb.OrganizationController do
       end
 
       members? = organization_has_members?(organization.id)
-
+      admin_changeset = Administration.change_admin(%Admin{})
       render(conn, "show.html",
         organization: organization,
-        changeset: changeset,
-        members?: members?
+        changeset: admin_changeset,
+        members?: members?,
+        organization_id: organization.id
       )
     end
   end
@@ -106,8 +108,8 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # reload to display rest with :slug not :id
-  defp reload_with_name_rest(conn, organization_slug, changeset: changeset) do
-    redirect(conn, to: "/organizations/#{organization_slug}", changeset: changeset)
+  defp reload_with_name_rest(conn, organization_slug) do
+    redirect(conn, to: "/organizations/#{organization_slug}")
   end
 
   # check if org has admin members

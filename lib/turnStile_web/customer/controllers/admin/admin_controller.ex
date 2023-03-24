@@ -6,7 +6,8 @@ defmodule TurnStileWeb.AdminController do
 
   def index(conn, _params) do
     admins = Administration.list_admins()
-    render(conn, "index.html", admins: admins)
+    organization_id = conn.params["id"]
+    render(conn, "index.html", admins: admins, organization_id: organization_id)
   end
 
   def new(conn, _params) do

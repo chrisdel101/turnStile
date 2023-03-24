@@ -24,14 +24,13 @@
             <li><%= link "Organization Login", to: "/organizations/search" %></li>
           <% end %>
             <li><%= link "Home", to: "/" %></li>
-          <!--
           <%= if !assigns[:admins] do %>
             <div>TODO setup</div>
           <% else %>
             <%= render "_admin_menu.html", assigns %>
-            <%= render "_employee_menu.html", assigns %>
+
           <% end %>
-          -->
+
         </nav>
         <a href="https://phoenixframework.org/" class="phx-logo">
           <img src={Routes.static_path(@conn, "/images/phoenix.png")} alt="Phoenix Framework Logo"/>

@@ -11,7 +11,6 @@ defmodule TurnStileWeb.AdminSessionController do
 
   def create(conn, %{"admin" => admin_params}) do
     %{"email" => email, "password" => password} = admin_params
-
     if admin = Administration.get_admin_by_email_and_password(email, password) do
       AdminAuth.log_in_admin(conn, admin, admin_params)
     else

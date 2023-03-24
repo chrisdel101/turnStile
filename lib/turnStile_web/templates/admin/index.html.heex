@@ -22,9 +22,9 @@
         Role: <%= admin.role %>
         |
       </span>
-        <span><%= link "Show", to: Routes.admin_path(@conn, :show, admin) %></span>
-        <span><%= link "Edit", to: Routes.admin_path(@conn, :edit, admin) %></span>
-        <span><%= link "Delete", to: Routes.admin_path(@conn, :delete, admin), method: :delete, data: [confirm: "Are you sure?"] %></span>
+        <span><%= link "Show", to: Routes.organization_admin_path(@conn, :show, admin.organization_id, admin.id) %></span>
+        <span><%= link "Edit", to: Routes.organization_admin_path(@conn, :edit, admin.organization_id, admin.id) %></span>
+        <span><%= link "Delete", to: Routes.organization_admin_path(@conn, :delete,  admin.organization_id, admin.id), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
     </tr>
 <% end %>
