@@ -3,6 +3,7 @@ defmodule TurnStileWeb.AdminAuth do
   import Phoenix.Controller
 
   alias TurnStile.Administration
+  alias TurnStile.Administration.Admin
   alias TurnStileWeb.Router.Helpers, as: Routes
 
   # Make the remember me cookie valid for 60 days.
@@ -25,14 +26,30 @@ defmodule TurnStileWeb.AdminAuth do
   if you are not using LiveView.
   """
   def log_in_admin(conn, admin, params \\ %{}) do
+
+    organization_id = conn.path_params["id"]
+    if !organization_id do
+      conn
+      |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
+      |> redirect(to: Routes.organization_path(conn, :show))
+    end
+    # confirm this admin is in the correct organization
+    is_in_organization? = Administration.check_admin_is_in_organization(admin,organization_id)
+    if !is_in_organization? do
+      conn
+      |> put_flash(:error, "Admin is not in the correct organization.")
+      |> redirect(to: "/organizations/#{conn.path_params["id"]}")
+    end
     token = Administration.generate_admin_session_token(admin)
     admin_return_to = get_session(conn, :admin_return_to)
     conn
+    |> halt()
+
     |> renew_session()
     |> put_session(:admin_token, token)
     |> put_session(:live_socket_id, "admins_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: admin_return_to || signed_in_path(conn))
+    |> redirect(to: signed_in_path(conn)|| admin_return_to )
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -137,7 +154,6 @@ defmodule TurnStileWeb.AdminAuth do
   """
   def require_authenticated_admin(conn, _opts) do
     id = conn.path_params["id"]
-    # IO.inspect(id)
     if conn.assigns[:current_admin] do
       conn
     else

@@ -25,6 +25,7 @@
           <p>Oops, something went wrong! Please check the errors below.</p>
         </div>
       <% end %>
+
     <.form let={f} for={@changeset} action={Routes.admin_session_path(@conn, :create, @organization_id)}>
 
       <%= label f, :email %>
@@ -40,7 +41,6 @@
       </div>
     </.form>
 <% else %>
-  <% IO.inspect(@organization) %>
   <div>No Organization Members exist</div>
   <span><%= link "Add _Members", to: Routes.admin_registration_path(@conn, :new, @organization.id) %></span>
 <% end %>

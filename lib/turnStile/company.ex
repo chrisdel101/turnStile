@@ -121,17 +121,13 @@ defmodule TurnStile.Company do
     q = from o in Organization,
      where: o.id == ^id
     #  select:
-    x = Repo.all(q)
-    IO.inspect('ORGANIZATION EXISTS?')
-    IO.inspect(x)
+    Repo.all(q)
   end
 
   def check_organization_exists_by_slug(slug) do
     q = from o in Organization,
      where: o.slug == ^slug
     #  select:
-    x = Repo.all(q)
-    IO.inspect('ORGANIZATION EXISTS?')
-    IO.inspect(x)
+    Repo.all(q)
   end
 end

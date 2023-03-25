@@ -41,9 +41,7 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # takes ID or name
-  def show(conn, %{"param" => param}) do
-    IO.inspect("SHOW")
-    IO.inspect(param)
+  def show(conn, %{"param" => param}) do    IO.inspect(param)
     # confirms org is setup
     # param is ID in URL
     if TurnStile.Utils.is_digit(param) do
@@ -58,8 +56,7 @@ defmodule TurnStileWeb.OrganizationController do
       reload_with_name_rest(conn, organization.slug)
     else
       organization = Company.get_organization_by_name(param)
-      IO.inspect("XXXX")
-      IO.inspect(organization)
+      # IO.inspect(conn)
       # if org doesn't exist
       if !organization do
         conn
@@ -127,8 +124,6 @@ defmodule TurnStileWeb.OrganizationController do
   def organization_setup?(conn, _opts) do
     organization_id = conn.params["id"]
     organization? = Company.get_organization(organization_id)
-    IO.inspect("EREWER")
-    IO.inspect(organization?)
 
     if !organization? do
       conn

@@ -20,15 +20,21 @@
             <% end %>
           </ul>
           <%!-- if index page --%>
-          <%= if assigns.conn.request_path == "/" do %>
-            <li><%= link "Setup New Organization", to:  Routes.organization_path(@conn, :new)%></li>
-            <li><%= link "Organization Login", to: "/organizations/search" %></li>
-          <% end %>
+
+          <!-- comment -->
+          <%!--<%= if assigns.conn.request_path == "/" do %>--%>
+
+
+            <li><%= link "Setup Organization", to:  Routes.organization_path(@conn, :new)%></li>
+            <li><%= link "Login", to: "/organizations/search" %></li>
+            <li><%= link "List Organizations", to: "/organizations" %></li>
+
+             <!-- comment -->
+           <%!--<% end %>--%>
+
             <li><%= link "Home", to: "/" %></li>
-          <%= if assigns[:admins] do %>
             <%= render "_admin_menu.html", assigns %>
 
-          <% end %>
 
         </nav>
         <a href="https://phoenixframework.org/" class="phx-logo">

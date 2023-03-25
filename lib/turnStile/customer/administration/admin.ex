@@ -40,7 +40,6 @@ defmodule TurnStile.Administration.Admin do
   #Not sure of diff right now - Used for owners to create admins maybe?
   def changeset(admin, attrs, opts \\ []) do
     IO.puts("admin changeset")
-    IO.inspect(attrs)
     admin
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password, :organization_id])
     |> validate_required([:organization_id])
@@ -52,7 +51,6 @@ defmodule TurnStile.Administration.Admin do
   def registration_changeset(admin, attrs, opts \\ []) do
     IO.puts("admim registration_changeset")
     # IO.puts("attrs")
-    IO.inspect(attrs)
     admin
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password,  :organization_id])
     |> validate_required([:organization_id])
@@ -63,7 +61,6 @@ defmodule TurnStile.Administration.Admin do
   end
 
   defp validate_email(changeset) do
-    IO.inspect(changeset)
     changeset
     |> validate_required([:email])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
@@ -95,12 +92,9 @@ defmodule TurnStile.Administration.Admin do
       |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
       |> delete_change(:password)
 
-    #  IO.inspect( "changeset")
-    # IO.inspect(changeset)
     else
       changeset
     end
-    # IO.inspect( hashed_password)
     # IO.inspect("PW", password)
   end
 

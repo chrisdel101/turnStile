@@ -5,7 +5,6 @@ defmodule TurnStileWeb.AdminSessionController do
   alias TurnStileWeb.AdminAuth
 
   def new(conn, _params) do
-    IO.inspect(conn.path_params["id"])
     render(conn, "new.html", error_message: nil, id: conn.path_params["id"])
   end
 
@@ -15,7 +14,10 @@ defmodule TurnStileWeb.AdminSessionController do
       AdminAuth.log_in_admin(conn, admin, admin_params)
     else
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
-      render(conn, "new.html", error_message: "Invalid email or password")
+
+      conn
+      |> put_flash(:error, "Invalid email or password. Try again")
+      |> redirect(to: "/organizations/#{conn.path_params["id"]}")
     end
   end
 

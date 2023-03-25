@@ -77,9 +77,7 @@ defmodule TurnStileWeb.AdminController do
 # takes the form value maps to correct permission role
   def assign_permission_role(conn) do
     current_role = conn.assigns[:current_admin].role
-    # IO.inspect(current_role)
-    # IO.inspect(to_string(Enum.at(AdminRolesEnum.get_roles, 0)))
-    # IO.inspect(to_string(Enum.at(AdminRolesEnum.get_roles, 0)) === current_role)
+
     cond do
       # owner
       current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 0))  ->

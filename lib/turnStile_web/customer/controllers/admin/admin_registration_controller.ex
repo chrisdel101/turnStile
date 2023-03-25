@@ -9,20 +9,16 @@ defmodule TurnStileWeb.AdminRegistrationController do
   def new(conn, _params) do
     changeset = Administration.change_admin_registration(%Admin{})
     organization_id = conn.path_params["id"]
-    # IO.inspect(conn.path_params["id"])
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
 
   def create(conn, %{"admin" => admin_params}) do
-    IO.inspect("Admin: create")
-    IO.inspect(%{"admin" => admin_params})
     current_admin = conn.assigns[:current_admin]
     # setup organization process
     if !current_admin do
       setup_initial_owner(conn, %{"admin" => admin_params})
     else
       organization_id = conn.path_params["id"]
-      IO.inspect("create_NON_setup_owner ORG ID: #{organization_id}")
       if !organization_id do
         conn
         |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
@@ -109,7 +105,6 @@ defmodule TurnStileWeb.AdminRegistrationController do
   defp setup_initial_owner(conn, %{"admin" => admin_params}) do
     # confirm org exists
     organization_id = conn.path_params["id"]
-    IO.inspect("create_setup_owner ORG ID: #{organization_id}")
     organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
     # check if org already exis
     if length(organizations?) === 1 do
@@ -124,7 +119,6 @@ defmodule TurnStileWeb.AdminRegistrationController do
       else
         # add organization_id to params
         admin_params = Map.put(admin_params, "organization_id", organization_id)
-        # IO.inspect(&1)
         # create owner
         case Administration.register_admin(admin_params) do
           {:ok, admin} ->

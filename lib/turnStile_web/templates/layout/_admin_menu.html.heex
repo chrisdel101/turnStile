@@ -1,5 +1,7 @@
 <ul>
   <%= if @current_admin do %>
+
+
     <li>Email: <%= @current_admin.email %></li>
     <li>Role: <%= @current_admin.role %></li>
     <li>Org: <%= @current_admin.organization_id %></li>
@@ -14,9 +16,8 @@
         <li><%= link "Register New Staff", to: Routes.admin_registration_path(@conn, :new,@current_admin.organization_id) %></li>
     <% end %>
 
+
     <li><%= link "Log out", to: Routes.admin_session_path(@conn, :delete, @current_admin.organization_id), method: :delete %></li>
 
-  <% else %>
-    <li><%= link "Admin Log in", to: Routes.admin_session_path(@conn, :new, @conn.params["organization_id"]) %></li>
   <% end %>
 </ul>

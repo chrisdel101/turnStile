@@ -5,7 +5,8 @@ defmodule TurnStile.Administration do
 
   import Ecto.Query, only: [from: 2], warn: false
   alias TurnStile.Repo
-
+  alias TurnStile.Company
+  alias TurnStile.Company.Organization
   alias TurnStile.Administration.{Admin, AdminToken, AdminNotifier}
 
   ## Database getters
@@ -369,6 +370,7 @@ defmodule TurnStile.Administration do
   end
 
   def list_admins_by_organization(organization_id) do
+    # IO.inspect(organization_id)
     q = from a in Admin,
     where: a.organization_id == ^organization_id,
     select: a
@@ -448,5 +450,20 @@ defmodule TurnStile.Administration do
   """
   def change_admin(%Admin{} = admin, attrs \\ %{}) do
     Admin.changeset(admin, attrs)
+  end
+
+  def check_admin_is_in_organization(admin, organization_id) do
+    organization = Company.get_organization(organization_id)
+    IO.inspect("check_admin_is_in_organization")
+    IO.inspect(organization)
+    if organization do
+      if organization.id == admin.organization_id do
+        true
+      else
+        false
+      end
+    else
+      false
+    end
   end
 end
