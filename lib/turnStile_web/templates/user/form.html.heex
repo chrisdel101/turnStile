@@ -5,9 +5,13 @@
     </div>
   <% end %>
 
-  <%= label f, :name %>
-  <%= text_input f, :name %>
-  <%= error_tag f, :name %>
+  <%= label f, :first_name %>
+  <%= text_input f, :first_name %>
+  <%= error_tag f, :first_name %>
+
+  <%= label f, :last_name %>
+  <%= text_input f, :last_name %>
+  <%= error_tag f, :last_name %>
 
   <%= label f, :email %>
   <%= text_input f, :email %>
@@ -16,6 +20,10 @@
   <%= label f, :phone %>
   <%= text_input f, :phone %>
   <%= error_tag f, :phone %>
+
+  <%= label f, :health_card_num %>
+  <%= number_input f, :health_card_num %>
+  <%= error_tag f, :health_card_num %>
 
   <div>
     <%= submit "Save" %>

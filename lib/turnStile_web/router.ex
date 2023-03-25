@@ -142,7 +142,7 @@ defmodule TurnStileWeb.Router do
         resources "/admins", AdminController
       end
     # resources "/employees", EmployeeController
-
+    resources "/users", UserController
     get "/organizations/:param", OrganizationController, :show
 
   end

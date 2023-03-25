@@ -13,7 +13,7 @@ defmodule TurnStile.Company.Organization do
 
   @doc false
   def changeset(organization, attrs) do
-    IO.inspect(attrs)
+    # IO.inspect(attrs)
     organization
     |> cast(attrs, [:name, :email, :phone, :slug])
     |> validate_required([:name, :email, :phone, :slug])
