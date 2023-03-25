@@ -513,9 +513,9 @@ defmodule TurnStile.AdministrationTest do
 
     @invalid_attrs %{}
 
-    test "list_admins/0 returns all admins" do
+    test "list_all_admins/0 returns all admins" do
       admin = admin_fixture()
-      assert Administration.list_admins() == [admin]
+      assert Administration.list_all_admins() == [admin]
     end
 
     test "get_admin!/1 returns the admin with given id" do

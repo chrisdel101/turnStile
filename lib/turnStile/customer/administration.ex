@@ -358,14 +358,21 @@ defmodule TurnStile.Administration do
 
   ## Examples
 
-      iex> list_admins()
+      iex> list_all_admins()
       [%Admin{}, ...]
 
   """
-  def list_admins do
+  def list_all_admins do
     # query all
     query = from(a in Admin, select: a)
     Repo.all(query)
+  end
+
+  def list_admins_by_organization(organization_id) do
+    q = from a in Admin,
+    where: a.organization_id == ^organization_id,
+    select: a
+    Repo.all(q)
   end
 
   @doc """

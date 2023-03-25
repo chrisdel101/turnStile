@@ -27,7 +27,6 @@ defmodule TurnStileWeb.AdminAuth do
   def log_in_admin(conn, admin, params \\ %{}) do
     token = Administration.generate_admin_session_token(admin)
     admin_return_to = get_session(conn, :admin_return_to)
-
     conn
     |> renew_session()
     |> put_session(:admin_token, token)
@@ -156,5 +155,8 @@ defmodule TurnStileWeb.AdminAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(_conn), do: "/"
+  defp signed_in_path(conn) do
+    organization_id = conn.params["organization_id"]
+    "/organizations/#{organization_id}/admin"
+  end
 end

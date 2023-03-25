@@ -114,7 +114,8 @@ defmodule TurnStileWeb.OrganizationController do
 
   # check if org has admin members
   def organization_has_members?(id) do
-    members? = Company.check_organization_has_admins(id)
+    # members? = Company.check_organization_has_admins(id)
+    members? = Administration.list_admins_by_organization(id)
 
     if !members? or length(members?) === 0 do
       false

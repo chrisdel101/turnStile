@@ -5,8 +5,14 @@ defmodule TurnStileWeb.AdminController do
   alias TurnStile.Administration.Admin
 
   def index(conn, _params) do
-    admins = Administration.list_admins()
-    organization_id = conn.params["id"]
+    organization_id = conn.params["organization_id"]
+    if !organization_id do
+      conn
+      |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
+      |> redirect(to: Routes.organization_path(conn, :index))
+    end
+    admins = Administration.list_admins_by_organization(organization_id)
+    # get admins in this org
     render(conn, "index.html", admins: admins, organization_id: organization_id)
   end
 
@@ -89,4 +95,15 @@ defmodule TurnStileWeb.AdminController do
     end
   end
 
+  def admin_is_in_organization?(conn, _opts) do
+    # organization_id = organization_id = conn.params["id"]
+    # check
+
+    conn
+    # {:ok, _admin} = Administration.delete_admin(admin)
+
+    # conn
+    # |> put_flash(:info, "Admin deleted successfully.")
+    # |> redirect(to: Routes.admin_path(conn, :index))
+  end
 end

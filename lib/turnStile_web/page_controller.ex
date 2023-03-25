@@ -7,7 +7,7 @@ defmodule TurnStileWeb.PageController do
   # check to see if app is setup yet
   defp runSetupCheck() do
     # check if any admins exist
-    admins? = Administration.list_admins()
+    admins? = Administration.list_all_admins()
     if length(admins?) === 0 do
       false
       # show setup menu
