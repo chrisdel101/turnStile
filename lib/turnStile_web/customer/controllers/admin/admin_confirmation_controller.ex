@@ -1,15 +1,15 @@
 defmodule TurnStileWeb.AdminConfirmationController do
   use TurnStileWeb, :controller
 
-  alias TurnStile.Administration
+  alias TurnStile.Staff
 
   def new(conn, _params) do
     render(conn, "new.html")
   end
 
   def create(conn, %{"admin" => %{"email" => email}}) do
-    if admin = Administration.get_admin_by_email(email) do
-      Administration.deliver_admin_confirmation_instructions(
+    if admin = Staff.get_admin_by_email(email) do
+      Staff.deliver_admin_confirmation_instructions(
         admin,
         &Routes.admin_confirmation_url(conn, :edit, &1)
       )
@@ -31,7 +31,7 @@ defmodule TurnStileWeb.AdminConfirmationController do
   # Do not log in the admin after confirmation to avoid a
   # leaked token giving the admin access to the account.
   def update(conn, %{"token" => token}) do
-    case Administration.confirm_admin(token) do
+    case Staff.confirm_admin(token) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Admin confirmed successfully.")

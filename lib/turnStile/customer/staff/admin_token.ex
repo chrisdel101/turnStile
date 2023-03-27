@@ -1,7 +1,7 @@
-defmodule TurnStile.Administration.AdminToken do
+defmodule TurnStile.Staff.AdminToken do
   use Ecto.Schema
   import Ecto.Query
-  alias TurnStile.Administration.AdminToken
+  alias TurnStile.Staff.AdminToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -17,7 +17,7 @@ defmodule TurnStile.Administration.AdminToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :admin, TurnStile.Administration.Admin
+    belongs_to :admin, TurnStile.Staff.Admin
 
     timestamps(updated_at: false)
   end

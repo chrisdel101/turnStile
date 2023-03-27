@@ -1,4 +1,4 @@
-defmodule TurnStile.Administration.AdminNotifier do
+defmodule TurnStile.Staff.AdminNotifier do
   import Swoosh.Email
 
   alias TurnStile.Mailer

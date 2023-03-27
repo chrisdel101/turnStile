@@ -1,11 +1,11 @@
 defmodule TurnStileWeb.OrganizationController do
   use TurnStileWeb, :controller
 
-  alias TurnStile.Administration
+  alias TurnStile.Staff
   alias TurnStile.Company
   alias TurnStile.Company.Organization
   alias TurnStileWeb.AdminAuth
-  alias TurnStile.Administration.Admin
+  alias TurnStile.Staff.Admin
 
   def index(conn, _params) do
     # only app in-company app developers can see this
@@ -65,7 +65,7 @@ defmodule TurnStileWeb.OrganizationController do
       end
 
       members? = organization_has_members?(organization.id)
-      admin_changeset = Administration.change_admin(%Admin{})
+      admin_changeset = Staff.change_admin(%Admin{})
       render(conn, "show.html",
         organization: organization,
         changeset: admin_changeset,
@@ -112,7 +112,7 @@ defmodule TurnStileWeb.OrganizationController do
   # check if org has admin members
   def organization_has_members?(id) do
     # members? = Company.check_organization_has_admins(id)
-    members? = Administration.list_admins_by_organization(id)
+    members? = Staff.list_admins_by_organization(id)
 
     if !members? or length(members?) === 0 do
       false

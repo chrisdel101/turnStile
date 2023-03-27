@@ -1,13 +1,13 @@
 defmodule TurnStileWeb.PageController do
   use TurnStileWeb, :controller
-  alias TurnStile.Administration
+  alias TurnStile.Staff
   # import Phoenix.LiveView
   # import Phoenix.LiveView.Utils
 
   # check to see if app is setup yet
   defp runSetupCheck() do
     # check if any admins exist
-    admins? = Administration.list_all_admins()
+    admins? = Staff.list_all_admins()
     if length(admins?) === 0 do
       false
       # show setup menu

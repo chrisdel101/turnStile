@@ -55,7 +55,7 @@ defmodule TurnStileWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_admin(conn, admin) do
-    token = TurnStile.Administration.generate_admin_session_token(admin)
+    token = TurnStile.Staff.generate_admin_session_token(admin)
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})

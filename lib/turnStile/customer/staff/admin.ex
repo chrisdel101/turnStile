@@ -1,4 +1,4 @@
-defmodule TurnStile.Administration.Admin do
+defmodule TurnStile.Staff.Admin do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -14,7 +14,6 @@ defmodule TurnStile.Administration.Admin do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-    has_many :employees, TurnStile.Staff.Employee
     belongs_to :organization, TurnStile.Company.Organization
     timestamps()
   end
@@ -146,7 +145,7 @@ defmodule TurnStile.Administration.Admin do
   If there is no admin or the admin doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(%TurnStile.Administration.Admin{hashed_password: hashed_password}, password)
+  def valid_password?(%TurnStile.Staff.Admin{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end

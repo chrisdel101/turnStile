@@ -1,13 +1,13 @@
-defmodule TurnStile.Administration do
+defmodule TurnStile.Staff do
   @moduledoc """
-  The Administration context.
+  The Staff context.
   """
 
   import Ecto.Query, only: [from: 2], warn: false
   alias TurnStile.Repo
   alias TurnStile.Company
   alias TurnStile.Company.Organization
-  alias TurnStile.Administration.{Admin, AdminToken, AdminNotifier}
+  alias TurnStile.Staff.{Admin, AdminToken, AdminNotifier}
 
   ## Database getters
 
@@ -352,7 +352,7 @@ defmodule TurnStile.Administration do
     end
   end
 
-  alias TurnStile.Administration.Admin
+  alias TurnStile.Staff.Admin
 
   @doc """
   Returns the list of admins.

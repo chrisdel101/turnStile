@@ -7,7 +7,7 @@ defmodule TurnStile.Company do
   alias TurnStile.Repo
 
   alias TurnStile.Company.Organization
-  alias TurnStile.Administration.Admin
+  alias TurnStile.Staff.Admin
 
   @doc """
   Returns the list of organizations.

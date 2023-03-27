@@ -1,4 +1,4 @@
-<!-- if current_admin then we are logged in, all other cases are setup -->
+<!-- if current_admin then logged in -->
 <%= if @current_admin do%>
   <h1>Register A New Admin</h1>
   <h3>Owners and Admins can register new Admins</h3>
@@ -8,6 +8,7 @@
   <h3>Add An Organization Owner</h3>
   <p>The owner is the top-level administator. The owner can create all other user types.</p>
 <% end %>
+ <!-- setup procedue -->
 <.form let={f} for={@changeset} action={Routes.admin_registration_path(@conn, :create, @organization_id)}>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -24,7 +25,8 @@
   <%= error_tag f, :last_name %>
 
   <%= label f, :role %>
-  <!-- if non-setup procedue -->
+
+  <!-- Non-setup procedue -->
   <%= if @current_admin do%>
   <!-- display only roles allowed by permissions -->
     <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminRolesEnum.get_roles(),  @current_admin.role), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
@@ -32,7 +34,6 @@
     <!-- if setup procedure -->
     <%= select f, :role, TurnStile.Utils.display_single_item_list(AdminRolesEnum.get_roles(),hd AdminRolesEnum.get_roles()), prompt: "Choose Role", required: true %>
   <% end %>
-
 
   <%= label f, :email %>
   <%= text_input f, :email %>
@@ -52,7 +53,7 @@
     <%= error_tag f, :password_confirmation %>
   <% else %>
     <!-- owner set up, so use real PW -->
- <!-- set temorary password, new user will change via email conf -->
+  <!-- set temorary password, new user will change via email conf -->
     <%= label f, "Create Password" %>
     <%= password_input f, :password %>
     <%= error_tag f, :password %>
@@ -61,14 +62,14 @@
     <%= password_input f, :password_confirmation %>
     <%= error_tag f, :password_confirmation %>
   <% end %>
-
-
   <div>
     <%= submit "Register" %>
   </div>
 </.form>
 
 <p>
-  <%= link "Log in", to: Routes.admin_session_path(@conn, :new, @organization_id) %> |
+  <%= if !@current_admin do%>
+  <%= link "Log in", to: "/organizations/#{@organization_id}" %> |
+  <% end %>
   <%= link "Forgot your password?", to: Routes.admin_reset_password_path(@conn, :new, @organization_id) %>
 </p>

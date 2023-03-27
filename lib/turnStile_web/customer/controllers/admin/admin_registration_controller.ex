@@ -1,14 +1,16 @@
 defmodule TurnStileWeb.AdminRegistrationController do
   use TurnStileWeb, :controller
 
-  alias TurnStile.Administration
-  alias TurnStile.Administration.Admin
+  alias TurnStile.Staff
+  alias TurnStile.Staff.Admin
   alias TurnStileWeb.AdminAuth
   alias TurnStileWeb.OrganizationController
 
   def new(conn, _params) do
-    changeset = Administration.change_admin_registration(%Admin{})
+    changeset = Staff.change_admin_registration(%Admin{})
     organization_id = conn.path_params["id"]
+    IO.puts("HERE")
+    IO.inspect(conn)
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
 
@@ -40,17 +42,17 @@ defmodule TurnStileWeb.AdminRegistrationController do
         if registrant_permissions >
         current_user_permission do
 
-          changeset = Administration.change_admin_registration(%Admin{}, admin_params)
+          changeset = Staff.change_admin_registration(%Admin{}, admin_params)
 
           conn
           # if admin does not have permissions - flash and re-render
           |> put_flash(:error, "Invalid Permssions to create that user")
           |> render("new.html", changeset: changeset, organization_id: organization_id)
         else
-          case Administration.register_admin(admin_params) do
+          case Staff.register_admin(admin_params) do
             {:ok, admin} ->
               {:ok, _} =
-                Administration.deliver_admin_confirmation_instructions(
+                Staff.deliver_admin_confirmation_instructions(
                   admin,
                   &Routes.admin_confirmation_url(conn, :edit, &1)
                 )
@@ -75,7 +77,7 @@ defmodule TurnStileWeb.AdminRegistrationController do
       if registrant_permissions >
       current_user_permission do
 
-        changeset = Administration.change_admin_registration(%Admin{}, admin_params)
+        changeset = Staff.change_admin_registration(%Admin{}, admin_params)
 
         conn
         # if admin does not have permissions - flash and re-render
@@ -84,10 +86,10 @@ defmodule TurnStileWeb.AdminRegistrationController do
       end
   end
 
-    case Administration.register_admin(admin_params) do
+    case Staff.register_admin(admin_params) do
       {:ok, admin} ->
         {:ok, _} =
-          Administration.deliver_admin_confirmation_instructions(
+          Staff.deliver_admin_confirmation_instructions(
             admin,
             &Routes.admin_confirmation_url(conn, :edit, &1)
           )
@@ -120,10 +122,10 @@ defmodule TurnStileWeb.AdminRegistrationController do
         # add organization_id to params
         admin_params = Map.put(admin_params, "organization_id", organization_id)
         # create owner
-        case Administration.register_admin(admin_params) do
+        case Staff.register_admin(admin_params) do
           {:ok, admin} ->
             {:ok, _} =
-              Administration.deliver_admin_confirmation_instructions(
+              Staff.deliver_admin_confirmation_instructions(
                 admin,
                 &Routes.admin_confirmation_url(conn, :edit, organization_id, &1)
               )

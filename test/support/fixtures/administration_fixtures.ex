@@ -1,7 +1,7 @@
 defmodule TurnStile.AdministrationFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `TurnStile.Administration` context.
+  entities via the `TurnStile.Staff` context.
   """
 
   def unique_admin_email, do: "admin#{System.unique_integer()}@example.com"
@@ -18,7 +18,7 @@ defmodule TurnStile.AdministrationFixtures do
     {:ok, admin} =
       attrs
       |> valid_admin_attributes()
-      |> TurnStile.Administration.register_admin()
+      |> TurnStile.Staff.register_admin()
 
     admin
   end
@@ -38,7 +38,7 @@ defmodule TurnStile.AdministrationFixtures do
       |> Enum.into(%{
 
       })
-      |> TurnStile.Administration.create_admin()
+      |> TurnStile.Staff.create_admin()
 
     admin
   end

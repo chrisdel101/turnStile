@@ -1,8 +1,8 @@
 defmodule TurnStileWeb.AdminController do
   use TurnStileWeb, :controller
 
-  alias TurnStile.Administration
-  alias TurnStile.Administration.Admin
+  alias TurnStile.Staff
+  alias TurnStile.Staff.Admin
 
   def index(conn, _params) do
     organization_id = conn.params["organization_id"]
@@ -11,7 +11,7 @@ defmodule TurnStileWeb.AdminController do
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
       |> redirect(to: Routes.organization_path(conn, :index))
     end
-    admins = Administration.list_admins_by_organization(organization_id)
+    admins = Staff.list_admins_by_organization(organization_id)
     # get admins in this org
     render(conn, "index.html", admins: admins, organization_id: organization_id)
   end
@@ -21,16 +21,16 @@ defmodule TurnStileWeb.AdminController do
     role = assign_permission_role(conn)
     cond do
       role === "owner" ->
-        changeset = Administration.create_admin(%Admin{})
+        changeset = Staff.create_admin(%Admin{})
         render(conn, "new.html", changeset: changeset)
     end
     # IO.puts(role)
-    changeset = Administration.change_admin(%Admin{})
+    changeset = Staff.change_admin(%Admin{})
     render(conn, "new.html", changeset: changeset)
   end
 
   def create(conn, %{"admin" => admin_params}) do
-    case Administration.create_admin(admin_params) do
+    case Staff.create_admin(admin_params) do
       {:ok, admin} ->
         conn
         |> put_flash(:info, "Admin created successfully.")
@@ -42,20 +42,20 @@ defmodule TurnStileWeb.AdminController do
   end
 
   def show(conn, %{"id" => id}) do
-    admin = Administration.get_admin!(id)
+    admin = Staff.get_admin!(id)
     render(conn, "show.html", admin: admin)
   end
 
   def edit(conn, %{"id" => id}) do
-    admin = Administration.get_admin!(id)
-    changeset = Administration.change_admin(admin)
+    admin = Staff.get_admin!(id)
+    changeset = Staff.change_admin(admin)
     render(conn, "edit.html", admin: admin, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "admin" => admin_params}) do
-    admin = Administration.get_admin!(id)
+    admin = Staff.get_admin!(id)
 
-    case Administration.update_admin(admin, admin_params) do
+    case Staff.update_admin(admin, admin_params) do
       {:ok, admin} ->
         conn
         |> put_flash(:info, "Admin updated successfully.")
@@ -67,8 +67,8 @@ defmodule TurnStileWeb.AdminController do
   end
 
   def delete(conn, %{"id" => id}) do
-    admin = Administration.get_admin!(id)
-    {:ok, _admin} = Administration.delete_admin(admin)
+    admin = Staff.get_admin!(id)
+    {:ok, _admin} = Staff.delete_admin(admin)
 
     conn
     |> put_flash(:info, "Admin deleted successfully.")
@@ -98,7 +98,7 @@ defmodule TurnStileWeb.AdminController do
     # check
 
     conn
-    # {:ok, _admin} = Administration.delete_admin(admin)
+    # {:ok, _admin} = Staff.delete_admin(admin)
 
     # conn
     # |> put_flash(:info, "Admin deleted successfully.")

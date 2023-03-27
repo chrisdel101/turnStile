@@ -1,7 +1,7 @@
 defmodule TurnStileWeb.AdminSettingsController do
   use TurnStileWeb, :controller
 
-  alias TurnStile.Administration
+  alias TurnStile.Staff
   alias TurnStileWeb.AdminAuth
 
   plug :assign_email_and_password_changesets
@@ -14,9 +14,9 @@ defmodule TurnStileWeb.AdminSettingsController do
     %{"current_password" => password, "admin" => admin_params} = params
     admin = conn.assigns.current_admin
 
-    case Administration.apply_admin_email(admin, password, admin_params) do
+    case Staff.apply_admin_email(admin, password, admin_params) do
       {:ok, applied_admin} ->
-        Administration.deliver_update_email_instructions(
+        Staff.deliver_update_email_instructions(
           applied_admin,
           admin.email,
           &Routes.admin_settings_url(conn, :confirm_email, &1)
@@ -38,7 +38,7 @@ defmodule TurnStileWeb.AdminSettingsController do
     %{"current_password" => password, "admin" => admin_params} = params
     admin = conn.assigns.current_admin
 
-    case Administration.update_admin_password(admin, password, admin_params) do
+    case Staff.update_admin_password(admin, password, admin_params) do
       {:ok, admin} ->
         conn
         |> put_flash(:info, "Password updated successfully.")
@@ -51,7 +51,7 @@ defmodule TurnStileWeb.AdminSettingsController do
   end
 
   def confirm_email(conn, %{"token" => token}) do
-    case Administration.update_admin_email(conn.assigns.current_admin, token) do
+    case Staff.update_admin_email(conn.assigns.current_admin, token) do
       :ok ->
         conn
         |> put_flash(:info, "Email changed successfully.")
@@ -68,7 +68,7 @@ defmodule TurnStileWeb.AdminSettingsController do
     admin = conn.assigns.current_admin
 
     conn
-    |> assign(:email_changeset, Administration.change_admin_email(admin))
-    |> assign(:password_changeset, Administration.change_admin_password(admin))
+    |> assign(:email_changeset, Staff.change_admin_email(admin))
+    |> assign(:password_changeset, Staff.change_admin_password(admin))
   end
 end

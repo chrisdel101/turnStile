@@ -2,8 +2,8 @@ defmodule TurnStileWeb.AdminAuth do
   import Plug.Conn
   import Phoenix.Controller
 
-  alias TurnStile.Administration
-  alias TurnStile.Administration.Admin
+  alias TurnStile.Staff
+  alias TurnStile.Staff.Admin
   alias TurnStileWeb.Router.Helpers, as: Routes
 
   # Make the remember me cookie valid for 60 days.
@@ -34,13 +34,13 @@ defmodule TurnStileWeb.AdminAuth do
       |> redirect(to: Routes.organization_path(conn, :show))
     end
     # confirm this admin is in the correct organization
-    is_in_organization? = Administration.check_admin_is_in_organization(admin,organization_id)
+    is_in_organization? = Staff.check_admin_is_in_organization(admin,organization_id)
     if !is_in_organization? do
       conn
       |> put_flash(:error, "Admin is not in the correct organization.")
       |> redirect(to: "/organizations/#{conn.path_params["id"]}")
     end
-    token = Administration.generate_admin_session_token(admin)
+    token = Staff.generate_admin_session_token(admin)
     admin_return_to = get_session(conn, :admin_return_to)
     conn
     |> renew_session()
@@ -86,7 +86,7 @@ defmodule TurnStileWeb.AdminAuth do
   """
   def log_out_admin(conn) do
     admin_token = get_session(conn, :admin_token)
-    admin_token && Administration.delete_session_token(admin_token)
+    admin_token && Staff.delete_session_token(admin_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       TurnStileWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
@@ -104,7 +104,7 @@ defmodule TurnStileWeb.AdminAuth do
   """
   def fetch_current_admin(conn, _opts) do
     {admin_token, conn} = ensure_admin_token(conn)
-    admin = admin_token && Administration.get_admin_by_session_token(admin_token)
+    admin = admin_token && Staff.get_admin_by_session_token(admin_token)
     assign(conn, :current_admin, admin)
   end
 
