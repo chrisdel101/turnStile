@@ -49,8 +49,12 @@ defmodule TurnStile.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
-    ]
+      {:plug_cowboy, "~> 2.5"},
+      {:ex_twilio, github: "danielberkompas/ex_twilio"},
+      # Library for creating TwiML from elixir macros
+      {:ex_twiml, "~> 2.1"},
+      {:dotenv, "~> 3.0.0"},
+      {:httpoison, "~> 2.0"}    ]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

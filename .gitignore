@@ -32,3 +32,6 @@ turnStile-*.tar
 npm-debug.log
 /assets/node_modules/
 
+
+curl_ex.bash
+.env

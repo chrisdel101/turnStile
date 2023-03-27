@@ -11,7 +11,7 @@ defmodule TurnStileWeb.Router do
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {TurnStileWeb.LayoutView, :root}
-    plug :protect_from_forgery
+    # plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_employee
     plug :fetch_current_admin
@@ -136,6 +136,9 @@ defmodule TurnStileWeb.Router do
     get "/setup", SetupController, :new
     get "/organizations/search", OrganizationController, :search_get
     post "/organizations/search", OrganizationController, :search_post
+
+
+    post "/alert", AlertController, :send_alert
 
 
     resources "/organizations", OrganizationController, except: [:show] do
