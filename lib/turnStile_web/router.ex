@@ -1,7 +1,6 @@
 defmodule TurnStileWeb.Router do
   use TurnStileWeb, :router
 
-  import TurnStileWeb.EmployeeAuth
 
   import TurnStileWeb.AdminAuth
   import TurnStileWeb.OrganizationController
@@ -13,7 +12,6 @@ defmodule TurnStileWeb.Router do
     plug :put_root_layout, {TurnStileWeb.LayoutView, :root}
     # plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_employee
     plug :fetch_current_admin
   end
 
@@ -96,39 +94,6 @@ defmodule TurnStileWeb.Router do
     post "/admins/confirm/:token", AdminConfirmationController, :update
   end
 
-    ## Authentication routes
-
-    # scope "/organizations/:id", TurnStileWeb do
-    #   pipe_through [:browser, :redirect_if_employee_is_authenticated]
-
-    #   get "/employees/register", EmployeeRegistrationController, :new
-    #   post "/employees/register", EmployeeRegistrationController, :create
-    #   get "/employees/log_in", EmployeeSessionController, :new
-    #   post "/employees/log_in", EmployeeSessionController, :create
-    #   get "/employees/reset_password", EmployeeResetPasswordController, :new
-    #   post "/employees/reset_password", EmployeeResetPasswordController, :create
-    #   get "/employees/reset_password/:token", EmployeeResetPasswordController, :edit
-    #   put "/employees/reset_password/:token", EmployeeResetPasswordController, :update
-    # end
-
-    # scope "/organizations/:id", TurnStileWeb do
-    #   pipe_through [:browser, :require_authenticated_employee]
-
-    #   get "/employees/settings", EmployeeSettingsController, :edit
-    #   put "/employees/settings", EmployeeSettingsController, :update
-    #   get "/employees/settings/confirm_email/:token", EmployeeSettingsController, :confirm_email
-    # end
-
-    # scope "/organizations/:id", TurnStileWeb do
-    #   pipe_through [:browser]
-
-    #   delete "/employees/log_out", EmployeeSessionController, :delete
-    #   get "/employees/confirm", EmployeeConfirmationController, :new
-    #   post "/employees/confirm", EmployeeConfirmationController, :create
-    #   get "/employees/confirm/:token", EmployeeConfirmationController, :edit
-    #   post "/employees/confirm/:token", EmployeeConfirmationController, :update
-    # end
-
   scope "/", TurnStileWeb do
     pipe_through :browser
 
@@ -144,7 +109,6 @@ defmodule TurnStileWeb.Router do
     resources "/organizations", OrganizationController, except: [:show] do
         resources "/admins", AdminController
       end
-    # resources "/employees", EmployeeController
     resources "/users", UserController
     get "/organizations/:param", OrganizationController, :show
 

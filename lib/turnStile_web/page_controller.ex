@@ -13,7 +13,7 @@ defmodule TurnStileWeb.PageController do
       # show setup menu
     else
       true
-      # show admin/employee menu
+      # show admin menu
     end
   end
 
