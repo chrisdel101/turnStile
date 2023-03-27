@@ -4,7 +4,7 @@ defmodule TurnStile.AdministrationFixtures do
   entities via the `TurnStile.Staff` context.
   """
 
-  def unique_admin_email, do: "admin#{System.unique_integer()}@example.com"
+  def unique_admin_email, do: "employee#{System.unique_integer()}@example.com"
   def valid_admin_password, do: "hello world!"
 
   def valid_admin_attributes(attrs \\ %{}) do
@@ -15,12 +15,12 @@ defmodule TurnStile.AdministrationFixtures do
   end
 
   def admin_fixture(attrs \\ %{}) do
-    {:ok, admin} =
+    {:ok, employee} =
       attrs
       |> valid_admin_attributes()
       |> TurnStile.Staff.register_admin()
 
-    admin
+    employee
   end
 
   def extract_admin_token(fun) do
@@ -30,16 +30,16 @@ defmodule TurnStile.AdministrationFixtures do
   end
 
   @doc """
-  Generate a admin.
+  Generate a employee.
   """
   def admin_fixture(attrs \\ %{}) do
-    {:ok, admin} =
+    {:ok, employee} =
       attrs
       |> Enum.into(%{
 
       })
       |> TurnStile.Staff.create_admin()
 
-    admin
+    employee
   end
 end

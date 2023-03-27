@@ -34,7 +34,7 @@ defmodule TurnStile.Utils do
   def get_permissions_level_int(role) do
       # role = current_user.role
       cond do
-        # check if admin persmission
+        # check if employee persmission
         Enum.member?(PermissionGroups.get_admin_roles, role) -> 1
         # check if employee persmission
         Enum.member?(PermissionGroups.get_admin_employee_roles, role) -> 2

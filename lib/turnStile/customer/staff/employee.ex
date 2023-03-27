@@ -1,14 +1,14 @@
-defmodule TurnStile.Staff.Admin do
+defmodule TurnStile.Staff.Employee do
   use Ecto.Schema
   import Ecto.Changeset
 
 
-  schema "admins" do
+  schema "employees" do
     field :first_name, :string
     field :last_name, :string
     field :role, :string
     # has_many :users, WaitingRoom.Patient.User
-    # admin sends alerts
+    # employee sends alerts
     # has_many :alerts, WaitingRoom.Alert
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -19,7 +19,7 @@ defmodule TurnStile.Staff.Admin do
   end
 
     @doc """
-    A admin changeset for registration.
+    A employee changeset for registration.
 
     It is important to validate the length of both email and password.
     Otherwise databases may truncate the email without warnings, which
@@ -36,10 +36,10 @@ defmodule TurnStile.Staff.Admin do
         Defaults to `true`.
     """
 
-  #Not sure of diff right now - Used for owners to create admins maybe?
-  def changeset(admin, attrs, opts \\ []) do
-    IO.puts("admin changeset")
-    admin
+  #Not sure of diff right now - Used for owners to create employees maybe?
+  def changeset(employee, attrs, opts \\ []) do
+    IO.puts("employee changeset")
+    employee
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password, :organization_id])
     |> validate_required([:organization_id])
     |> validate_email()
@@ -47,16 +47,14 @@ defmodule TurnStile.Staff.Admin do
     |> hash_password(opts)
   end
 
-  def registration_changeset(admin, attrs, opts \\ []) do
-    IO.puts("admim registration_changeset")
-    # IO.puts("attrs")
-    admin
+  def registration_changeset(employee, attrs, opts \\ []) do
+    employee
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password,  :organization_id])
     |> validate_required([:organization_id])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
-    # |> valdiate_has_permissions(admin)
+    # |> valdiate_has_permissions(employee)
   end
 
   defp validate_email(changeset) do
@@ -98,12 +96,12 @@ defmodule TurnStile.Staff.Admin do
   end
 
   @doc """
-  A admin changeset for changing the email.
+  A employee changeset for changing the email.
 
   It requires the email to change otherwise an error is added.
   """
-  def email_changeset(admin, attrs) do
-    admin
+  def email_changeset(employee, attrs) do
+    employee
     |> cast(attrs, [:email])
     |> validate_email()
     |> case do
@@ -113,7 +111,7 @@ defmodule TurnStile.Staff.Admin do
   end
 
   @doc """
-  A admin changeset for changing the password.
+  A employee changeset for changing the password.
 
   ## Options
 
@@ -124,8 +122,8 @@ defmodule TurnStile.Staff.Admin do
       validations on a LiveView form), this option can be set to `false`.
       Defaults to `true`.
   """
-  def password_changeset(admin, attrs, opts \\ []) do
-    admin
+  def password_changeset(employee, attrs, opts \\ []) do
+    employee
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
@@ -134,18 +132,18 @@ defmodule TurnStile.Staff.Admin do
   @doc """
   Confirms the account by setting `confirmed_at`.
   """
-  def confirm_changeset(admin) do
+  def confirm_changeset(employee) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    change(admin, confirmed_at: now)
+    change(employee, confirmed_at: now)
   end
 
   @doc """
   Verifies the password.
 
-  If there is no admin or the admin doesn't have a password, we call
+  If there is no employee or the employee doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(%TurnStile.Staff.Admin{hashed_password: hashed_password}, password)
+  def valid_password?(%TurnStile.Staff.Employee{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end

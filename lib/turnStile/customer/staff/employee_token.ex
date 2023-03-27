@@ -1,7 +1,7 @@
-defmodule TurnStile.Staff.AdminToken do
+defmodule TurnStile.Staff.EmployeeToken do
   use Ecto.Schema
   import Ecto.Query
-  alias TurnStile.Staff.AdminToken
+  alias TurnStile.Staff.EmployeeToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -13,11 +13,11 @@ defmodule TurnStile.Staff.AdminToken do
   @change_email_validity_in_days 7
   @session_validity_in_days 60
 
-  schema "admins_tokens" do
+  schema "employee_tokens" do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :admin, TurnStile.Staff.Admin
+    belongs_to :employee, TurnStile.Staff.Employee
 
     timestamps(updated_at: false)
   end
@@ -34,22 +34,22 @@ defmodule TurnStile.Staff.AdminToken do
   valid indefinitely, unless you change the signing/encryption
   salt.
 
-  Therefore, storing them allows individual admin
+  Therefore, storing them allows individual employee
   sessions to be expired. The token system can also be extended
   to store additional data, such as the device used for logging in.
   You could then use this information to display all valid sessions
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  def build_session_token(admin) do
+  def build_session_token(employee) do
     token = :crypto.strong_rand_bytes(@rand_size)
-    {token, %AdminToken{token: token, context: "session", admin_id: admin.id}}
+    {token, %EmployeeToken{token: token, context: "session", employee_id: employee.id}}
   end
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the admin found by the token, if any.
+  The query returns the employee found by the token, if any.
 
   The token is valid if it matches the value in the database and it has
   not expired (after @session_validity_in_days).
@@ -57,17 +57,17 @@ defmodule TurnStile.Staff.AdminToken do
   def verify_session_token_query(token) do
     query =
       from token in token_and_context_query(token, "session"),
-        join: admin in assoc(token, :admin),
+        join: employee in assoc(token, :employee),
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
-        select: admin
+        select: employee
 
     {:ok, query}
   end
 
   @doc """
-  Builds a token and its hash to be delivered to the admin's email.
+  Builds a token and its hash to be delivered to the employee's email.
 
-  The non-hashed token is sent to the admin email while the
+  The non-hashed token is sent to the employee email while the
   hashed part is stored in the database. The original token cannot be reconstructed,
   which means anyone with read-only access to the database cannot directly use
   the token in the application to gain access. Furthermore, if the user changes
@@ -77,27 +77,27 @@ defmodule TurnStile.Staff.AdminToken do
   Users can easily adapt the existing code to provide other types of delivery methods,
   for example, by phone numbers.
   """
-  def build_email_token(admin, context) do
-    build_hashed_token(admin, context, admin.email)
+  def build_email_token(employee, context) do
+    build_hashed_token(employee, context, employee.email)
   end
 
-  defp build_hashed_token(admin, context, sent_to) do
+  defp build_hashed_token(employee, context, sent_to) do
     token = :crypto.strong_rand_bytes(@rand_size)
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
     {Base.url_encode64(token, padding: false),
-     %AdminToken{
+     %EmployeeToken{
        token: hashed_token,
        context: context,
        sent_to: sent_to,
-       admin_id: admin.id
+       employee_id: employee.id
      }}
   end
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the admin found by the token, if any.
+  The query returns the employee found by the token, if any.
 
   The given token is valid if it matches its hashed counterpart in the
   database and the user email has not changed. This function also checks
@@ -115,9 +115,9 @@ defmodule TurnStile.Staff.AdminToken do
 
         query =
           from token in token_and_context_query(hashed_token, context),
-            join: admin in assoc(token, :admin),
-            where: token.inserted_at > ago(^days, "day") and token.sent_to == admin.email,
-            select: admin
+            join: employee in assoc(token, :employee),
+            where: token.inserted_at > ago(^days, "day") and token.sent_to == employee.email,
+            select: employee
 
         {:ok, query}
 
@@ -132,9 +132,9 @@ defmodule TurnStile.Staff.AdminToken do
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the admin found by the token, if any.
+  The query returns the employee found by the token, if any.
 
-  This is used to validate requests to change the admin
+  This is used to validate requests to change the employee
   email. It is different from `verify_email_token_query/2` precisely because
   `verify_email_token_query/2` validates the email has not changed, which is
   the starting point by this function.
@@ -163,17 +163,17 @@ defmodule TurnStile.Staff.AdminToken do
   Returns the token struct for the given token value and context.
   """
   def token_and_context_query(token, context) do
-    from AdminToken, where: [token: ^token, context: ^context]
+    from EmployeeToken, where: [token: ^token, context: ^context]
   end
 
   @doc """
-  Gets all tokens for the given admin for the given contexts.
+  Gets all tokens for the given employee for the given contexts.
   """
-  def admin_and_contexts_query(admin, :all) do
-    from t in AdminToken, where: t.admin_id == ^admin.id
+  def employee_and_contexts_query(employee, :all) do
+    from t in EmployeeToken, where: t.employee_id == ^employee.id
   end
 
-  def admin_and_contexts_query(admin, [_ | _] = contexts) do
-    from t in AdminToken, where: t.admin_id == ^admin.id and t.context in ^contexts
+  def employee_and_contexts_query(employee, [_ | _] = contexts) do
+    from t in EmployeeToken, where: t.employee_id == ^employee.id and t.context in ^contexts
   end
 end

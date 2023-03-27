@@ -1,6 +1,6 @@
 <h1>Confirm account</h1>
 
-<.form let={_f} for={:admin} action={Routes.admin_confirmation_path(@conn, :update, @token)}>
+<.form let={_f} for={:employee} action={Routes.admin_confirmation_path(@conn, :update, @token)}>
   <div>
     <%= submit "Confirm my account" %>
   </div>

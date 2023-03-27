@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AdminConfirmationController do
+defmodule TurnStileWeb.EmployeeConfirmationController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
@@ -7,10 +7,10 @@ defmodule TurnStileWeb.AdminConfirmationController do
     render(conn, "new.html")
   end
 
-  def create(conn, %{"admin" => %{"email" => email}}) do
-    if admin = Staff.get_admin_by_email(email) do
+  def create(conn, %{"employee" => %{"email" => email}}) do
+    if employee = Staff.get_admin_by_email(email) do
       Staff.deliver_admin_confirmation_instructions(
-        admin,
+        employee,
         &Routes.admin_confirmation_url(conn, :edit, &1)
       )
     end
@@ -28,19 +28,19 @@ defmodule TurnStileWeb.AdminConfirmationController do
     render(conn, "edit.html", token: token)
   end
 
-  # Do not log in the admin after confirmation to avoid a
-  # leaked token giving the admin access to the account.
+  # Do not log in the employee after confirmation to avoid a
+  # leaked token giving the employee access to the account.
   def update(conn, %{"token" => token}) do
     case Staff.confirm_admin(token) do
       {:ok, _} ->
         conn
-        |> put_flash(:info, "Admin confirmed successfully.")
+        |> put_flash(:info, "Employee confirmed successfully.")
         |> redirect(to: "/")
 
       :error ->
-        # If there is a current admin and the account was already confirmed,
+        # If there is a current employee and the account was already confirmed,
         # then odds are that the confirmation link was already visited, either
-        # by some automation or by the admin themselves, so we redirect without
+        # by some automation or by the employee themselves, so we redirect without
         # a warning message.
         case conn.assigns do
           %{current_admin: %{confirmed_at: confirmed_at}} when not is_nil(confirmed_at) ->
@@ -48,7 +48,7 @@ defmodule TurnStileWeb.AdminConfirmationController do
 
           %{} ->
             conn
-            |> put_flash(:error, "Admin confirmation link is invalid or it has expired.")
+            |> put_flash(:error, "Employee confirmation link is invalid or it has expired.")
             |> redirect(to: "/")
         end
     end

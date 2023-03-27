@@ -7,7 +7,7 @@ defmodule TurnStile.Company do
   alias TurnStile.Repo
 
   alias TurnStile.Company.Organization
-  alias TurnStile.Staff.Admin
+  alias TurnStile.Staff.Employee
 
   @doc """
   Returns the list of organizations.
@@ -110,8 +110,8 @@ defmodule TurnStile.Company do
   end
 
   # utilitites
-  def check_organization_has_admins(id) do
-    q = from a in Admin,
+  def check_organization_has_employees(id) do
+    q = from a in Employee,
      where: a.organization_id == ^id,
      select: a.id
     Repo.all(q)

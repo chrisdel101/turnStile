@@ -6,34 +6,33 @@ defmodule TurnStile.Staff do
   import Ecto.Query, only: [from: 2], warn: false
   alias TurnStile.Repo
   alias TurnStile.Company
-  alias TurnStile.Company.Organization
-  alias TurnStile.Staff.{Admin, AdminToken, AdminNotifier}
+  alias TurnStile.Staff.{Employee, EmployeeToken, EmployeeNotifier}
 
   ## Database getters
 
   @doc """
-  Gets a admin by email.
+  Gets a employee by email.
 
   ## Examples
 
       iex> get_admin_by_email("foo@example.com")
-      %Admin{}
+      %Employee{}
 
       iex> get_admin_by_email("unknown@example.com")
       nil
 
   """
   def get_admin_by_email(email) when is_binary(email) do
-    Repo.get_by(Admin, email: email)
+    Repo.get_by(Employee, email: email)
   end
 
   @doc """
-  Gets a admin by email and password.
+  Gets a employee by email and password.
 
   ## Examples
 
       iex> get_admin_by_email_and_password("foo@example.com", "correct_password")
-      %Admin{}
+      %Employee{}
 
       iex> get_admin_by_email_and_password("foo@example.com", "invalid_password")
       nil
@@ -41,72 +40,72 @@ defmodule TurnStile.Staff do
   """
   def get_admin_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    admin = Repo.get_by(Admin, email: email)
-    if Admin.valid_password?(admin, password), do: admin
+    employee = Repo.get_by(Employee, email: email)
+    if Employee.valid_password?(employee, password), do: employee
   end
 
   @doc """
-  Gets a single admin.
+  Gets a single employee.
 
-  Raises `Ecto.NoResultsError` if the Admin does not exist.
+  Raises `Ecto.NoResultsError` if the Employee does not exist.
 
   ## Examples
 
       iex> get_admin!(123)
-      %Admin{}
+      %Employee{}
 
       iex> get_admin!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_admin!(id), do: Repo.get!(Admin, id)
+  def get_admin!(id), do: Repo.get!(Employee, id)
 
-  ## Admin registration
+  ## Employee registration
 
   @doc """
-  Registers a admin.
+  Registers a employee.
 
   ## Examples
 
       iex> register_admin(%{field: value})
-      {:ok, %Admin{}}
+      {:ok, %Employee{}}
 
       iex> register_admin(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
   def register_admin(attrs) do
-    %Admin{}
-    |> Admin.registration_changeset(attrs)
+    %Employee{}
+    |> Employee.registration_changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking admin changes.
+  Returns an `%Ecto.Changeset{}` for tracking employee changes.
 
   ## Examples
 
-      iex> change_admin_registration(admin)
-      %Ecto.Changeset{data: %Admin{}}
+      iex> change_admin_registration(employee)
+      %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_admin_registration(%Admin{} = admin, attrs \\ %{}) do
-    Admin.registration_changeset(admin, attrs, hash_password: false)
+  def change_admin_registration(%Employee{} = employee, attrs \\ %{}) do
+    Employee.registration_changeset(employee, attrs, hash_password: false)
   end
 
   ## Settings
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the admin email.
+  Returns an `%Ecto.Changeset{}` for changing the employee email.
 
   ## Examples
 
-      iex> change_admin_email(admin)
-      %Ecto.Changeset{data: %Admin{}}
+      iex> change_admin_email(employee)
+      %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_admin_email(admin, attrs \\ %{}) do
-    Admin.email_changeset(admin, attrs)
+  def change_admin_email(employee, attrs \\ %{}) do
+    Employee.email_changeset(employee, attrs)
   end
 
   @doc """
@@ -115,104 +114,104 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> apply_admin_email(admin, "valid password", %{email: ...})
-      {:ok, %Admin{}}
+      iex> apply_admin_email(employee, "valid password", %{email: ...})
+      {:ok, %Employee{}}
 
-      iex> apply_admin_email(admin, "invalid password", %{email: ...})
+      iex> apply_admin_email(employee, "invalid password", %{email: ...})
       {:error, %Ecto.Changeset{}}
 
   """
-  def apply_admin_email(admin, password, attrs) do
-    admin
-    |> Admin.email_changeset(attrs)
-    |> Admin.validate_current_password(password)
+  def apply_admin_email(employee, password, attrs) do
+    employee
+    |> Employee.email_changeset(attrs)
+    |> Employee.validate_current_password(password)
     |> Ecto.Changeset.apply_action(:update)
   end
 
   @doc """
-  Updates the admin email using the given token.
+  Updates the employee email using the given token.
 
-  If the token matches, the admin email is updated and the token is deleted.
+  If the token matches, the employee email is updated and the token is deleted.
   The confirmed_at date is also updated to the current time.
   """
-  def update_admin_email(admin, token) do
-    context = "change:#{admin.email}"
+  def update_admin_email(employee, token) do
+    context = "change:#{employee.email}"
 
-    with {:ok, query} <- AdminToken.verify_change_email_token_query(token, context),
-         %AdminToken{sent_to: email} <- Repo.one(query),
-         {:ok, _} <- Repo.transaction(admin_email_multi(admin, email, context)) do
+    with {:ok, query} <- EmployeeToken.verify_change_email_token_query(token, context),
+         %EmployeeToken{sent_to: email} <- Repo.one(query),
+         {:ok, _} <- Repo.transaction(admin_email_multi(employee, email, context)) do
       :ok
     else
       _ -> :error
     end
   end
 
-  defp admin_email_multi(admin, email, context) do
+  defp admin_email_multi(employee, email, context) do
     changeset =
-      admin
-      |> Admin.email_changeset(%{email: email})
-      |> Admin.confirm_changeset()
+      employee
+      |> Employee.email_changeset(%{email: email})
+      |> Employee.confirm_changeset()
 
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:admin, changeset)
-    |> Ecto.Multi.delete_all(:tokens, AdminToken.admin_and_contexts_query(admin, [context]))
+    |> Ecto.Multi.update(:employee, changeset)
+    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, [context]))
   end
 
   @doc """
-  Delivers the update email instructions to the given admin.
+  Delivers the update email instructions to the given employee.
 
   ## Examples
 
-      iex> deliver_update_email_instructions(admin, current_email, &Routes.admin_update_email_url(conn, :edit, &1))
+      iex> deliver_update_email_instructions(employee, current_email, &Routes.admin_update_email_url(conn, :edit, &1))
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_update_email_instructions(%Admin{} = admin, current_email, update_email_url_fun)
+  def deliver_update_email_instructions(%Employee{} = employee, current_email, update_email_url_fun)
       when is_function(update_email_url_fun, 1) do
-    {encoded_token, admin_token} = AdminToken.build_email_token(admin, "change:#{current_email}")
+    {encoded_token, admin_token} = EmployeeToken.build_email_token(employee, "change:#{current_email}")
 
     Repo.insert!(admin_token)
-    AdminNotifier.deliver_update_email_instructions(admin, update_email_url_fun.(encoded_token))
+    EmployeeNotifier.deliver_update_email_instructions(employee, update_email_url_fun.(encoded_token))
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the admin password.
+  Returns an `%Ecto.Changeset{}` for changing the employee password.
 
   ## Examples
 
-      iex> change_admin_password(admin)
-      %Ecto.Changeset{data: %Admin{}}
+      iex> change_admin_password(employee)
+      %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_admin_password(admin, attrs \\ %{}) do
-    Admin.password_changeset(admin, attrs, hash_password: false)
+  def change_admin_password(employee, attrs \\ %{}) do
+    Employee.password_changeset(employee, attrs, hash_password: false)
   end
 
   @doc """
-  Updates the admin password.
+  Updates the employee password.
 
   ## Examples
 
-      iex> update_admin_password(admin, "valid password", %{password: ...})
-      {:ok, %Admin{}}
+      iex> update_admin_password(employee, "valid password", %{password: ...})
+      {:ok, %Employee{}}
 
-      iex> update_admin_password(admin, "invalid password", %{password: ...})
+      iex> update_admin_password(employee, "invalid password", %{password: ...})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_admin_password(admin, password, attrs) do
+  def update_admin_password(employee, password, attrs) do
     changeset =
-      admin
-      |> Admin.password_changeset(attrs)
-      |> Admin.validate_current_password(password)
+      employee
+      |> Employee.password_changeset(attrs)
+      |> Employee.validate_current_password(password)
 
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:admin, changeset)
-    |> Ecto.Multi.delete_all(:tokens, AdminToken.admin_and_contexts_query(admin, :all))
+    |> Ecto.Multi.update(:employee, changeset)
+    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
     |> Repo.transaction()
     |> case do
-      {:ok, %{admin: admin}} -> {:ok, admin}
-      {:error, :admin, changeset, _} -> {:error, changeset}
+      {:ok, %{employee: employee}} -> {:ok, employee}
+      {:error, :employee, changeset, _} -> {:error, changeset}
     end
   end
 
@@ -221,17 +220,17 @@ defmodule TurnStile.Staff do
   @doc """
   Generates a session token.
   """
-  def generate_admin_session_token(admin) do
-    {token, admin_token} = AdminToken.build_session_token(admin)
+  def generate_admin_session_token(employee) do
+    {token, admin_token} = EmployeeToken.build_session_token(employee)
     Repo.insert!(admin_token)
     token
   end
 
   @doc """
-  Gets the admin with the given signed token.
+  Gets the employee with the given signed token.
   """
   def get_admin_by_session_token(token) do
-    {:ok, query} = AdminToken.verify_session_token_query(token)
+    {:ok, query} = EmployeeToken.verify_session_token_query(token)
     Repo.one(query)
   end
 
@@ -239,225 +238,225 @@ defmodule TurnStile.Staff do
   Deletes the signed token with the given context.
   """
   def delete_session_token(token) do
-    Repo.delete_all(AdminToken.token_and_context_query(token, "session"))
+    Repo.delete_all(EmployeeToken.token_and_context_query(token, "session"))
     :ok
   end
 
   ## Confirmation
 
   @doc """
-  Delivers the confirmation email instructions to the given admin.
+  Delivers the confirmation email instructions to the given employee.
 
   ## Examples
 
-      iex> deliver_admin_confirmation_instructions(admin, &Routes.admin_confirmation_url(conn, :edit, &1))
+      iex> deliver_admin_confirmation_instructions(employee, &Routes.admin_confirmation_url(conn, :edit, &1))
       {:ok, %{to: ..., body: ...}}
 
       iex> deliver_admin_confirmation_instructions(confirmed_admin, &Routes.admin_confirmation_url(conn, :edit, &1))
       {:error, :already_confirmed}
 
   """
-  def deliver_admin_confirmation_instructions(%Admin{} = admin, confirmation_url_fun)
+  def deliver_admin_confirmation_instructions(%Employee{} = employee, confirmation_url_fun)
       when is_function(confirmation_url_fun, 1) do
-    if admin.confirmed_at do
+    if employee.confirmed_at do
       {:error, :already_confirmed}
     else
-      {encoded_token, admin_token} = AdminToken.build_email_token(admin, "confirm")
+      {encoded_token, admin_token} = EmployeeToken.build_email_token(employee, "confirm")
       Repo.insert!(admin_token)
-      AdminNotifier.deliver_confirmation_instructions(admin, confirmation_url_fun.(encoded_token))
+      EmployeeNotifier.deliver_confirmation_instructions(employee, confirmation_url_fun.(encoded_token))
     end
   end
 
   @doc """
-  Confirms a admin by the given token.
+  Confirms a employee by the given token.
 
-  If the token matches, the admin account is marked as confirmed
+  If the token matches, the employee account is marked as confirmed
   and the token is deleted.
   """
   def confirm_admin(token) do
-    with {:ok, query} <- AdminToken.verify_email_token_query(token, "confirm"),
-         %Admin{} = admin <- Repo.one(query),
-         {:ok, %{admin: admin}} <- Repo.transaction(confirm_admin_multi(admin)) do
-      {:ok, admin}
+    with {:ok, query} <- EmployeeToken.verify_email_token_query(token, "confirm"),
+         %Employee{} = employee <- Repo.one(query),
+         {:ok, %{employee: employee}} <- Repo.transaction(confirm_admin_multi(employee)) do
+      {:ok, employee}
     else
       _ -> :error
     end
   end
 
-  defp confirm_admin_multi(admin) do
+  defp confirm_admin_multi(employee) do
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:admin, Admin.confirm_changeset(admin))
-    |> Ecto.Multi.delete_all(:tokens, AdminToken.admin_and_contexts_query(admin, ["confirm"]))
+    |> Ecto.Multi.update(:employee, Employee.confirm_changeset(employee))
+    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, ["confirm"]))
   end
 
   ## Reset password
 
   @doc """
-  Delivers the reset password email to the given admin.
+  Delivers the reset password email to the given employee.
 
   ## Examples
 
-      iex> deliver_admin_reset_password_instructions(admin, &Routes.admin_reset_password_url(conn, :edit, &1))
+      iex> deliver_admin_reset_password_instructions(employee, &Routes.admin_reset_password_url(conn, :edit, &1))
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_admin_reset_password_instructions(%Admin{} = admin, reset_password_url_fun)
+  def deliver_admin_reset_password_instructions(%Employee{} = employee, reset_password_url_fun)
       when is_function(reset_password_url_fun, 1) do
-    {encoded_token, admin_token} = AdminToken.build_email_token(admin, "reset_password")
+    {encoded_token, admin_token} = EmployeeToken.build_email_token(employee, "reset_password")
     Repo.insert!(admin_token)
-    AdminNotifier.deliver_reset_password_instructions(admin, reset_password_url_fun.(encoded_token))
+    EmployeeNotifier.deliver_reset_password_instructions(employee, reset_password_url_fun.(encoded_token))
   end
 
   @doc """
-  Gets the admin by reset password token.
+  Gets the employee by reset password token.
 
   ## Examples
 
       iex> get_admin_by_reset_password_token("validtoken")
-      %Admin{}
+      %Employee{}
 
       iex> get_admin_by_reset_password_token("invalidtoken")
       nil
 
   """
   def get_admin_by_reset_password_token(token) do
-    with {:ok, query} <- AdminToken.verify_email_token_query(token, "reset_password"),
-         %Admin{} = admin <- Repo.one(query) do
-      admin
+    with {:ok, query} <- EmployeeToken.verify_email_token_query(token, "reset_password"),
+         %Employee{} = employee <- Repo.one(query) do
+      employee
     else
       _ -> nil
     end
   end
 
   @doc """
-  Resets the admin password.
+  Resets the employee password.
 
   ## Examples
 
-      iex> reset_admin_password(admin, %{password: "new long password", password_confirmation: "new long password"})
-      {:ok, %Admin{}}
+      iex> reset_admin_password(employee, %{password: "new long password", password_confirmation: "new long password"})
+      {:ok, %Employee{}}
 
-      iex> reset_admin_password(admin, %{password: "valid", password_confirmation: "not the same"})
+      iex> reset_admin_password(employee, %{password: "valid", password_confirmation: "not the same"})
       {:error, %Ecto.Changeset{}}
 
   """
-  def reset_admin_password(admin, attrs) do
+  def reset_admin_password(employee, attrs) do
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:admin, Admin.password_changeset(admin, attrs))
-    |> Ecto.Multi.delete_all(:tokens, AdminToken.admin_and_contexts_query(admin, :all))
+    |> Ecto.Multi.update(:employee, Employee.password_changeset(employee, attrs))
+    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
     |> Repo.transaction()
     |> case do
-      {:ok, %{admin: admin}} -> {:ok, admin}
-      {:error, :admin, changeset, _} -> {:error, changeset}
+      {:ok, %{employee: employee}} -> {:ok, employee}
+      {:error, :employee, changeset, _} -> {:error, changeset}
     end
   end
 
-  alias TurnStile.Staff.Admin
+  alias TurnStile.Staff.Employee
 
   @doc """
-  Returns the list of admins.
+  Returns the list of employees.
 
   ## Examples
 
       iex> list_all_admins()
-      [%Admin{}, ...]
+      [%Employee{}, ...]
 
   """
   def list_all_admins do
     # query all
-    query = from(a in Admin, select: a)
+    query = from(a in Employee, select: a)
     Repo.all(query)
   end
 
   def list_admins_by_organization(organization_id) do
     # IO.inspect(organization_id)
-    q = from a in Admin,
+    q = from a in Employee,
     where: a.organization_id == ^organization_id,
     select: a
     Repo.all(q)
   end
 
   @doc """
-  Gets a single admin.
+  Gets a single employee.
 
-  Raises if the Admin does not exist.
+  Raises if the Employee does not exist.
 
   ## Examples
 
       iex> get_admin!(123)
-      %Admin{}
+      %Employee{}
 
   """
   def get_admin!(id), do: raise "TODO"
 
   @doc """
-  Creates a admin.
+  Creates a employee.
 
   ## Examples
 
       iex> create_admin(%{field: value})
-      {:ok, %Admin{}}
+      {:ok, %Employee{}}
 
       iex> create_admin(%{field: bad_value})
       {:error, ...}
 
   """
-  def create_admin(%Admin{} = admin, attrs \\ %{}) do
-    Admin.changeset(admin, attrs)
+  def create_admin(%Employee{} = employee, attrs \\ %{}) do
+    Employee.changeset(employee, attrs)
   end
 
 
   @doc """
-  Updates a admin.
+  Updates a employee.
 
   ## Examples
 
-      iex> update_admin(admin, %{field: new_value})
-      {:ok, %Admin{}}
+      iex> update_admin(employee, %{field: new_value})
+      {:ok, %Employee{}}
 
-      iex> update_admin(admin, %{field: bad_value})
+      iex> update_admin(employee, %{field: bad_value})
       {:error, ...}
 
   """
-  def update_admin(%Admin{} = admin, attrs) do
+  def update_admin(%Employee{} = employee, attrs) do
     raise "TODO"
   end
 
   @doc """
-  Deletes a Admin.
+  Deletes a Employee.
 
   ## Examples
 
-      iex> delete_admin(admin)
-      {:ok, %Admin{}}
+      iex> delete_admin(employee)
+      {:ok, %Employee{}}
 
-      iex> delete_admin(admin)
+      iex> delete_admin(employee)
       {:error, ...}
 
   """
-  def delete_admin(%Admin{} = admin) do
+  def delete_admin(%Employee{} = employee) do
     raise "TODO"
   end
 
   @doc """
-  Returns a data structure for tracking admin changes.
+  Returns a data structure for tracking employee changes.
 
   ## Examples
 
-      iex> change_admin(admin)
+      iex> change_admin(employee)
       %Todo{...}
 
   """
-  def change_admin(%Admin{} = admin, attrs \\ %{}) do
-    Admin.changeset(admin, attrs)
+  def change_admin(%Employee{} = employee, attrs \\ %{}) do
+    Employee.changeset(employee, attrs)
   end
 
-  def check_admin_is_in_organization(admin, organization_id) do
+  def check_admin_is_in_organization(employee, organization_id) do
     organization = Company.get_organization(organization_id)
     IO.inspect("check_admin_is_in_organization")
 
     if organization do
-      if organization.id == admin.organization_id do
+      if organization.id == employee.organization_id do
         true
       else
         false

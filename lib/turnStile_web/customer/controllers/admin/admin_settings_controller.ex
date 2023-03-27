@@ -1,8 +1,8 @@
-defmodule TurnStileWeb.AdminSettingsController do
+defmodule TurnStileWeb.EmployeeSettingsController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
-  alias TurnStileWeb.AdminAuth
+  alias TurnStileWeb.EmployeeAuth
 
   plug :assign_email_and_password_changesets
 
@@ -11,14 +11,14 @@ defmodule TurnStileWeb.AdminSettingsController do
   end
 
   def update(conn, %{"action" => "update_email"} = params) do
-    %{"current_password" => password, "admin" => admin_params} = params
-    admin = conn.assigns.current_admin
+    %{"current_password" => password, "employee" => admin_params} = params
+    employee = conn.assigns.current_admin
 
-    case Staff.apply_admin_email(admin, password, admin_params) do
+    case Staff.apply_admin_email(employee, password, admin_params) do
       {:ok, applied_admin} ->
         Staff.deliver_update_email_instructions(
           applied_admin,
-          admin.email,
+          employee.email,
           &Routes.admin_settings_url(conn, :confirm_email, &1)
         )
 
@@ -35,15 +35,15 @@ defmodule TurnStileWeb.AdminSettingsController do
   end
 
   def update(conn, %{"action" => "update_password"} = params) do
-    %{"current_password" => password, "admin" => admin_params} = params
-    admin = conn.assigns.current_admin
+    %{"current_password" => password, "employee" => admin_params} = params
+    employee = conn.assigns.current_admin
 
-    case Staff.update_admin_password(admin, password, admin_params) do
-      {:ok, admin} ->
+    case Staff.update_admin_password(employee, password, admin_params) do
+      {:ok, employee} ->
         conn
         |> put_flash(:info, "Password updated successfully.")
         |> put_session(:admin_return_to, Routes.admin_settings_path(conn, :edit))
-        |> AdminAuth.log_in_admin(admin)
+        |> EmployeeAuth.log_in_admin(employee)
 
       {:error, changeset} ->
         render(conn, "edit.html", password_changeset: changeset)
@@ -65,10 +65,10 @@ defmodule TurnStileWeb.AdminSettingsController do
   end
 
   defp assign_email_and_password_changesets(conn, _opts) do
-    admin = conn.assigns.current_admin
+    employee = conn.assigns.current_admin
 
     conn
-    |> assign(:email_changeset, Staff.change_admin_email(admin))
-    |> assign(:password_changeset, Staff.change_admin_password(admin))
+    |> assign(:email_changeset, Staff.change_admin_email(employee))
+    |> assign(:password_changeset, Staff.change_admin_password(employee))
   end
 end

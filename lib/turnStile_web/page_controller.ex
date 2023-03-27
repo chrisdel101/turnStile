@@ -6,21 +6,21 @@ defmodule TurnStileWeb.PageController do
 
   # check to see if app is setup yet
   defp runSetupCheck() do
-    # check if any admins exist
-    admins? = Staff.list_all_admins()
-    if length(admins?) === 0 do
+    # check if any employees exist
+    employees? = Staff.list_all_admins()
+    if length(employees?) === 0 do
       false
       # show setup menu
     else
       true
-      # show admin menu
+      # show employee menu
     end
   end
 
   def index(conn, _params) do
-    admins? = runSetupCheck()
+    employees? = runSetupCheck()
     conn
-    |> assign(:admins?, admins?)
+    |> assign(:employees?, employees?)
     |> render("index.html")
   end
 end

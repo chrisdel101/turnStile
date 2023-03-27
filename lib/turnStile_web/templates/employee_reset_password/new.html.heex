@@ -1,11 +1,11 @@
-<h1>Resend confirmation instructions</h1>
+<h1>Forgot your password?</h1>
 
-<.form let={f} for={:admin} action={Routes.admin_confirmation_path(@conn, :create)}>
+<.form let={f} for={:employee} action={Routes.admin_reset_password_path(@conn, :create)}>
   <%= label f, :email %>
   <%= email_input f, :email, required: true %>
 
   <div>
-    <%= submit "Resend confirmation instructions" %>
+    <%= submit "Send instructions to reset password" %>
   </div>
 </.form>
 

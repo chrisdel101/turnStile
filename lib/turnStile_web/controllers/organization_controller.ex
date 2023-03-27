@@ -4,8 +4,8 @@ defmodule TurnStileWeb.OrganizationController do
   alias TurnStile.Staff
   alias TurnStile.Company
   alias TurnStile.Company.Organization
-  alias TurnStileWeb.AdminAuth
-  alias TurnStile.Staff.Admin
+  alias TurnStileWeb.EmployeeAuth
+  alias TurnStile.Staff.Employee
 
   def index(conn, _params) do
     # only app in-company app developers can see this
@@ -65,7 +65,7 @@ defmodule TurnStileWeb.OrganizationController do
       end
 
       members? = organization_has_members?(organization.id)
-      admin_changeset = Staff.change_admin(%Admin{})
+      admin_changeset = Staff.change_admin(%Employee{})
       render(conn, "show.html",
         organization: organization,
         changeset: admin_changeset,
@@ -109,9 +109,9 @@ defmodule TurnStileWeb.OrganizationController do
     redirect(conn, to: "/organizations/#{organization_slug}")
   end
 
-  # check if org has admin members
+  # check if org has employee members
   def organization_has_members?(id) do
-    # members? = Company.check_organization_has_admins(id)
+    # members? = Company.check_organization_has_employees(id)
     members? = Staff.list_admins_by_organization(id)
 
     if !members? or length(members?) === 0 do
@@ -147,7 +147,7 @@ defmodule TurnStileWeb.OrganizationController do
 
       # THIS NEED FIXING
       for_arity_error = []
-      AdminAuth.require_authenticated_admin(conn, for_arity_error)
+      EmployeeAuth.require_authenticated_admin(conn, for_arity_error)
     else
       assign(conn, :current_organization_setup, false)
       # if no members, allow first time setup reg

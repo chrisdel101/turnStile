@@ -1,0 +1,9 @@
+<h1>Show Employee</h1>
+
+<ul>
+    TEMPLATE
+
+</ul>
+
+<span><%= link "Edit", to: Routes.organization_admin_path(@conn, :edit,  @employee.organization_id,@employee.id) %></span> |
+<span><%= link "Back", to: Routes.organization_admin_path(@conn,:index,  @employee.organization_id) %></span>

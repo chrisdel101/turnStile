@@ -11,8 +11,8 @@
     </li>
     <li><%= link "Settings", to: Routes.admin_settings_path(@conn, :edit,  @current_admin.organization_id) %></li>
 
-    <!--admin level can register new staff -->
-    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) === PermissionValues.get_persmission_value("admin") do %>
+    <!--employee level can register new staff -->
+    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) === PermissionValues.get_persmission_value("employee") do %>
         <li><%= link "Register New Staff", to: Routes.admin_registration_path(@conn, :new,@current_admin.organization_id) %></li>
     <% end %>
 

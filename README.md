@@ -23,10 +23,10 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ### Steps used to build tables
 
-1. Admin: Auth, schema, migration, auth html 
-  - `mix phx.gen.auth Administrtion Admin admins`  
-2. Admin: complete html, route resources 
-  - `mix phx.gen.html Administrtion Admin admins --no-schema`
+1. Employee: Auth, schema, migration, auth html 
+  - `mix phx.gen.auth Administrtion Employee employees`  
+2. Employee: complete html, route resources 
+  - `mix phx.gen.html Administrtion Employee employees --no-schema`
 3. Add non-auth schema fields & migrations adds, create role type from enum
 4. Employee: Auth, schema, migrtion, auth html 
   - `mix phx.gen.auth Staff Employee employees`

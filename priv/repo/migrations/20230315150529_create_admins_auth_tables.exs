@@ -5,7 +5,7 @@ defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
     execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(AdminRolesEnum.get_roles())}")
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
-    create table(:admins) do
+    create table(:employees) do
       add :first_name, :string
       add :last_name, :string
       # role created above can be used here
@@ -17,18 +17,18 @@ defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
       timestamps()
     end
 
-    create unique_index(:admins, [:email])
+    create unique_index(:employees, [:email])
 
-    create table(:admins_tokens) do
-      add :admin_id, references(:admins, on_delete: :delete_all), null: false
+    create table(:employee_tokens) do
+      add :employee_id, references(:employees, on_delete: :delete_all), null: false
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string
       timestamps(updated_at: false)
     end
 
-    create index(:admins_tokens, [:admin_id])
-    create unique_index(:admins_tokens, [:context, :token])
+    create index(:employee_tokens, [:employee_id])
+    create unique_index(:employee_tokens, [:context, :token])
   end
 
 end

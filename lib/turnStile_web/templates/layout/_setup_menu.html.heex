@@ -8,12 +8,12 @@
   <%= TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) %>
   </li>
   <li><%= link "Settings", to: Routes.admin_settings_path(@conn, :edit) %></li>
-  <!--admin level can register new staff -->
-    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) === PermissionValues.get_persmission_value("admin") do %>
+  <!--employee level can register new staff -->
+    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) === PermissionValues.get_persmission_value("employee") do %>
       <li><%= link "Register New Staff", to: Routes.admin_registration_path(@conn, :new) %></li>
   <% end %>
   <li><%= link "Log out", to: Routes.admin_session_path(@conn, :delete), method: :delete %></li>
 <% else %>
-  <li><%= link "Admin Log in", to: Routes.admin_session_path(@conn, :new) %></li>
+  <li><%= link "Employee Log in", to: Routes.admin_session_path(@conn, :new) %></li>
 <% end %>
 </ul>

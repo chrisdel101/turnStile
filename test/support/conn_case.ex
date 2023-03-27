@@ -37,25 +37,25 @@ defmodule TurnStileWeb.ConnCase do
   end
 
   @doc """
-  Setup helper that registers and logs in admins.
+  Setup helper that registers and logs in employees.
 
       setup :register_and_log_in_admin
 
-  It stores an updated connection and a registered admin in the
+  It stores an updated connection and a registered employee in the
   test context.
   """
   def register_and_log_in_admin(%{conn: conn}) do
-    admin = TurnStile.AdministrationFixtures.admin_fixture()
-    %{conn: log_in_admin(conn, admin), admin: admin}
+    employee = TurnStile.AdministrationFixtures.admin_fixture()
+    %{conn: log_in_admin(conn, employee), employee: employee}
   end
 
   @doc """
-  Logs the given `admin` into the `conn`.
+  Logs the given `employee` into the `conn`.
 
   It returns an updated `conn`.
   """
-  def log_in_admin(conn, admin) do
-    token = TurnStile.Staff.generate_admin_session_token(admin)
+  def log_in_admin(conn, employee) do
+    token = TurnStile.Staff.generate_admin_session_token(employee)
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})

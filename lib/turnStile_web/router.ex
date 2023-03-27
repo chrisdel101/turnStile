@@ -2,7 +2,7 @@ defmodule TurnStileWeb.Router do
   use TurnStileWeb, :router
 
 
-  import TurnStileWeb.AdminAuth
+  import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
 
   pipeline :browser do
@@ -28,8 +28,8 @@ defmodule TurnStileWeb.Router do
   # Enables LiveDashboard only for development
   #
   # If you want to use the LiveDashboard in production, you should put
-  # it behind authentication and allow only admins to access it.
-  # If your application does not have an admins-only section yet,
+  # it behind authentication and allow only employees to access it.
+  # If your application does not have an employees-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
   if Mix.env() in [:dev, :test] do
@@ -60,38 +60,38 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 
 
-    # get "/admins/log_in", AdminSessionController, :new
-    post "/admins/log_in", AdminSessionController, :create
-    get "/admins/reset_password", AdminResetPasswordController, :new
-    post "/admins/reset_password", AdminResetPasswordController, :create
-    get "/admins/reset_password/:token", AdminResetPasswordController, :edit
-    put "/admins/reset_password/:token", AdminResetPasswordController, :update
+    # get "/employees/log_in", EmployeeSessionController, :new
+    post "/employees/log_in", EmployeeSessionController, :create
+    get "/employees/reset_password", EmployeeResetPasswordController, :new
+    post "/employees/reset_password", EmployeeResetPasswordController, :create
+    get "/employees/reset_password/:token", EmployeeResetPasswordController, :edit
+    put "/employees/reset_password/:token", EmployeeResetPasswordController, :update
   end
 
   scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
 
-    get "/admins/settings", AdminSettingsController, :edit
-    put "/admins/settings", AdminSettingsController, :update
-    get "/admins/settings/confirm_email/:token", AdminSettingsController, :confirm_email
+    get "/employees/settings", EmployeeSettingsController, :edit
+    put "/employees/settings", EmployeeSettingsController, :update
+    get "/employees/settings/confirm_email/:token", EmployeeSettingsController, :confirm_email
   end
 
   scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser, :organization_setup?,:req_auth_after_org_setup?]
 
-    get "/admins/register", AdminRegistrationController, :new
-    post "/admins/register", AdminRegistrationController, :create
+    get "/employees/register", EmployeeRegistrationController, :new
+    post "/employees/register", EmployeeRegistrationController, :create
 
   end
 
   scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser]
 
-    delete "/admins/log_out", AdminSessionController, :delete
-    get "/admins/confirm", AdminConfirmationController, :new
-    post "/admins/confirm", AdminConfirmationController, :create
-    get "/admins/confirm/:token", AdminConfirmationController, :edit
-    post "/admins/confirm/:token", AdminConfirmationController, :update
+    delete "/employees/log_out", EmployeeSessionController, :delete
+    get "/employees/confirm", EmployeeConfirmationController, :new
+    post "/employees/confirm", EmployeeConfirmationController, :create
+    get "/employees/confirm/:token", EmployeeConfirmationController, :edit
+    post "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
 
   scope "/", TurnStileWeb do
@@ -107,7 +107,7 @@ defmodule TurnStileWeb.Router do
 
 
     resources "/organizations", OrganizationController, except: [:show] do
-        resources "/admins", AdminController
+        resources "/employees", EmployeeController
       end
     resources "/users", UserController
     get "/organizations/:param", OrganizationController, :show

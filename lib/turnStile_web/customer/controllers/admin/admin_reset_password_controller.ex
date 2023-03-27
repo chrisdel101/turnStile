@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AdminResetPasswordController do
+defmodule TurnStileWeb.EmployeeResetPasswordController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
@@ -9,10 +9,10 @@ defmodule TurnStileWeb.AdminResetPasswordController do
     render(conn, "new.html")
   end
 
-  def create(conn, %{"admin" => %{"email" => email}}) do
-    if admin = Staff.get_admin_by_email(email) do
+  def create(conn, %{"employee" => %{"email" => email}}) do
+    if employee = Staff.get_admin_by_email(email) do
       Staff.deliver_admin_reset_password_instructions(
-        admin,
+        employee,
         &Routes.admin_reset_password_url(conn, :edit, &1)
       )
     end
@@ -26,13 +26,13 @@ defmodule TurnStileWeb.AdminResetPasswordController do
   end
 
   def edit(conn, _params) do
-    render(conn, "edit.html", changeset: Staff.change_admin_password(conn.assigns.admin))
+    render(conn, "edit.html", changeset: Staff.change_admin_password(conn.assigns.employee))
   end
 
-  # Do not log in the admin after reset password to avoid a
-  # leaked token giving the admin access to the account.
-  def update(conn, %{"admin" => admin_params}) do
-    case Staff.reset_admin_password(conn.assigns.admin, admin_params) do
+  # Do not log in the employee after reset password to avoid a
+  # leaked token giving the employee access to the account.
+  def update(conn, %{"employee" => admin_params}) do
+    case Staff.reset_admin_password(conn.assigns.employee, admin_params) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Password reset successfully.")
@@ -46,8 +46,8 @@ defmodule TurnStileWeb.AdminResetPasswordController do
   defp get_admin_by_reset_password_token(conn, _opts) do
     %{"token" => token} = conn.params
 
-    if admin = Staff.get_admin_by_reset_password_token(token) do
-      conn |> assign(:admin, admin) |> assign(:token, token)
+    if employee = Staff.get_admin_by_reset_password_token(token) do
+      conn |> assign(:employee, employee) |> assign(:token, token)
     else
       conn
       |> put_flash(:error, "Reset password link is invalid or it has expired.")

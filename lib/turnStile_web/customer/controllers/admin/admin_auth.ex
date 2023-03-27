@@ -1,20 +1,20 @@
-defmodule TurnStileWeb.AdminAuth do
+defmodule TurnStileWeb.EmployeeAuth do
   import Plug.Conn
   import Phoenix.Controller
 
   alias TurnStile.Staff
-  alias TurnStile.Staff.Admin
+  alias TurnStile.Staff.Employee
   alias TurnStileWeb.Router.Helpers, as: Routes
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
-  # the token expiry itself in AdminToken.
+  # the token expiry itself in EmployeeToken.
   @max_age 60 * 60 * 24 * 60
   @remember_me_cookie "_turn_stile_web_admin_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
   @doc """
-  Logs the admin in.
+  Logs the employee in.
 
   It renews the session ID and clears the whole session
   to avoid fixation attacks. See the renew_session
@@ -25,7 +25,7 @@ defmodule TurnStileWeb.AdminAuth do
   disconnected on log out. The line can be safely removed
   if you are not using LiveView.
   """
-  def log_in_admin(conn, admin, params \\ %{}) do
+  def log_in_admin(conn, employee, params \\ %{}) do
 
     organization_id = conn.path_params["id"]
     if !organization_id do
@@ -33,14 +33,14 @@ defmodule TurnStileWeb.AdminAuth do
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
       |> redirect(to: Routes.organization_path(conn, :show))
     end
-    # confirm this admin is in the correct organization
-    is_in_organization? = Staff.check_admin_is_in_organization(admin,organization_id)
+    # confirm this employee is in the correct organization
+    is_in_organization? = Staff.check_admin_is_in_organization(employee,organization_id)
     if !is_in_organization? do
       conn
-      |> put_flash(:error, "Admin is not in the correct organization.")
+      |> put_flash(:error, "Employee is not in the correct organization.")
       |> redirect(to: "/organizations/#{conn.path_params["id"]}")
     end
-    token = Staff.generate_admin_session_token(admin)
+    token = Staff.generate_admin_session_token(employee)
     admin_return_to = get_session(conn, :admin_return_to)
     conn
     |> renew_session()
@@ -80,7 +80,7 @@ defmodule TurnStileWeb.AdminAuth do
   end
 
   @doc """
-  Logs the admin out.
+  Logs the employee out.
 
   It clears all session data for safety. See renew_session.
   """
@@ -99,13 +99,13 @@ defmodule TurnStileWeb.AdminAuth do
   end
 
   @doc """
-  Authenticates the admin by looking into the session
+  Authenticates the employee by looking into the session
   and remember me token.
   """
   def fetch_current_admin(conn, _opts) do
     {admin_token, conn} = ensure_admin_token(conn)
-    admin = admin_token && Staff.get_admin_by_session_token(admin_token)
-    assign(conn, :current_admin, admin)
+    employee = admin_token && Staff.get_admin_by_session_token(admin_token)
+    assign(conn, :current_admin, employee)
   end
 
   defp ensure_admin_token(conn) do
@@ -123,15 +123,15 @@ defmodule TurnStileWeb.AdminAuth do
   end
 
   @doc """
-  Used for routes that require the admin to not be authenticated.
+  Used for routes that require the employee to not be authenticated.
   """
   def redirect_if_admin_is_authenticated(conn, _opts) do
     # if logged in
     current_admin = conn.assigns[:current_admin]
 
     if current_admin do
-      # if owner/admin - don't redirect from registartion
-      # if (current_admin.role != "owner" or current_admin.role != "admin") and
+      # if owner/employee - don't redirect from registartion
+      # if (current_admin.role != "owner" or current_admin.role != "employee") and
       #      List.last(conn.path_info) != "register" do
         conn
         |> redirect(to: signed_in_path(conn))
@@ -145,9 +145,9 @@ defmodule TurnStileWeb.AdminAuth do
   end
 
   @doc """
-  Used for routes that require the admin to be authenticated.
+  Used for routes that require the employee to be authenticated.
 
-  If you want to enforce the admin email is confirmed before
+  If you want to enforce the employee email is confirmed before
   they use the application at all, here would be a good place.
   """
   def require_authenticated_admin(conn, _opts) do
@@ -171,6 +171,6 @@ defmodule TurnStileWeb.AdminAuth do
 
   defp signed_in_path(conn) do
     organization_id = conn.params["id"]
-    "/organizations/#{organization_id}/admins"
+    "/organizations/#{organization_id}/employees"
   end
 end

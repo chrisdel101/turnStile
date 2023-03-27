@@ -1,4 +1,4 @@
-defmodule TurnStile.Staff.AdminNotifier do
+defmodule TurnStile.Staff.EmployeeNotifier do
   import Swoosh.Email
 
   alias TurnStile.Mailer
@@ -20,12 +20,12 @@ defmodule TurnStile.Staff.AdminNotifier do
   @doc """
   Deliver instructions to confirm account.
   """
-  def deliver_confirmation_instructions(admin, url) do
-    deliver(admin.email, "Confirmation instructions", """
+  def deliver_confirmation_instructions(employee, url) do
+    deliver(employee.email, "Confirmation instructions", """
 
     ==============================
 
-    Hi #{admin.email},
+    Hi #{employee.email},
 
     You can confirm your account by visiting the URL below:
 
@@ -38,14 +38,14 @@ defmodule TurnStile.Staff.AdminNotifier do
   end
 
   @doc """
-  Deliver instructions to reset a admin password.
+  Deliver instructions to reset a employee password.
   """
-  def deliver_reset_password_instructions(admin, url) do
-    deliver(admin.email, "Reset password instructions", """
+  def deliver_reset_password_instructions(employee, url) do
+    deliver(employee.email, "Reset password instructions", """
 
     ==============================
 
-    Hi #{admin.email},
+    Hi #{employee.email},
 
     You can reset your password by visiting the URL below:
 
@@ -58,14 +58,14 @@ defmodule TurnStile.Staff.AdminNotifier do
   end
 
   @doc """
-  Deliver instructions to update a admin email.
+  Deliver instructions to update a employee email.
   """
-  def deliver_update_email_instructions(admin, url) do
-    deliver(admin.email, "Update email instructions", """
+  def deliver_update_email_instructions(employee, url) do
+    deliver(employee.email, "Update email instructions", """
 
     ==============================
 
-    Hi #{admin.email},
+    Hi #{employee.email},
 
     You can change your email by visiting the URL below:
 
