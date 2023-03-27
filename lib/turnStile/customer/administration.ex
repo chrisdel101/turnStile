@@ -455,7 +455,7 @@ defmodule TurnStile.Administration do
   def check_admin_is_in_organization(admin, organization_id) do
     organization = Company.get_organization(organization_id)
     IO.inspect("check_admin_is_in_organization")
-    IO.inspect(organization)
+
     if organization do
       if organization.id == admin.organization_id do
         true

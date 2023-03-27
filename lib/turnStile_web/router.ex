@@ -62,7 +62,7 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 
 
-    get "/admins/log_in", AdminSessionController, :new
+    # get "/admins/log_in", AdminSessionController, :new
     post "/admins/log_in", AdminSessionController, :create
     get "/admins/reset_password", AdminResetPasswordController, :new
     post "/admins/reset_password", AdminResetPasswordController, :create
