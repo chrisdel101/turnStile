@@ -19,6 +19,7 @@
 
 </ul>
 <%= if @members? do %>
+  <%= if !@current_admin do %>
       <!--if members Show sign in form -->
       <%= if @changeset.action do %>
         <div class="alert alert-danger">
@@ -26,20 +27,23 @@
         </div>
       <% end %>
 
-    <.form let={f} for={@changeset} action={Routes.admin_session_path(@conn, :create, @organization_id)}>
+      <.form let={f} for={@changeset} action={Routes.admin_session_path(@conn, :create, @organization_id)}>
 
-      <%= label f, :email %>
-      <%= email_input f, :email, required: true %>
-      <%= error_tag f, :email %>
+        <%= label f, :email %>
+        <%= email_input f, :email, required: true %>
+        <%= error_tag f, :email %>
 
-      <%= label f, :password %>
-      <%= password_input f, :password, required: true %>
-      <%= error_tag f, :password %>
+        <%= label f, :password %>
+        <%= password_input f, :password, required: true %>
+        <%= error_tag f, :password %>
 
-      <div>
-        <%= submit "Login" %>
-      </div>
-    </.form>
+        <div>
+          <%= submit "Login" %>
+        </div>
+      </.form>
+
+  <% end %>
+
 <% else %>
   <div>No Organization Members exist</div>
   <span><%= link "Add _Members", to: Routes.admin_registration_path(@conn, :new, @organization.id) %></span>
