@@ -80,14 +80,14 @@ defmodule TurnStileWeb.EmployeeController do
 
     cond do
       # owner
-      current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 0))  ->
-        to_string(Enum.at(AdminRolesEnum.get_roles, 0))
+      current_role === to_string(Enum.at(EmployeeAdminRolesEnum.get_roles, 0))  ->
+        to_string(Enum.at(EmployeeAdminRolesEnum.get_roles, 0))
       # employee
-      current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 1))  ->
-        to_string(Enum.at(AdminRolesEnum.get_roles, 1))
+      current_role === to_string(Enum.at(EmployeeAdminRolesEnum.get_roles, 1))  ->
+        to_string(Enum.at(EmployeeAdminRolesEnum.get_roles, 1))
       # developer
-      current_role === to_string(Enum.at(AdminRolesEnum.get_roles, 2))  ->
-        to_string(Enum.at(AdminRolesEnum.get_roles, 2))
+      current_role === to_string(Enum.at(EmployeeAdminRolesEnum.get_roles, 2))  ->
+        to_string(Enum.at(EmployeeAdminRolesEnum.get_roles, 2))
 
 
     end

@@ -8,7 +8,7 @@
   <h3>Add An Organization Owner</h3>
   <p>The owner is the top-level administator. The owner can create all other user types.</p>
 <% end %>
- <!-- setup procedue -->
+ <!-- setup procedure -->
 <.form let={f} for={@changeset} action={Routes.employee_registration_path(@conn, :create, @organization_id)}>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -29,10 +29,10 @@
   <!-- Non-setup procedue -->
   <%= if @current_employee do%>
   <!-- display only roles allowed by permissions -->
-    <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminRolesEnum.get_roles(),  @current_employee.role), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+    <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(EmployeePermissionRoles.get_employee_all_roles(),  @current_employee.role), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
   <% else %>
-    <!-- if setup procedure -->
-    <%= select f, :role, TurnStile.Utils.display_single_item_list(AdminRolesEnum.get_roles(),hd AdminRolesEnum.get_roles()), prompt: "Choose Role", required: true %>
+    <!-- if setup procedure must be owner -->
+    <%= select f, :role, TurnStile.Utils.display_single_item_list(EmployeeAdminRolesEnum.get_roles(),hd EmployeeAdminRolesEnum.get_roles()), prompt: "Choose Role", required: true %>
   <% end %>
 
   <%= label f, :email %>
