@@ -5,8 +5,11 @@ defmodule TurnStileWeb.UserController do
   alias TurnStile.Patients.User
 
   def index(conn, _params) do
+    IO.inspect(conn)
     users = Patients.list_users()
-    render(conn, "index.html", users: users)
+    organization_id = conn.params["organization_id"]
+    employee_id = conn.params["employee_id"]
+    render(conn, "index.html", users: users, employee_id: employee_id, organization_id: organization_id)
   end
 
   def new(conn, _params) do
