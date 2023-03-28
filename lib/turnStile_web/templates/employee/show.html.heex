@@ -1,9 +1,15 @@
 <h1>Show Employee</h1>
 
 <ul>
-    TEMPLATE
+     <li>Email: <%= @current_employee.email %></li>
+    <li>Role: <%= @current_employee.role %></li>
+    <li>Org: <%= @current_employee.organization_id %></li>
+    <li>
+      Permission Level:
+    <%= TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_employee.role))) %>
+    </li>
 
 </ul>
 
-<span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  @employee.organization_id,@employee.id) %></span> |
-<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  @employee.organization_id) %></span>
+<span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  @current_employee.organization_id,@current_employee.id) %></span> |
+<span><%= link "Back", to: Routes.organization_employee_user_path(@conn,:index,  @current_employee.organization_id, @current_employee.id) %></span>
