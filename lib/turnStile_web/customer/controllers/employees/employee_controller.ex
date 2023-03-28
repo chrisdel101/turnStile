@@ -47,7 +47,10 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def edit(conn, %{"id" => id}) do
+    IO.inspect("HERE")
     employee = Staff.get_employee!(id)
+    IO.inspect(employee.password)
+    IO.inspect("employee")
     changeset = Staff.change_employee(employee)
     render(conn, "edit.html", employee: employee, changeset: changeset)
   end

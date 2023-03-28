@@ -9,8 +9,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   def new(conn, _params) do
     changeset = Staff.change_employee_registration(%Employee{})
     organization_id = conn.path_params["id"]
-    IO.puts("HERE")
-    IO.inspect(conn)
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
 
@@ -21,12 +19,15 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
       setup_initial_owner(conn, %{"employee" => employee_params})
     else
       organization_id = conn.path_params["id"]
+      # if no org_id found flash error
       if !organization_id do
         conn
         |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
         |> redirect(to: Routes.organization_path(conn, :index))
       end
+      # check org exist by org_id
       organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
+      # if no org by org_id flash error
       if length(organizations?) != 1 do
         conn
         |> put_flash(:info, "An Organization error ocurred. Make sure it exists.")
@@ -37,21 +38,30 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         # check level of user being createdd
         registrant_permissions =
           TurnStile.Utils.get_permissions_level_int(Map.get(employee_params, "role"))
-
-        # make sure adequate perms - only register permissions level >= self
+        # check perms - only register permissions level >= self -> lower numb is higher perms
         if registrant_permissions >
         current_user_permission do
-
+          # Invalid persmission - reload page
           changeset = Staff.change_employee_registration(%Employee{}, employee_params)
-
           conn
           # if employee does not have permissions - flash and re-render
           |> put_flash(:error, "Invalid Permssions to create that user")
           |> render("new.html", changeset: changeset, organization_id: organization_id)
         else
+          IO.inspect("HERE")
+          # add organization_id to employee_params
+          employee_params = Map.put(employee_params, "organization_id", organization_id)
+          employee_params = Map.replace(employee_params, "role", :admin)
+          changeset = Staff.change_employee_registration(%Employee{}, employee_params)
+          IO.inspect(changeset)
+          IO.inspect(employee_params)
+          conn
+          # if permissions okay
           case Staff.register_employee(employee_params) do
             {:ok, employee} ->
               {:ok, _} =
+                IO.inspect("HERE")
+                IO.inspect(organization_id)
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
                   &Routes.employee_confirmation_url(conn, :edit, &1)
@@ -68,22 +78,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
       # end
       end
       # check employee doing the creating permissions
-      current_user_permission = TurnStile.Utils.get_permissions_level_int(current_employee.role)
-      # check level of user being createdd
-      registrant_permissions =
-        TurnStile.Utils.get_permissions_level_int(Map.get(employee_params, "role"))
-
-      # make sure adequate perms - only register permissions level >= self
-      if registrant_permissions >
-      current_user_permission do
-
-        changeset = Staff.change_employee_registration(%Employee{}, employee_params)
-
-        conn
-        # if employee does not have permissions - flash and re-render
-        |> put_flash(:error, "Invalid Permssions to create that user")
-        |> render("new.html", changeset: changeset)
-      end
   end
 
     case Staff.register_employee(employee_params) do
