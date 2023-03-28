@@ -5,5 +5,5 @@
 
 </ul>
 
-<span><%= link "Edit", to: Routes.organization_admin_path(@conn, :edit,  @employee.organization_id,@employee.id) %></span> |
-<span><%= link "Back", to: Routes.organization_admin_path(@conn,:index,  @employee.organization_id) %></span>
+<span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  @employee.organization_id,@employee.id) %></span> |
+<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  @employee.organization_id) %></span>

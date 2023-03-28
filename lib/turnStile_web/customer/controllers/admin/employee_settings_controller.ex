@@ -11,15 +11,15 @@ defmodule TurnStileWeb.EmployeeSettingsController do
   end
 
   def update(conn, %{"action" => "update_email"} = params) do
-    %{"current_password" => password, "employee" => admin_params} = params
-    employee = conn.assigns.current_admin
+    %{"current_password" => password, "employee" => employee_params} = params
+    employee = conn.assigns.current_employee
 
-    case Staff.apply_admin_email(employee, password, admin_params) do
-      {:ok, applied_admin} ->
+    case Staff.apply_employee_email(employee, password, employee_params) do
+      {:ok, applied_employee} ->
         Staff.deliver_update_email_instructions(
-          applied_admin,
+          applied_employee,
           employee.email,
-          &Routes.admin_settings_url(conn, :confirm_email, &1)
+          &Routes.employee_settings_url(conn, :confirm_email, &1)
         )
 
         conn
@@ -27,7 +27,7 @@ defmodule TurnStileWeb.EmployeeSettingsController do
           :info,
           "A link to confirm your email change has been sent to the new address."
         )
-        |> redirect(to: Routes.admin_settings_path(conn, :edit))
+        |> redirect(to: Routes.employee_settings_path(conn, :edit))
 
       {:error, changeset} ->
         render(conn, "edit.html", email_changeset: changeset)
@@ -35,15 +35,15 @@ defmodule TurnStileWeb.EmployeeSettingsController do
   end
 
   def update(conn, %{"action" => "update_password"} = params) do
-    %{"current_password" => password, "employee" => admin_params} = params
-    employee = conn.assigns.current_admin
+    %{"current_password" => password, "employee" => employee_params} = params
+    employee = conn.assigns.current_employee
 
-    case Staff.update_admin_password(employee, password, admin_params) do
+    case Staff.update_employee_password(employee, password, employee_params) do
       {:ok, employee} ->
         conn
         |> put_flash(:info, "Password updated successfully.")
-        |> put_session(:admin_return_to, Routes.admin_settings_path(conn, :edit))
-        |> EmployeeAuth.log_in_admin(employee)
+        |> put_session(:employee_return_to, Routes.employee_settings_path(conn, :edit))
+        |> EmployeeAuth.log_in_employee(employee)
 
       {:error, changeset} ->
         render(conn, "edit.html", password_changeset: changeset)
@@ -51,24 +51,24 @@ defmodule TurnStileWeb.EmployeeSettingsController do
   end
 
   def confirm_email(conn, %{"token" => token}) do
-    case Staff.update_admin_email(conn.assigns.current_admin, token) do
+    case Staff.update_employee_email(conn.assigns.current_employee, token) do
       :ok ->
         conn
         |> put_flash(:info, "Email changed successfully.")
-        |> redirect(to: Routes.admin_settings_path(conn, :edit))
+        |> redirect(to: Routes.employee_settings_path(conn, :edit))
 
       :error ->
         conn
         |> put_flash(:error, "Email change link is invalid or it has expired.")
-        |> redirect(to: Routes.admin_settings_path(conn, :edit))
+        |> redirect(to: Routes.employee_settings_path(conn, :edit))
     end
   end
 
   defp assign_email_and_password_changesets(conn, _opts) do
-    employee = conn.assigns.current_admin
+    employee = conn.assigns.current_employee
 
     conn
-    |> assign(:email_changeset, Staff.change_admin_email(employee))
-    |> assign(:password_changeset, Staff.change_admin_password(employee))
+    |> assign(:email_changeset, Staff.change_employee_email(employee))
+    |> assign(:password_changeset, Staff.change_employee_password(employee))
   end
 end

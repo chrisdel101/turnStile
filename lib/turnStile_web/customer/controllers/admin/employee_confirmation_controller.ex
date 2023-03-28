@@ -8,10 +8,10 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   end
 
   def create(conn, %{"employee" => %{"email" => email}}) do
-    if employee = Staff.get_admin_by_email(email) do
-      Staff.deliver_admin_confirmation_instructions(
+    if employee = Staff.get_employee_by_email(email) do
+      Staff.deliver_employee_confirmation_instructions(
         employee,
-        &Routes.admin_confirmation_url(conn, :edit, &1)
+        &Routes.employee_confirmation_url(conn, :edit, &1)
       )
     end
 
@@ -31,7 +31,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   # Do not log in the employee after confirmation to avoid a
   # leaked token giving the employee access to the account.
   def update(conn, %{"token" => token}) do
-    case Staff.confirm_admin(token) do
+    case Staff.confirm_employee(token) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Employee confirmed successfully.")
@@ -43,7 +43,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
         # by some automation or by the employee themselves, so we redirect without
         # a warning message.
         case conn.assigns do
-          %{current_admin: %{confirmed_at: confirmed_at}} when not is_nil(confirmed_at) ->
+          %{current_employee: %{confirmed_at: confirmed_at}} when not is_nil(confirmed_at) ->
             redirect(conn, to: "/")
 
           %{} ->

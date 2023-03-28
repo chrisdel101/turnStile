@@ -1,3 +1,3 @@
-defmodule TurnStileWeb.AdminSessionView do
+defmodule TurnStileWeb.EmployeeSessionView do
   use TurnStileWeb, :view
 end

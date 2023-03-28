@@ -1,11 +1,11 @@
 defmodule TurnStileWeb.AdminRegistrationControllerTest do
   use TurnStileWeb.ConnCase, async: true
 
-  import TurnStile.AdministrationFixtures
+  import TurnStile.EmployeeFixtures
 
-  describe "GET /admins/register" do
+  describe "GET /employees/register" do
     test "renders registration page", %{conn: conn} do
-      conn = get(conn, Routes.admin_registration_path(conn, :new))
+      conn = get(conn, Routes.employee_registration_path(conn, :new))
       response = html_response(conn, 200)
       assert response =~ "<h1>Register</h1>"
       assert response =~ "Log in</a>"
@@ -13,22 +13,22 @@ defmodule TurnStileWeb.AdminRegistrationControllerTest do
     end
 
     test "redirects if already logged in", %{conn: conn} do
-      conn = conn |> log_in_admin(admin_fixture()) |> get(Routes.admin_registration_path(conn, :new))
+      conn = conn |> log_in_employee(employee_fixture()) |> get(Routes.employee_registration_path(conn, :new))
       assert redirected_to(conn) == "/"
     end
   end
 
-  describe "POST /admins/register" do
+  describe "POST /employees/register" do
     @tag :capture_log
-    test "creates account and logs the admin in", %{conn: conn} do
-      email = unique_admin_email()
+    test "creates account and logs the employee in", %{conn: conn} do
+      email = unique_employee_email()
 
       conn =
-        post(conn, Routes.admin_registration_path(conn, :create), %{
-          "admin" => valid_admin_attributes(email: email)
+        post(conn, Routes.employee_registration_path(conn, :create), %{
+          "employee" => valid_employee_attributes(email: email)
         })
 
-      assert get_session(conn, :admin_token)
+      assert get_session(conn, :employee_token)
       assert redirected_to(conn) == "/"
 
       # Now do a logged in request and assert on the menu
@@ -41,8 +41,8 @@ defmodule TurnStileWeb.AdminRegistrationControllerTest do
 
     test "render errors for invalid data", %{conn: conn} do
       conn =
-        post(conn, Routes.admin_registration_path(conn, :create), %{
-          "admin" => %{"email" => "with spaces", "password" => "too short"}
+        post(conn, Routes.employee_registration_path(conn, :create), %{
+          "employee" => %{"email" => "with spaces", "password" => "too short"}
         })
 
       response = html_response(conn, 200)

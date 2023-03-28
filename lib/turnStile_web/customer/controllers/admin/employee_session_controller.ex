@@ -8,10 +8,10 @@ defmodule TurnStileWeb.EmployeeSessionController do
     render(conn, "new.html", error_message: nil, id: conn.path_params["id"])
   end
 
-  def create(conn, %{"employee" => admin_params}) do
-    %{"email" => email, "password" => password} = admin_params
-    if employee = Staff.get_admin_by_email_and_password(email, password) do
-      EmployeeAuth.log_in_admin(conn, employee, admin_params)
+  def create(conn, %{"employee" => employee_params}) do
+    %{"email" => email, "password" => password} = employee_params
+    if employee = Staff.get_employee_by_email_and_password(email, password) do
+      EmployeeAuth.log_in_employee(conn, employee, employee_params)
     else
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
 
@@ -24,6 +24,6 @@ defmodule TurnStileWeb.EmployeeSessionController do
   def delete(conn, _params) do
     conn
     |> put_flash(:info, "Logged out successfully.")
-    |> EmployeeAuth.log_out_admin()
+    |> EmployeeAuth.log_out_employee()
   end
 end

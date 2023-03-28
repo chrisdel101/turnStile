@@ -1,6 +1,6 @@
 <h1>Resend confirmation instructions</h1>
 
-<.form let={f} for={:employee} action={Routes.admin_confirmation_path(@conn, :create)}>
+<.form let={f} for={:employee} action={Routes.employee_confirmation_path(@conn, :create)}>
   <%= label f, :email %>
   <%= email_input f, :email, required: true %>
 
@@ -10,6 +10,6 @@
 </.form>
 
 <p>
-  <%= link "Register", to: Routes.admin_registration_path(@conn, :new) %> |
-  <%= link "Log in", to: Routes.admin_session_path(@conn, :new) %>
+  <%= link "Register", to: Routes.employee_registration_path(@conn, :new) %> |
+  <%= link "Log in", to: Routes.employee_session_path(@conn, :new) %>
 </p>

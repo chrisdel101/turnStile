@@ -1,19 +1,19 @@
 <ul>
-<%= if @current_admin do %>
+<%= if @current_employee do %>
 
-  <li>Email: <%= @current_admin.email %></li>
-  <li>Role: <%= @current_admin.role %></li>
+  <li>Email: <%= @current_employee.email %></li>
+  <li>Role: <%= @current_employee.role %></li>
   <li>
     Permission Level:
-  <%= TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) %>
+  <%= TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_employee.role))) %>
   </li>
-  <li><%= link "Settings", to: Routes.admin_settings_path(@conn, :edit) %></li>
+  <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit) %></li>
   <!--employee level can register new staff -->
-    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_admin.role))) === PermissionValues.get_persmission_value("employee") do %>
-      <li><%= link "Register New Staff", to: Routes.admin_registration_path(@conn, :new) %></li>
+    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_employee.role))) === PermissionValues.get_persmission_value("employee") do %>
+      <li><%= link "Register New Staff", to: Routes.employee_registration_path(@conn, :new) %></li>
   <% end %>
-  <li><%= link "Log out", to: Routes.admin_session_path(@conn, :delete), method: :delete %></li>
+  <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete), method: :delete %></li>
 <% else %>
-  <li><%= link "Employee Log in", to: Routes.admin_session_path(@conn, :new) %></li>
+  <li><%= link "Employee Log in", to: Routes.employee_session_path(@conn, :new) %></li>
 <% end %>
 </ul>

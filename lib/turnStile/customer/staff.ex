@@ -15,14 +15,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> get_admin_by_email("foo@example.com")
+      iex> get_employee_by_email("foo@example.com")
       %Employee{}
 
-      iex> get_admin_by_email("unknown@example.com")
+      iex> get_employee_by_email("unknown@example.com")
       nil
 
   """
-  def get_admin_by_email(email) when is_binary(email) do
+  def get_employee_by_email(email) when is_binary(email) do
     Repo.get_by(Employee, email: email)
   end
 
@@ -31,14 +31,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> get_admin_by_email_and_password("foo@example.com", "correct_password")
+      iex> get_employee_by_email_and_password("foo@example.com", "correct_password")
       %Employee{}
 
-      iex> get_admin_by_email_and_password("foo@example.com", "invalid_password")
+      iex> get_employee_by_email_and_password("foo@example.com", "invalid_password")
       nil
 
   """
-  def get_admin_by_email_and_password(email, password)
+  def get_employee_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     employee = Repo.get_by(Employee, email: email)
     if Employee.valid_password?(employee, password), do: employee
@@ -51,14 +51,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> get_admin!(123)
+      iex> get_employee!(123)
       %Employee{}
 
-      iex> get_admin!(456)
+      iex> get_employee!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_admin!(id), do: Repo.get!(Employee, id)
+  def get_employee!(id), do: Repo.get!(Employee, id)
 
   ## Employee registration
 
@@ -67,14 +67,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> register_admin(%{field: value})
+      iex> register_employee(%{field: value})
       {:ok, %Employee{}}
 
-      iex> register_admin(%{field: bad_value})
+      iex> register_employee(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_admin(attrs) do
+  def register_employee(attrs) do
     %Employee{}
     |> Employee.registration_changeset(attrs)
     |> Repo.insert()
@@ -85,11 +85,11 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> change_admin_registration(employee)
+      iex> change_employee_registration(employee)
       %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_admin_registration(%Employee{} = employee, attrs \\ %{}) do
+  def change_employee_registration(%Employee{} = employee, attrs \\ %{}) do
     Employee.registration_changeset(employee, attrs, hash_password: false)
   end
 
@@ -100,11 +100,11 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> change_admin_email(employee)
+      iex> change_employee_email(employee)
       %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_admin_email(employee, attrs \\ %{}) do
+  def change_employee_email(employee, attrs \\ %{}) do
     Employee.email_changeset(employee, attrs)
   end
 
@@ -114,14 +114,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> apply_admin_email(employee, "valid password", %{email: ...})
+      iex> apply_employee_email(employee, "valid password", %{email: ...})
       {:ok, %Employee{}}
 
-      iex> apply_admin_email(employee, "invalid password", %{email: ...})
+      iex> apply_employee_email(employee, "invalid password", %{email: ...})
       {:error, %Ecto.Changeset{}}
 
   """
-  def apply_admin_email(employee, password, attrs) do
+  def apply_employee_email(employee, password, attrs) do
     employee
     |> Employee.email_changeset(attrs)
     |> Employee.validate_current_password(password)
@@ -134,19 +134,19 @@ defmodule TurnStile.Staff do
   If the token matches, the employee email is updated and the token is deleted.
   The confirmed_at date is also updated to the current time.
   """
-  def update_admin_email(employee, token) do
+  def update_employee_email(employee, token) do
     context = "change:#{employee.email}"
 
     with {:ok, query} <- EmployeeToken.verify_change_email_token_query(token, context),
          %EmployeeToken{sent_to: email} <- Repo.one(query),
-         {:ok, _} <- Repo.transaction(admin_email_multi(employee, email, context)) do
+         {:ok, _} <- Repo.transaction(employee_email_multi(employee, email, context)) do
       :ok
     else
       _ -> :error
     end
   end
 
-  defp admin_email_multi(employee, email, context) do
+  defp employee_email_multi(employee, email, context) do
     changeset =
       employee
       |> Employee.email_changeset(%{email: email})
@@ -162,15 +162,15 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> deliver_update_email_instructions(employee, current_email, &Routes.admin_update_email_url(conn, :edit, &1))
+      iex> deliver_update_email_instructions(employee, current_email, &Routes.employee_update_email_url(conn, :edit, &1))
       {:ok, %{to: ..., body: ...}}
 
   """
   def deliver_update_email_instructions(%Employee{} = employee, current_email, update_email_url_fun)
       when is_function(update_email_url_fun, 1) do
-    {encoded_token, admin_token} = EmployeeToken.build_email_token(employee, "change:#{current_email}")
+    {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "change:#{current_email}")
 
-    Repo.insert!(admin_token)
+    Repo.insert!(employee_token)
     EmployeeNotifier.deliver_update_email_instructions(employee, update_email_url_fun.(encoded_token))
   end
 
@@ -179,11 +179,11 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> change_admin_password(employee)
+      iex> change_employee_password(employee)
       %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_admin_password(employee, attrs \\ %{}) do
+  def change_employee_password(employee, attrs \\ %{}) do
     Employee.password_changeset(employee, attrs, hash_password: false)
   end
 
@@ -192,14 +192,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> update_admin_password(employee, "valid password", %{password: ...})
+      iex> update_employee_password(employee, "valid password", %{password: ...})
       {:ok, %Employee{}}
 
-      iex> update_admin_password(employee, "invalid password", %{password: ...})
+      iex> update_employee_password(employee, "invalid password", %{password: ...})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_admin_password(employee, password, attrs) do
+  def update_employee_password(employee, password, attrs) do
     changeset =
       employee
       |> Employee.password_changeset(attrs)
@@ -220,16 +220,16 @@ defmodule TurnStile.Staff do
   @doc """
   Generates a session token.
   """
-  def generate_admin_session_token(employee) do
-    {token, admin_token} = EmployeeToken.build_session_token(employee)
-    Repo.insert!(admin_token)
+  def generate_employee_session_token(employee) do
+    {token, employee_token} = EmployeeToken.build_session_token(employee)
+    Repo.insert!(employee_token)
     token
   end
 
   @doc """
   Gets the employee with the given signed token.
   """
-  def get_admin_by_session_token(token) do
+  def get_employee_by_session_token(token) do
     {:ok, query} = EmployeeToken.verify_session_token_query(token)
     Repo.one(query)
   end
@@ -249,20 +249,20 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> deliver_admin_confirmation_instructions(employee, &Routes.admin_confirmation_url(conn, :edit, &1))
+      iex> deliver_employee_confirmation_instructions(employee, &Routes.employee_confirmation_url(conn, :edit, &1))
       {:ok, %{to: ..., body: ...}}
 
-      iex> deliver_admin_confirmation_instructions(confirmed_admin, &Routes.admin_confirmation_url(conn, :edit, &1))
+      iex> deliver_employee_confirmation_instructions(confirmed_employee, &Routes.employee_confirmation_url(conn, :edit, &1))
       {:error, :already_confirmed}
 
   """
-  def deliver_admin_confirmation_instructions(%Employee{} = employee, confirmation_url_fun)
+  def deliver_employee_confirmation_instructions(%Employee{} = employee, confirmation_url_fun)
       when is_function(confirmation_url_fun, 1) do
     if employee.confirmed_at do
       {:error, :already_confirmed}
     else
-      {encoded_token, admin_token} = EmployeeToken.build_email_token(employee, "confirm")
-      Repo.insert!(admin_token)
+      {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "confirm")
+      Repo.insert!(employee_token)
       EmployeeNotifier.deliver_confirmation_instructions(employee, confirmation_url_fun.(encoded_token))
     end
   end
@@ -273,17 +273,17 @@ defmodule TurnStile.Staff do
   If the token matches, the employee account is marked as confirmed
   and the token is deleted.
   """
-  def confirm_admin(token) do
+  def confirm_employee(token) do
     with {:ok, query} <- EmployeeToken.verify_email_token_query(token, "confirm"),
          %Employee{} = employee <- Repo.one(query),
-         {:ok, %{employee: employee}} <- Repo.transaction(confirm_admin_multi(employee)) do
+         {:ok, %{employee: employee}} <- Repo.transaction(confirm_employee_multi(employee)) do
       {:ok, employee}
     else
       _ -> :error
     end
   end
 
-  defp confirm_admin_multi(employee) do
+  defp confirm_employee_multi(employee) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:employee, Employee.confirm_changeset(employee))
     |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, ["confirm"]))
@@ -296,14 +296,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> deliver_admin_reset_password_instructions(employee, &Routes.admin_reset_password_url(conn, :edit, &1))
+      iex> deliver_employee_reset_password_instructions(employee, &Routes.employee_reset_password_url(conn, :edit, &1))
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_admin_reset_password_instructions(%Employee{} = employee, reset_password_url_fun)
+  def deliver_employee_reset_password_instructions(%Employee{} = employee, reset_password_url_fun)
       when is_function(reset_password_url_fun, 1) do
-    {encoded_token, admin_token} = EmployeeToken.build_email_token(employee, "reset_password")
-    Repo.insert!(admin_token)
+    {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "reset_password")
+    Repo.insert!(employee_token)
     EmployeeNotifier.deliver_reset_password_instructions(employee, reset_password_url_fun.(encoded_token))
   end
 
@@ -312,14 +312,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> get_admin_by_reset_password_token("validtoken")
+      iex> get_employee_by_reset_password_token("validtoken")
       %Employee{}
 
-      iex> get_admin_by_reset_password_token("invalidtoken")
+      iex> get_employee_by_reset_password_token("invalidtoken")
       nil
 
   """
-  def get_admin_by_reset_password_token(token) do
+  def get_employee_by_reset_password_token(token) do
     with {:ok, query} <- EmployeeToken.verify_email_token_query(token, "reset_password"),
          %Employee{} = employee <- Repo.one(query) do
       employee
@@ -333,14 +333,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> reset_admin_password(employee, %{password: "new long password", password_confirmation: "new long password"})
+      iex> reset_employee_password(employee, %{password: "new long password", password_confirmation: "new long password"})
       {:ok, %Employee{}}
 
-      iex> reset_admin_password(employee, %{password: "valid", password_confirmation: "not the same"})
+      iex> reset_employee_password(employee, %{password: "valid", password_confirmation: "not the same"})
       {:error, %Ecto.Changeset{}}
 
   """
-  def reset_admin_password(employee, attrs) do
+  def reset_employee_password(employee, attrs) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:employee, Employee.password_changeset(employee, attrs))
     |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
@@ -358,17 +358,17 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> list_all_admins()
+      iex> list_all_employees()
       [%Employee{}, ...]
 
   """
-  def list_all_admins do
+  def list_all_employees do
     # query all
     query = from(a in Employee, select: a)
     Repo.all(query)
   end
 
-  def list_admins_by_organization(organization_id) do
+  def list_employees_by_organization(organization_id) do
     # IO.inspect(organization_id)
     q = from a in Employee,
     where: a.organization_id == ^organization_id,
@@ -383,25 +383,25 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> get_admin!(123)
+      iex> get_employee!(123)
       %Employee{}
 
   """
-  def get_admin!(id), do: raise "TODO"
+  def get_employee!(id), do: raise "TODO"
 
   @doc """
   Creates a employee.
 
   ## Examples
 
-      iex> create_admin(%{field: value})
+      iex> create_employee(%{field: value})
       {:ok, %Employee{}}
 
-      iex> create_admin(%{field: bad_value})
+      iex> create_employee(%{field: bad_value})
       {:error, ...}
 
   """
-  def create_admin(%Employee{} = employee, attrs \\ %{}) do
+  def create_employee(%Employee{} = employee, attrs \\ %{}) do
     Employee.changeset(employee, attrs)
   end
 
@@ -411,14 +411,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> update_admin(employee, %{field: new_value})
+      iex> update_employee(employee, %{field: new_value})
       {:ok, %Employee{}}
 
-      iex> update_admin(employee, %{field: bad_value})
+      iex> update_employee(employee, %{field: bad_value})
       {:error, ...}
 
   """
-  def update_admin(%Employee{} = employee, attrs) do
+  def update_employee(%Employee{} = employee, attrs) do
     raise "TODO"
   end
 
@@ -427,14 +427,14 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> delete_admin(employee)
+      iex> delete_employee(employee)
       {:ok, %Employee{}}
 
-      iex> delete_admin(employee)
+      iex> delete_employee(employee)
       {:error, ...}
 
   """
-  def delete_admin(%Employee{} = employee) do
+  def delete_employee(%Employee{} = employee) do
     raise "TODO"
   end
 
@@ -443,17 +443,17 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> change_admin(employee)
+      iex> change_employee(employee)
       %Todo{...}
 
   """
-  def change_admin(%Employee{} = employee, attrs \\ %{}) do
+  def change_employee(%Employee{} = employee, attrs \\ %{}) do
     Employee.changeset(employee, attrs)
   end
 
-  def check_admin_is_in_organization(employee, organization_id) do
+  def check_employee_is_in_organization(employee, organization_id) do
     organization = Company.get_organization(organization_id)
-    IO.inspect("check_admin_is_in_organization")
+    IO.inspect("check_employee_is_in_organization")
 
     if organization do
       if organization.id == employee.organization_id do

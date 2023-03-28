@@ -11,7 +11,7 @@ defmodule TurnStileWeb.EmployeeController do
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
       |> redirect(to: Routes.organization_path(conn, :index))
     end
-    employees = Staff.list_admins_by_organization(organization_id)
+    employees = Staff.list_employees_by_organization(organization_id)
     # get employees in this org
     render(conn, "index.html", employees: employees, organization_id: organization_id)
   end
@@ -21,20 +21,20 @@ defmodule TurnStileWeb.EmployeeController do
     role = assign_permission_role(conn)
     cond do
       role === "owner" ->
-        changeset = Staff.create_admin(%Employee{})
+        changeset = Staff.create_employee(%Employee{})
         render(conn, "new.html", changeset: changeset)
     end
     # IO.puts(role)
-    changeset = Staff.change_admin(%Employee{})
+    changeset = Staff.change_employee(%Employee{})
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, %{"employee" => admin_params}) do
-    case Staff.create_admin(admin_params) do
+  def create(conn, %{"employee" => employee_params}) do
+    case Staff.create_employee(employee_params) do
       {:ok, employee} ->
         conn
         |> put_flash(:info, "Employee created successfully.")
-        |> redirect(to: Routes.admin_path(conn, :show, employee))
+        |> redirect(to: Routes.employee_path(conn, :show, employee))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
@@ -42,24 +42,24 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def show(conn, %{"id" => id}) do
-    employee = Staff.get_admin!(id)
+    employee = Staff.get_employee!(id)
     render(conn, "show.html", employee: employee)
   end
 
   def edit(conn, %{"id" => id}) do
-    employee = Staff.get_admin!(id)
-    changeset = Staff.change_admin(employee)
+    employee = Staff.get_employee!(id)
+    changeset = Staff.change_employee(employee)
     render(conn, "edit.html", employee: employee, changeset: changeset)
   end
 
-  def update(conn, %{"id" => id, "employee" => admin_params}) do
-    employee = Staff.get_admin!(id)
+  def update(conn, %{"id" => id, "employee" => employee_params}) do
+    employee = Staff.get_employee!(id)
 
-    case Staff.update_admin(employee, admin_params) do
+    case Staff.update_employee(employee, employee_params) do
       {:ok, employee} ->
         conn
         |> put_flash(:info, "Employee updated successfully.")
-        |> redirect(to: Routes.admin_path(conn, :show, employee))
+        |> redirect(to: Routes.employee_path(conn, :show, employee))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "edit.html", employee: employee, changeset: changeset)
@@ -67,16 +67,16 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def delete(conn, %{"id" => id}) do
-    employee = Staff.get_admin!(id)
-    {:ok, _admin} = Staff.delete_admin(employee)
+    employee = Staff.get_employee!(id)
+    {:ok, _employee} = Staff.delete_employee(employee)
 
     conn
     |> put_flash(:info, "Employee deleted successfully.")
-    |> redirect(to: Routes.admin_path(conn, :index))
+    |> redirect(to: Routes.employee_path(conn, :index))
   end
 # takes the form value maps to correct permission role
   def assign_permission_role(conn) do
-    current_role = conn.assigns[:current_admin].role
+    current_role = conn.assigns[:current_employee].role
 
     cond do
       # owner
@@ -93,15 +93,15 @@ defmodule TurnStileWeb.EmployeeController do
     end
   end
 
-  def admin_is_in_organization?(conn, _opts) do
+  def employee_is_in_organization?(conn, _opts) do
     # organization_id = organization_id = conn.params["id"]
     # check
 
     conn
-    # {:ok, _admin} = Staff.delete_admin(employee)
+    # {:ok, _employee} = Staff.delete_employee(employee)
 
     # conn
     # |> put_flash(:info, "Employee deleted successfully.")
-    # |> redirect(to: Routes.admin_path(conn, :index))
+    # |> redirect(to: Routes.employee_path(conn, :index))
   end
 end

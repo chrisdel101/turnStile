@@ -1,5 +1,5 @@
-<!-- if current_admin then logged in -->
-<%= if @current_admin do%>
+<!-- if current_employee then logged in -->
+<%= if @current_employee do%>
   <h1>Register A New Employee</h1>
   <h3>Owners and Admins can register new Admins</h3>
   <p>Add a new administators to the organization. TODO: set a tempPW. Admins will get conf email to setup theor own.</p>
@@ -9,7 +9,7 @@
   <p>The owner is the top-level administator. The owner can create all other user types.</p>
 <% end %>
  <!-- setup procedue -->
-<.form let={f} for={@changeset} action={Routes.admin_registration_path(@conn, :create, @organization_id)}>
+<.form let={f} for={@changeset} action={Routes.employee_registration_path(@conn, :create, @organization_id)}>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
       <p>Oops, something went wrong! Please check the errors below.</p>
@@ -27,9 +27,9 @@
   <%= label f, :role %>
 
   <!-- Non-setup procedue -->
-  <%= if @current_admin do%>
+  <%= if @current_employee do%>
   <!-- display only roles allowed by permissions -->
-    <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminRolesEnum.get_roles(),  @current_admin.role), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+    <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminRolesEnum.get_roles(),  @current_employee.role), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
   <% else %>
     <!-- if setup procedure -->
     <%= select f, :role, TurnStile.Utils.display_single_item_list(AdminRolesEnum.get_roles(),hd AdminRolesEnum.get_roles()), prompt: "Choose Role", required: true %>
@@ -42,7 +42,7 @@
   <%= label f, "Confirm Email" %>
   <%= text_input f, :email_confirmation %>
   <%= error_tag f, :email_confirmation %>
-  <%= if @current_admin do%>
+  <%= if @current_employee do%>
     <!-- set temorary password, new user will change via email conf -->
     <%= label f, "Create Temp Password" %>
     <%= password_input f, :password %>
@@ -68,8 +68,8 @@
 </.form>
 
 <p>
-  <%= if !@current_admin do%>
+  <%= if !@current_employee do%>
   <%= link "Log in", to: "/organizations/#{@organization_id}" %> |
   <% end %>
-  <%= link "Forgot your password?", to: Routes.admin_reset_password_path(@conn, :new, @organization_id) %>
+  <%= link "Forgot your password?", to: Routes.employee_reset_password_path(@conn, :new, @organization_id) %>
 </p>

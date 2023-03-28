@@ -1,4 +1,4 @@
-defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
+defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
   use Ecto.Migration
   def change do
     # https://stackoverflow.com/a/37216214/5972531

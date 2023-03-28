@@ -12,7 +12,7 @@ defmodule TurnStileWeb.Router do
     plug :put_root_layout, {TurnStileWeb.LayoutView, :root}
     # plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_admin
+    plug :fetch_current_employee
   end
 
   pipeline :api do
@@ -57,7 +57,7 @@ defmodule TurnStileWeb.Router do
   ## Authentication routes
 
   scope "/organizations/:id", TurnStileWeb do
-    pipe_through [:browser, :redirect_if_admin_is_authenticated]
+    pipe_through [:browser, :redirect_if_employee_is_authenticated]
 
 
     # get "/employees/log_in", EmployeeSessionController, :new
@@ -69,7 +69,7 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations/:id", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_admin]
+    pipe_through [:browser, :require_authenticated_employee]
 
     get "/employees/settings", EmployeeSettingsController, :edit
     put "/employees/settings", EmployeeSettingsController, :update

@@ -1,3 +1,3 @@
-defmodule TurnStileWeb.AdminResetPasswordView do
+defmodule TurnStileWeb.EmployeeResetPasswordView do
   use TurnStileWeb, :view
 end
