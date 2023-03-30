@@ -7,14 +7,14 @@ defmodule TurnStile.Staff.Employee do
     field :first_name, :string
     field :last_name, :string
     field :role, :string
-    # has_many :users, WaitingRoom.Patient.User
-    # employee sends alerts
-    # has_many :alerts, WaitingRoom.Alert
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
     belongs_to :organization, TurnStile.Company.Organization
+    # has_many :users, WaitingRoom.Patient.User
+    # employee sends alerts
+    # has_many :alerts, WaitingRoom.Alert
     timestamps()
   end
 
@@ -48,6 +48,8 @@ defmodule TurnStile.Staff.Employee do
   end
 
   def registration_changeset(employee, attrs, opts \\ []) do
+    IO.puts("employee.ex employee registration_changeset")
+    IO.inspect(attrs)
     employee
     |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password,  :organization_id])
     |> validate_required([:organization_id])

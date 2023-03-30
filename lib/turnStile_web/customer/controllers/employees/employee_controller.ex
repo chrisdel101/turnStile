@@ -17,7 +17,6 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def new(conn, _params) do
-       # IO.puts("HELLO")
     role = assign_permission_role(conn)
     cond do
       role === "owner" ->
@@ -49,7 +48,7 @@ defmodule TurnStileWeb.EmployeeController do
   def edit(conn, %{"id" => id}) do
     IO.inspect("HERE")
     employee = Staff.get_employee!(id)
-    IO.inspect(employee.password)
+    IO.inspect(employee)
     IO.inspect("employee")
     changeset = Staff.change_employee(employee)
     render(conn, "edit.html", employee: employee, changeset: changeset)

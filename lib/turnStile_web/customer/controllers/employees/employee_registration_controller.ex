@@ -18,7 +18,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     if !current_employee do
       setup_initial_owner(conn, %{"employee" => employee_params})
     else
-      organization_id = conn.path_params["id"]
+      organization_id = Kernel.inspect(conn.path_params["id"])
       # if no org_id found flash error
       if !organization_id do
         conn
@@ -48,31 +48,34 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           |> put_flash(:error, "Invalid Permssions to create that user")
           |> render("new.html", changeset: changeset, organization_id: organization_id)
         else
-          IO.inspect("HERE")
+          IO.inspect("HERE111")
           # add organization_id to employee_params
           employee_params = Map.put(employee_params, "organization_id", organization_id)
-          employee_params = Map.replace(employee_params, "role", :admin)
+
+          # employee_params = Map.replace(employee_params, "role", "own")
           changeset = Staff.change_employee_registration(%Employee{}, employee_params)
           IO.inspect(changeset)
           IO.inspect(employee_params)
-          conn
           # if permissions okay
           case Staff.register_employee(employee_params) do
             {:ok, employee} ->
               {:ok, _} =
-                IO.inspect("HERE")
-                IO.inspect(organization_id)
+                # IO.inspect("HERE")
+                # IO.inspect(organization_id)
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
                   &Routes.employee_confirmation_url(conn, :edit, &1)
                 )
 
-              conn
+                conn
+
               |> put_flash(:info, "Employee created successfully.")
               |> EmployeeAuth.log_in_employee(employee)
-
-            {:error, %Ecto.Changeset{} = changeset} ->
-              render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+              {:error, %Ecto.Changeset{} = changeset} ->
+                IO.inspect("HEREXXX")
+                IO.inspect(changeset)
+                IO.inspect(changeset)
+                render(conn, "new.html", changeset: changeset, organization_id: organization_id)
           end
         end
       # end

@@ -453,8 +453,6 @@ defmodule TurnStile.Staff do
 
   def check_employee_is_in_organization(employee, organization_id) do
     organization = Company.get_organization(organization_id)
-    IO.inspect("check_employee_is_in_organization")
-
     if organization do
       if organization.id == employee.organization_id do
         true
