@@ -1,12 +1,7 @@
 <h1>Edit Employee</h1>
 
-<%= IO.inspect(@action) %>
-<.form let={_f} for={@current_employee} action={Routes.organization_employee_path(@conn, :create, @current_employee.organization_id, @current_employee.id)}>
-  <%= if @changeset.action do %>
-    <div class="alert alert-danger">
-      <p>Oops, something went wrong! Please check the errors below.</p>
-    </div>
-  <% end %>
+<.form let={_f} for={@changeset} action={Routes.organization_employee_path(@conn, :create, 1)}>
+
 
   <div>
     <%= submit "Save" %>

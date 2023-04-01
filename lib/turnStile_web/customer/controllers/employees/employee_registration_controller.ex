@@ -18,7 +18,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     if !current_employee do
       setup_initial_owner(conn, %{"employee" => employee_params})
     else
-      organization_id = Kernel.inspect(conn.path_params["id"])
+      organization_id = conn.path_params["id"]
       # if no org_id found flash error
       if !organization_id do
         conn
@@ -53,9 +53,9 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           employee_params = Map.put(employee_params, "organization_id", organization_id)
 
           # employee_params = Map.replace(employee_params, "role", "own")
-          changeset = Staff.change_employee_registration(%Employee{}, employee_params)
-          IO.inspect(changeset)
-          IO.inspect(employee_params)
+          # changeset = Staff.change_employee_registration(%Employee{}, employee_params)
+          # IO.inspect(changeset)
+          # IO.inspect(employee_params)
           # if permissions okay
           case Staff.register_employee(employee_params) do
             {:ok, employee} ->

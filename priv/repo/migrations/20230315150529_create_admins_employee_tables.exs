@@ -2,14 +2,14 @@ defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
   use Ecto.Migration
   def change do
     # https://stackoverflow.com/a/37216214/5972531
-    execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")
+    execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:employees) do
       add :first_name, :string
       add :last_name, :string
       # role created above can be used here
-      add :role, :admin_role, null: false
+      add :role, :employee_role, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime

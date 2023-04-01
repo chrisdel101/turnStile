@@ -49,9 +49,13 @@ defmodule TurnStileWeb.EmployeeController do
     IO.inspect("HERE")
     employee = Staff.get_employee!(id)
     IO.inspect(employee)
-    IO.inspect("employee")
+    IO.inspect("ZZZZ")
     changeset = Staff.change_employee(employee)
-    render(conn, "edit.html", employee: employee, changeset: changeset)
+    changeset = Map.put(changeset, :action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
+    IO.inspect(employee)
+    conn
+    # |> Map.put(:action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
+    |> render("edit.html", changeset: changeset, organization_id: employee.organization_id)
   end
 
   def update(conn, %{"id" => id, "employee" => employee_params}) do
