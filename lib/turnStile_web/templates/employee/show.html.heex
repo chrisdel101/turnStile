@@ -12,4 +12,4 @@
 </ul>
 
 <span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  @current_employee.organization_id,@current_employee.id) %></span> |
-<span><%= link "Back", to: Routes.organization_employee_user_path(@conn,:index,  @current_employee.organization_id, @current_employee.id) %></span>
+<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  @current_employee.organization_id) %></span>

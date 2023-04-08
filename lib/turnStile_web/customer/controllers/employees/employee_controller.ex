@@ -4,6 +4,7 @@ defmodule TurnStileWeb.EmployeeController do
   alias TurnStile.Staff
   alias TurnStile.Staff.Employee
 
+  # new - removed. Use /empployees/register instead
   def index(conn, _params) do
     organization_id = conn.params["organization_id"]
     if !organization_id do
@@ -16,17 +17,6 @@ defmodule TurnStileWeb.EmployeeController do
     render(conn, "index.html", employees: employees, organization_id: organization_id, )
   end
 
-  def new(conn, _params) do
-    role = assign_permission_role(conn)
-    cond do
-      role === "owner" ->
-        changeset = Staff.create_employee(%Employee{})
-        render(conn, "new.html", changeset: changeset)
-    end
-    # IO.puts(role)
-    changeset = Staff.change_employee(%Employee{})
-    render(conn, "new.html", changeset: changeset)
-  end
 
   def create(conn, %{"employee" => employee_params}) do
     case Staff.create_employee(employee_params) do
@@ -46,16 +36,17 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def edit(conn, %{"id" => id}) do
-    IO.inspect("HERE")
+    # IO.inspect("HERE")
     employee = Staff.get_employee!(id)
-    IO.inspect(employee)
-    IO.inspect("ZZZZ")
+    # IO.inspect(employee.hashed_password)
     changeset = Staff.change_employee(employee)
     changeset = Map.put(changeset, :action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
-    IO.inspect(employee)
+    # IO.inspect("ZZZZ")
+    # IO.inspect(changeset)
+    # exit(:shutdown)
     conn
     # |> Map.put(:action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
-    |> render("edit.html", changeset: changeset, organization_id: employee.organization_id)
+    |> render("edit.html", changeset: changeset, employee: employee, organization_id: employee.organization_id)
   end
 
   def update(conn, %{"id" => id, "employee" => employee_params}) do

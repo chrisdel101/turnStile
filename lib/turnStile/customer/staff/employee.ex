@@ -36,27 +36,24 @@ defmodule TurnStile.Staff.Employee do
         Defaults to `true`.
     """
 
-  #Not sure of diff right now - Used for owners to create employees maybe?
-  def changeset(employee, attrs, opts \\ []) do
+  #should be used for changing employee info - no password input
+  def changeset(employee, attrs, _opts \\ []) do
     IO.puts("employee changeset")
     employee
-    |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password, :organization_id])
+    |> cast(attrs, [:email, :last_name, :first_name, :role, :hashed_password,  :organization_id])
     |> validate_required([:organization_id])
     |> validate_email()
-    |> validate_password(opts)
-    |> hash_password(opts)
+    # |> validate_password(opts)
+    # |> hash_password(opts)
   end
 
-  def registration_changeset(employee, attrs, opts \\ []) do
+  def registration_changeset(employee, attrs, _opts \\ []) do
     IO.puts("employee.ex employee registration_changeset")
     IO.inspect(attrs)
     employee
-    |> cast(attrs, [:email, :password, :last_name, :first_name, :role, :hashed_password,  :organization_id])
+    |> cast(attrs, [:email, :password, :last_name, :first_name, :role,:organization_id])
     |> validate_required([:organization_id])
     |> validate_email()
-    |> validate_password(opts)
-    |> hash_password(opts)
-    # |> valdiate_has_permissions(employee)
   end
 
   defp validate_email(changeset) do

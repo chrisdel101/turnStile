@@ -107,7 +107,7 @@ defmodule TurnStileWeb.Router do
 
 
     resources "/organizations", OrganizationController, except: [:show] do
-      resources "/employees", EmployeeController, except: [:show] do
+      resources "/employees", EmployeeController, except: [:show, :new] do
           resources "/users", UserController
         end
       end
