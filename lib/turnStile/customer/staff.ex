@@ -82,14 +82,15 @@ defmodule TurnStile.Staff do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking employee changes.
+  Used to create new employees via register
 
   ## Examples
 
-      iex> change_employee_registration(employee)
+      iex> use_employee_registration(employee)
       %Ecto.Changeset{data: %Employee{}}
 
   """
-  def change_employee_registration(%Employee{} = employee, attrs \\ %{}) do
+  def use_employee_registration(%Employee{} = employee, attrs \\ %{}) do
     Employee.registration_changeset(employee, attrs, hash_password: false)
   end
 
@@ -419,7 +420,9 @@ defmodule TurnStile.Staff do
 
   """
   def update_employee(%Employee{} = employee, attrs) do
-    raise "TODO"
+    IO.inspect(attrs)
+    changeset = change_employee(employee)
+    IO.inspect(changeset)
   end
 
   @doc """

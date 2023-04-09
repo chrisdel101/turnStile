@@ -3,6 +3,7 @@ defmodule TurnStileWeb.EmployeeController do
 
   alias TurnStile.Staff
   alias TurnStile.Staff.Employee
+  import Ecto.Changeset
 
   # new - removed. Use /empployees/register instead
   def index(conn, _params) do
@@ -50,9 +51,23 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def update(conn, %{"id" => id, "employee" => employee_params}) do
+    IO.inspect(employee_params)
+    employee_params = for {key, val} <- employee_params, into: %{}, do: {String.to_atom(key), val}
+    # look up employee - could also use session
     employee = Staff.get_employee!(id)
+    #make new empoyee obj - use struct func
+    # employee_changed = struct(%Employee{}, employee_params)
+    # change takes schema and map here
+    changes = change(employee, employee_params)
+    IO.inspect(changes)
+    # IO.inspect(employee_changes)
+    IO.inspect("xxxxxxxx")
 
-    case Staff.update_employee(employee, employee_params) do
+    # changed? = change(employee, employee_changes)
+    # IO.inspect(changed?)
+    # check which values changed on form - not empty
+    changed_params = Map.filter(employee_params, fn {_key, val} -> val != "" end)
+    case Staff.update_employee(employee, changed_params) do
       {:ok, employee} ->
         conn
         |> put_flash(:info, "Employee updated successfully.")

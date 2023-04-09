@@ -7,7 +7,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   alias TurnStileWeb.OrganizationController
 
   def new(conn, _params) do
-    changeset = Staff.change_employee_registration(%Employee{})
+    changeset = Staff.use_employee_registration(%Employee{})
     organization_id = conn.path_params["id"]
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
@@ -42,7 +42,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         if registrant_permissions >
         current_user_permission do
           # Invalid persmission - reload page
-          changeset = Staff.change_employee_registration(%Employee{}, employee_params)
+          changeset = Staff.use_employee_registration(%Employee{}, employee_params)
           conn
           # if employee does not have permissions - flash and re-render
           |> put_flash(:error, "Invalid Permssions to create that user")
@@ -53,7 +53,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           employee_params = Map.put(employee_params, "organization_id", organization_id)
 
           # employee_params = Map.replace(employee_params, "role", "own")
-          # changeset = Staff.change_employee_registration(%Employee{}, employee_params)
+          # changeset = Staff.use_employee_registration(%Employee{}, employee_params)
           # IO.inspect(changeset)
           # IO.inspect(employee_params)
           # if permissions okay

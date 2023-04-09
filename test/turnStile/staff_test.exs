@@ -94,9 +94,9 @@ defmodule TurnStile.StaffTest do
     end
   end
 
-  describe "change_employee_registration/2" do
+  describe "use_employee_registration/2" do
     test "returns a changeset" do
-      assert %Ecto.Changeset{} = changeset = Staff.change_employee_registration(%Employee{})
+      assert %Ecto.Changeset{} = changeset = Staff.use_employee_registration(%Employee{})
       assert changeset.required == [:password, :email]
     end
 
@@ -105,7 +105,7 @@ defmodule TurnStile.StaffTest do
       password = valid_employee_password()
 
       changeset =
-        Staff.change_employee_registration(
+        Staff.use_employee_registration(
           %Employee{},
           valid_employee_attributes(email: email, password: password)
         )
