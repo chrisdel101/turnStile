@@ -2,7 +2,6 @@ defmodule TurnStileWeb.EmployeeController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
-  alias TurnStile.Staff.Employee
   import Ecto.Changeset
 
   # new - removed. Use /empployees/register instead
@@ -37,41 +36,38 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def edit(conn, %{"id" => id}) do
-    # IO.inspect("HERE")
     employee = Staff.get_employee!(id)
-    # IO.inspect(employee.hashed_password)
     changeset = Staff.change_employee(employee)
-    changeset = Map.put(changeset, :action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
-    # IO.inspect("ZZZZ")
-    # IO.inspect(changeset)
-    # exit(:shutdown)
+    # add an action
+    Map.put(conn.assigns, :action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
     conn
-    # |> Map.put(:action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
     |> render("edit.html", changeset: changeset, employee: employee, organization_id: employee.organization_id)
   end
 
+  # TODO - allow for partial updates
   def update(conn, %{"id" => id, "employee" => employee_params}) do
-    IO.inspect(employee_params)
-    employee_params = for {key, val} <- employee_params, into: %{}, do: {String.to_atom(key), val}
     # look up employee - could also use session
     employee = Staff.get_employee!(id)
     #make new empoyee obj - use struct func
-    # employee_changed = struct(%Employee{}, employee_params)
+    # employee_params = Map.delete(employee_params, :password_confirmation)
     # change takes schema and map here
-    changes = change(employee, employee_params)
-    IO.inspect(changes)
+    # changes = change(employee, employee_params)
+    # IO.inspect("changes")
+    # IO.inspect(changes)
     # IO.inspect(employee_changes)
-    IO.inspect("xxxxxxxx")
+    # IO.inspect("xxxxxxxx")
 
     # changed? = change(employee, employee_changes)
     # IO.inspect(changed?)
     # check which values changed on form - not empty
-    changed_params = Map.filter(employee_params, fn {_key, val} -> val != "" end)
-    case Staff.update_employee(employee, changed_params) do
+    # changed_params = Map.filter(employee_params, fn {_key, val} -> val != "" end)
+    # # System.halt(0)
+    case Staff.update_employee(employee, employee_params) do
       {:ok, employee} ->
         conn
         |> put_flash(:info, "Employee updated successfully.")
-        |> redirect(to: Routes.employee_path(conn, :show, employee))
+        |> redirect(to: Routes.
+        employee_path(conn, :show, employee.organization_id, employee.id))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "edit.html", employee: employee, changeset: changeset)

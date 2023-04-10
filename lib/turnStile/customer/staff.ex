@@ -420,9 +420,10 @@ defmodule TurnStile.Staff do
 
   """
   def update_employee(%Employee{} = employee, attrs) do
-    IO.inspect(attrs)
-    changeset = change_employee(employee)
-    IO.inspect(changeset)
+    employee
+    |> Employee.changeset(attrs)
+    |> Repo.update()
+
   end
 
   @doc """
