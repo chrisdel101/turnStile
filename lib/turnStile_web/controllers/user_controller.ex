@@ -14,7 +14,9 @@ defmodule TurnStileWeb.UserController do
 
   def new(conn, _params) do
     changeset = Patients.change_user(%User{})
-    render(conn, "new.html", changeset: changeset)
+    organization_id = conn.params["organization_id"]
+    employee_id = conn.params["employee_id"]
+    render(conn, "new.html", changeset: changeset, employee_id: employee_id, organization_id: organization_id)
   end
 
   def create(conn, %{"user" => user_params}) do
