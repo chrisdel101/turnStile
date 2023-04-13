@@ -28,6 +28,5 @@
   </li>
 
 </ul>
-
-<span><%= link "Edit", to: Routes.user_path(@conn, :edit, @user) %></span> |
-<span><%= link "Back", to: Routes.user_path(@conn, :index) %></span>
+<span><%= link "Edit", to: Routes.organization_employee_user_path(@conn, :edit, @conn.params["organization_id"], @conn.params["employee_id"], @user) %></span> |
+<span><%= link "Back", to: Routes.organization_employee_user_path(@conn, :index, @conn.params["organization_id"], @conn.params["employee_id"]) %></span>

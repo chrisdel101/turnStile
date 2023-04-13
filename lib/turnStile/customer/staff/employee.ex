@@ -46,13 +46,17 @@ defmodule TurnStile.Staff.Employee do
     |> hash_password(opts)
   end
 
-  def registration_changeset(employee, attrs, _opts \\ []) do
+  def registration_changeset(employee, attrs, opts \\ []) do
     # IO.puts("employee.ex employee registration_changeset")
     # IO.inspect(attrs)
     employee
-    |> cast(attrs, [:email, :password, :last_name, :first_name, :role,:organization_id])
+    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role,:organization_id])
     |> validate_required([:organization_id])
     |> validate_email()
+    |> validate_password(opts)
+    |> hash_password(opts)
+    # TODO: mayeb add check for this
+    # |> valdiate_has_permissions(employee)
   end
 
   defp validate_email(changeset) do

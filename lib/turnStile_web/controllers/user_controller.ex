@@ -20,11 +20,16 @@ defmodule TurnStileWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
+    organization_id = conn.params["organization_id"]
+    employee_id = conn.params["employee_id"]
+    IO.inspect("user_params")
+    IO.inspect(organization_id)
+    IO.inspect(employee_id)
     case Patients.create_user(user_params) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Routes.user_path(conn, :show, user))
+        |> redirect(to: Routes.organization_employee_user_path(conn, :show, organization_id, employee_id, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
@@ -49,7 +54,7 @@ defmodule TurnStileWeb.UserController do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User updated successfully.")
-        |> redirect(to: Routes.user_path(conn, :show, user))
+        |> redirect(to: Routes.organization_employee_user_path(conn, :show, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "edit.html", user: user, changeset: changeset)
@@ -62,6 +67,6 @@ defmodule TurnStileWeb.UserController do
 
     conn
     |> put_flash(:info, "User deleted successfully.")
-    |> redirect(to: Routes.user_path(conn, :index))
+    |> redirect(to: Routes.organization_employee_user_path(conn, :index))
   end
 end

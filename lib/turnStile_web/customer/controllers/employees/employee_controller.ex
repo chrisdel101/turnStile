@@ -2,7 +2,6 @@ defmodule TurnStileWeb.EmployeeController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
-  import Ecto.Changeset
 
   # new - removed. Use /empployees/register instead
   def index(conn, _params) do

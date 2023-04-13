@@ -33,5 +33,5 @@ npm-debug.log
 /assets/node_modules/
 
 
-curl_ex.bash
+*.bash
 .env

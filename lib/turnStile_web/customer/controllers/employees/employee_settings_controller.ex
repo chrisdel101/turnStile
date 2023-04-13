@@ -13,13 +13,13 @@ defmodule TurnStileWeb.EmployeeSettingsController do
   def update(conn, %{"action" => "update_email"} = params) do
     %{"current_password" => password, "employee" => employee_params} = params
     employee = conn.assigns.current_employee
-
+    IO.inspect(employee.organization_id)
     case Staff.apply_employee_email(employee, password, employee_params) do
       {:ok, applied_employee} ->
         Staff.deliver_update_email_instructions(
           applied_employee,
           employee.email,
-          &Routes.employee_settings_url(conn, :confirm_email, &1)
+          &Routes.employee_settings_url(conn, :confirm_email, employee.organization_id, &1)
         )
 
         conn
@@ -27,7 +27,7 @@ defmodule TurnStileWeb.EmployeeSettingsController do
           :info,
           "A link to confirm your email change has been sent to the new address."
         )
-        |> redirect(to: Routes.employee_settings_path(conn, :edit))
+        |> redirect(to: Routes.employee_settings_path(conn, :edit, employee.organization_id))
 
       {:error, changeset} ->
         render(conn, "edit.html", email_changeset: changeset)
@@ -42,7 +42,7 @@ defmodule TurnStileWeb.EmployeeSettingsController do
       {:ok, employee} ->
         conn
         |> put_flash(:info, "Password updated successfully.")
-        |> put_session(:employee_return_to, Routes.employee_settings_path(conn, :edit))
+        |> put_session(:employee_return_to, Routes.employee_settings_path(conn, :edit, employee.organization_id))
         |> EmployeeAuth.log_in_employee(employee)
 
       {:error, changeset} ->
@@ -55,12 +55,12 @@ defmodule TurnStileWeb.EmployeeSettingsController do
       :ok ->
         conn
         |> put_flash(:info, "Email changed successfully.")
-        |> redirect(to: Routes.employee_settings_path(conn, :edit))
+        |> redirect(to: Routes.employee_settings_path(conn, :edit, conn.assigns.current_employee.organization_id))
 
       :error ->
         conn
         |> put_flash(:error, "Email change link is invalid or it has expired.")
-        |> redirect(to: Routes.employee_settings_path(conn, :edit))
+        |> redirect(to: Routes.employee_settings_path(conn, :edit, conn.assigns.current_employee.organization_id))
     end
   end
 
