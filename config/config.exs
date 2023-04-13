@@ -30,6 +30,8 @@ config :turnStile, TurnStile.Mailer,
       api_key: System.get_env("MAILGUN_API_KEY"),
       debug: true
 
+IO.inspect(System.get_env("MAILGUN_DOMAIN"))
+IO.inspect(System.get_env("MAILGUN_API_KEY"))
   # Swoosh API client is needed for adapters other than SMTP.
  config :swoosh,
       api_client: Swoosh.ApiClient.Hackney

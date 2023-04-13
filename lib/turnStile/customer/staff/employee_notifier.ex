@@ -4,7 +4,7 @@ defmodule TurnStile.Staff.EmployeeNotifier do
   alias TurnStile.Mailer
 
   # Delivers the email using the application mailer.
-  defp deliver(recipient, subject, body) do
+  def deliver(recipient, subject, body) do
     email =
       new()
       |> to(recipient)
