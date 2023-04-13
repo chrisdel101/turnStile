@@ -3,12 +3,14 @@ defmodule TurnStile.Staff.EmployeeNotifier do
 
   alias TurnStile.Mailer
 
+
   # Delivers the email using the application mailer.
   def deliver(recipient, subject, body) do
+    # systax here requires this for domain in sender - for mailg
     email =
       new()
       |> to(recipient)
-      |> from({"TurnStile", "contact@example.com"})
+      |> from({"TurnStile","mailgun@#{System.get_env("MAILGUN_DOMAIN")}"} )
       |> subject(subject)
       |> text_body(body)
 
