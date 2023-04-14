@@ -5,31 +5,24 @@ defmodule TurnStileWeb.UserController do
   alias TurnStile.Patients.User
 
   def index(conn, _params) do
-    IO.inspect(conn)
     users = Patients.list_users()
-    organization_id = conn.params["organization_id"]
-    employee_id = conn.params["employee_id"]
-    render(conn, "index.html", users: users, employee_id: employee_id, organization_id: organization_id)
+    render(conn, "index.html", users: users)
   end
 
   def new(conn, _params) do
     changeset = Patients.change_user(%User{})
-    organization_id = conn.params["organization_id"]
-    employee_id = conn.params["employee_id"]
-    render(conn, "new.html", changeset: changeset, employee_id: employee_id, organization_id: organization_id)
+    render(conn, "new.html", changeset: changeset)
   end
 
   def create(conn, %{"user" => user_params}) do
-    organization_id = conn.params["organization_id"]
-    employee_id = conn.params["employee_id"]
-    IO.inspect("user_params")
-    IO.inspect(organization_id)
-    IO.inspect(employee_id)
+    current_employee = conn.assigns[:current_employee]
+    conn
+    |> maybe_employee_exists()
     case Patients.create_user(user_params) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Routes.organization_employee_user_path(conn, :show, organization_id, employee_id, user))
+        |> redirect(to: Routes.organization_employee_user_path(conn, :show, current_employee.organization_id, current_employee.id, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
@@ -49,12 +42,14 @@ defmodule TurnStileWeb.UserController do
 
   def update(conn, %{"id" => id, "user" => user_params}) do
     user = Patients.get_user!(id)
-
+    current_employee = conn.assigns[:current_employee]
+    conn
+    |> maybe_employee_exists()
     case Patients.update_user(user, user_params) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User updated successfully.")
-        |> redirect(to: Routes.organization_employee_user_path(conn, :show, user))
+        |> redirect(to: Routes.organization_employee_user_path(conn, :show, current_employee.organization_id, current_employee.id, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "edit.html", user: user, changeset: changeset)
@@ -63,10 +58,25 @@ defmodule TurnStileWeb.UserController do
 
   def delete(conn, %{"id" => id}) do
     user = Patients.get_user!(id)
+    current_employee = conn.assigns[:current_employee]
+    conn
+    |> maybe_employee_exists()
     {:ok, _user} = Patients.delete_user(user)
 
     conn
     |> put_flash(:info, "User deleted successfully.")
-    |> redirect(to: Routes.organization_employee_user_path(conn, :index))
+    |> redirect(to: Routes.organization_employee_user_path(conn, :index, current_employee.organization_id, current_employee.id))
+  end
+  # make sure current employee exists
+  defp maybe_employee_exists(conn) do
+    case conn.assigns[:current_employee] do
+      nil ->
+        conn
+        |> put_flash(:error, "A session error occured. You must be logged in to access this page. Make sure you are logged in and try again.")
+        |> redirect(to: Routes.page_path(conn, :index))
+        |> halt()
+      _ ->
+        conn
+      end
   end
 end
