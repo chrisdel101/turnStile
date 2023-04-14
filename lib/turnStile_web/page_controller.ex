@@ -18,6 +18,11 @@ defmodule TurnStileWeb.PageController do
   end
 
   def index(conn, _params) do
+    # if employee logged in, redirect to organuzation show
+    if conn.assigns[:current_employee] do
+      conn
+      |> redirect(to: Routes.organization_path(conn, :show, conn.assigns[:current_employee].organization_id))
+    end
     employees? = runSetupCheck()
     conn
     |> assign(:employees?, employees?)

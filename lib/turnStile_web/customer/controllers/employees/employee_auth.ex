@@ -154,11 +154,20 @@ defmodule TurnStileWeb.EmployeeAuth do
     if conn.assigns[:current_employee] do
       conn
     else
-      conn
-      |> put_flash(:error, "You must log in to access this page.")
-      |> maybe_store_return_to()
-      |> redirect(to: Routes.employee_session_path(conn, :new, id))
-      |> halt()
+      if id do
+        conn
+        |> put_flash(:error, "You must log in to access this page.")
+        |> maybe_store_return_to()
+        |> redirect(to: Routes.employee_session_path(conn, :new, id))
+        |> halt()
+      else
+        # handle no ID case - terrible syntax but nicer kept breaking
+        conn
+        |> put_flash(:info, "You tried to access a authencated route.")
+        |> maybe_store_return_to()
+        |> redirect(to: "/")
+        |> halt()
+      end
     end
   end
 

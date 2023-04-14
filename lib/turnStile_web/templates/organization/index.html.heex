@@ -18,9 +18,9 @@
       <td><%= organization.phone %></td>
 
       <td>
-        <span><%= link "Show", to: Routes.organization_path(@conn, :show, organization) %></span>
-        <span><%= link "Edit", to: Routes.organization_path(@conn, :edit, organization) %></span>
-        <span><%= link "Delete", to: Routes.organization_path(@conn, :delete, organization), method: :delete, data: [confirm: "Are you sure?"] %></span>
+        <span><%= link "Show", to: Routes.organization_path(@conn, :show, organization.id) %></span>
+        <span><%= link "Edit", to: Routes.organization_path(@conn, :edit, organization.id) %></span>
+        <span><%= link "Delete", to: Routes.organization_path(@conn, :delete, organization.id), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
     </tr>
 <% end %>

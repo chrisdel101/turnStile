@@ -41,38 +41,44 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # takes ID or name
-  def show(conn, %{"param" => param}) do    IO.inspect(param)
-    # confirms org is setup
-    # param is ID in URL
-    if TurnStile.Utils.is_digit(param) do
+  def show(conn, %{"param" => param}) do
+    cond do
+      # check if param is ID or name
+      TurnStile.Utils.is_digit(param) ->
+        # confirms org is setup
       organization = Company.get_organization(param)
-      #  if org doesn't exist
+      #  if org does't exist - error
       if !organization do
         conn
-        |> put_flash(:info, "That Organization doesn't exist. Create it to continue.")
-        |> redirect(to: Routes.organization_path(conn, :new))
+        |> put_flash(:info, "That Organization doesn't exist. Try again.")
+        |> redirect(to: Routes.organization_path(conn, :index))
+      else
+        reload_with_name_rest(conn, organization.slug)
       end
+      !param and conn.assigns[:current_employee] ->
+       conn
+        |> put_flash(:info, "Unahthorized route accesed. Trying logging out to fix the rror.")
+        |> redirect(to: Routes.organization_path(conn, :index))
+      true ->
+        organization = Company.get_organization_by_name(param)
+        # if org doesn't exist
+        if !organization do
+          conn
+          |> put_flash(:info, "That Organization doesn't exist. Create it to continue.")
+          |> redirect(to: Routes.organization_path(conn, :new))
+        end
 
-      reload_with_name_rest(conn, organization.slug)
-    else
-      organization = Company.get_organization_by_name(param)
-      # IO.inspect(conn)
-      # if org doesn't exist
-      if !organization do
-        conn
-        |> put_flash(:info, "That Organization doesn't exist. Create it to continue.")
-        |> redirect(to: Routes.organization_path(conn, :new))
-      end
-
-      members? = organization_has_members?(organization.id)
-      admin_changeset = Staff.change_employee(%Employee{})
-      render(conn, "show.html",
-        organization: organization,
-        changeset: admin_changeset,
-        members?: members?,
-        organization_id: organization.id
-      )
+        members? = organization_has_members?(organization.id)
+        changeset = Staff.change_employee(%Employee{})
+        render(conn, "show.html",
+          organization: organization,
+          changeset: changeset,
+          members?: members?,
+          organization_id: organization.id
+        )
     end
+
+
   end
 
   def edit(conn, %{"id" => id}) do
@@ -145,7 +151,7 @@ defmodule TurnStileWeb.OrganizationController do
       assign(conn, :current_organization_setup, true)
       # this halts if not authenticated
 
-      # THIS NEED FIXING
+      # THIS NEED FIXING - [] is just temp fix to make it run
       for_arity_error = []
       EmployeeAuth.require_authenticated_employee(conn, for_arity_error)
     else

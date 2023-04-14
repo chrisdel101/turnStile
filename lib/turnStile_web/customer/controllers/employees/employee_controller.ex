@@ -43,24 +43,11 @@ defmodule TurnStileWeb.EmployeeController do
     |> render("edit.html", changeset: changeset, employee: employee, organization_id: employee.organization_id)
   end
 
-  # TODO - allow for partial updates
+  # updates name, etc not email/PW
   def update(conn, %{"id" => id, "employee" => employee_params}) do
     # look up employee - could also use session
     employee = Staff.get_employee!(id)
-    #make new empoyee obj - use struct func
-    # employee_params = Map.delete(employee_params, :password_confirmation)
-    # change takes schema and map here
-    # changes = change(employee, employee_params)
-    # IO.inspect("changes")
-    # IO.inspect(changes)
-    # IO.inspect(employee_changes)
-    # IO.inspect("xxxxxxxx")
-
-    # changed? = change(employee, employee_changes)
-    # IO.inspect(changed?)
-    # check which values changed on form - not empty
-    # changed_params = Map.filter(employee_params, fn {_key, val} -> val != "" end)
-    # # System.halt(0)
+# update automatically - framework uses changeset
     case Staff.update_employee(employee, employee_params) do
       {:ok, employee} ->
         conn
