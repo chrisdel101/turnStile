@@ -60,7 +60,7 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :redirect_if_employee_is_authenticated]
 
 
-    # get "/employees/log_in", EmployeeSessionController, :new
+    get "/employees/log_in", EmployeeSessionController, :new
     post "/employees/log_in", EmployeeSessionController, :create
     get "/employees/reset_password", EmployeeResetPasswordController, :new
     post "/employees/reset_password", EmployeeResetPasswordController, :create
@@ -93,6 +93,7 @@ defmodule TurnStileWeb.Router do
     get "/employees/confirm/:token", EmployeeConfirmationController, :edit
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
+
 
   scope "/", TurnStileWeb do
     pipe_through :browser

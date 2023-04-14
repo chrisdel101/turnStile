@@ -26,7 +26,7 @@ defmodule TurnStileWeb.EmployeeAuth do
   """
   def log_in_employee(conn, employee, params \\ %{}) do
 
-    organization_id = conn.path_params["id"]
+    organization_id = employee.organization_id || conn.path_params["id"]
     if !organization_id do
       conn
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
@@ -46,7 +46,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> put_session(:employee_token, token)
     |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: signed_in_path(conn)|| employee_return_to )
+    |> redirect(to: "/organizations/#{employee.organization_id}/employees/#{employee.id}/users" || employee_return_to )
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -133,7 +133,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       # if (current_employee.role != "owner" or current_employee.role != "employee") and
       #      List.last(conn.path_info) != "register" do
         conn
-        |> redirect(to: signed_in_path(conn))
+        |> redirect(to: "/organizations/#{current_employee.organization_id}/employees/#{current_employee.id}/users")
         |> halt()
       # else
         # conn
@@ -177,8 +177,5 @@ defmodule TurnStileWeb.EmployeeAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(conn) do
-    organization_id = conn.params["id"]
-    "/organizations/#{organization_id}/employees"
-  end
+
 end
