@@ -4,6 +4,7 @@ defmodule TurnStileWeb.Router do
 
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
+  import TurnStileWeb.AlertController
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -103,16 +104,13 @@ defmodule TurnStileWeb.Router do
     get "/organizations/search", OrganizationController, :search_get
     post "/organizations/search", OrganizationController, :search_post
 
-
-    post "/alert", AlertController, :send_alert
-
-
     resources "/organizations", OrganizationController, except: [:show] do
       resources "/employees", EmployeeController, except: [:show, :new] do
           resources "/users", UserController
         end
       end
     get "/organizations/:param/employees/:id", EmployeeController, :show
+    get "/organizations/:param/employees/:id/users/:id/alert", AlertController, :send_alert
     get "/organizations/:param", OrganizationController, :show
 
   end

@@ -17,8 +17,3 @@ defmodule TurnStileWeb.AlertController do
   end
 
 end
-
-# account_sid = Dotenv.load.values["TWILIO_ACCOUNT_SID"]
-# auth_token = Dotenv.load.values["TWILIO_AUTH_TOKEN"]
-# message = ExTwilio.Message.create(to: "+13065190138", from: "+14344258584", body: "Hello world!")
-# IO.inspect(message)
