@@ -12,9 +12,8 @@ defmodule TurnStile.Staff.Employee do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
     belongs_to :organization, TurnStile.Company.Organization
-    # has_many :users, WaitingRoom.Patient.User
-    # employee sends alerts
-    # has_many :alerts, WaitingRoom.Alert
+    has_many :users, TurnStile.Patients.User
+    has_many :alerts, TurnStile.Alert
     timestamps()
   end
 

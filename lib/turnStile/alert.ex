@@ -4,7 +4,8 @@ defmodule TurnStile.Alert do
 
   schema "alerts" do
     field :text, :string
-
+    belongs_to :employee, TurnStile.Staff.Employee
+    belongs_to :user, TurnStile.Patients.User
     timestamps()
   end
 

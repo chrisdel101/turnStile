@@ -8,6 +8,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :email, :string
       add :phone, :string
       add :health_card_num, :integer
+      add :employee_id, references("employees"), null: false
 
       timestamps()
     end

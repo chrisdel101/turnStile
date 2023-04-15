@@ -34,6 +34,11 @@ config :turnStile, TurnStile.Mailer,
  config :swoosh,
       api_client: Swoosh.ApiClient.Hackney
 
+config :ex_twilio,
+account_sid:    System.get_env("TWILIO_ACCOUNT_SID"),
+auth_token:     System.get_env("TWILIO_AUTH_TOKEN"),
+workspace_sid:  System.get_env("TWILIO_WORKSPACE_SID")
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.14.29",
