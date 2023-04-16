@@ -110,8 +110,10 @@ defmodule TurnStileWeb.Router do
         end
       end
     get "/organizations/:param/employees/:id", EmployeeController, :show
-    get "/organizations/:param/employees/:id/users/:id/alert", AlertController, :send_alert
+
     get "/organizations/:param", OrganizationController, :show
+
+    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert", AlertController, :create
 
   end
 end

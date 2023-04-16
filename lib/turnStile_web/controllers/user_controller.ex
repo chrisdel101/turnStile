@@ -5,8 +5,9 @@ defmodule TurnStileWeb.UserController do
   alias TurnStile.Patients.User
 
   def index(conn, _params) do
+    changeset = Patients.change_user(%User{})
     users = Patients.list_users()
-    render(conn, "index.html", users: users)
+    render(conn, "index.html", users: users, changeset: changeset)
   end
 
   def new(conn, _params) do
@@ -16,6 +17,9 @@ defmodule TurnStileWeb.UserController do
 
   def create(conn, %{"user" => user_params}) do
     current_employee = conn.assigns[:current_employee]
+    # manually add employee_id
+    user_params = Map.put(user_params, "employee_id", current_employee.id)
+    IO.inspect(user_params)
     conn
     |> maybe_employee_exists()
     case Patients.create_user(user_params) do

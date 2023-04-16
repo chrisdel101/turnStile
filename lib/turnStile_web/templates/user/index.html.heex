@@ -27,13 +27,12 @@
         <span><%= link "Delete", to: Routes.organization_employee_user_path(@conn, :delete,  @current_employee.organization_id, @current_employee.id, user.id), method: :delete, data: [confirm: "Are you sure?"] %></span>
 
 
-        <span><%= link "Send", to: Routes.alert_path(@conn, :send_alert, page: 5) %>
-       </span>
 
 
-        <form action="/alert" method="POST">
-          <button type="submit">Alert</button>
-        </form>
+        <%= form_for @changeset, Routes.alert_path(@conn, :create, 1, 1), fn _f -> %>
+        <%= submit "Alert", class: "btn btn-primary"%>
+        <% end %>
+
 
 
       </td>

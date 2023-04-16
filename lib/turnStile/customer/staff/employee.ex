@@ -37,7 +37,6 @@ defmodule TurnStile.Staff.Employee do
 
   #should be used for changing employee info - no password input
   def changeset(employee, attrs, opts \\ []) do
-    IO.puts("employee changeset")
     employee
     |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password,  :organization_id])
     |> validate_email()
@@ -46,8 +45,6 @@ defmodule TurnStile.Staff.Employee do
   end
 
   def registration_changeset(employee, attrs, opts \\ []) do
-    # IO.puts("employee.ex employee registration_changeset")
-    # IO.inspect(attrs)
     employee
     |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role,:organization_id])
     |> validate_required([:organization_id])
