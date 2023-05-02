@@ -1,0 +1,9 @@
+{
+    "alert": {
+        "initial": "This is a Turnstile message. You will recieve an alert when it is your turn. Reply with 1 to confirmm 2 to cancel."
+    },
+    "response": { 
+        "confirm": "You have confirmed your turn. You will recieve an alert when it is your turn.",
+        "cancel": "You have cancelled your turn. You will no longer recieve alerts."
+    }
+}

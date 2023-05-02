@@ -64,4 +64,9 @@ defmodule TurnStile.Utils do
     end
 
   end
+  def read_json(json_file) do
+    json_file
+    |> File.read!()
+    |> Jason.decode!()
+  end
 end
