@@ -19,7 +19,7 @@ defmodule TurnStileWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
      # This is the line that should be added
-    post "/sms_messages", AlertController, :receive
+    post "/sms_messages", TurnStileWeb.AlertController, :receive
   end
 
 

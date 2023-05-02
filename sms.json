@@ -1,9 +1,16 @@
 {
-    "alert": {
-        "initial": "This is a Turnstile message. You will recieve an alert when it is your turn. Reply with 1 to confirmm 2 to cancel."
+  "alerts": {
+    "request": {
+      "initial": "This is a Turnstile message. You will recieve an alert when it is your turn. Reply with 1 to confirmm 2 to cancel."
     },
-    "response": { 
-        "confirm": "You have confirmed your turn. You will recieve an alert when it is your turn.",
-        "cancel": "You have cancelled your turn. You will no longer recieve alerts."
+    "response": {
+      "confirm": "You have confirmed your turn. You will recieve an alert when it is your turn.",
+      "cancel": "You have cancelled your turn. You will no longer recieve alerts.",
+      "wrong_response": "Invalid response. Valid responses are \n - 1 to confirm \n - 2 to cancel"
     }
+  },
+  "matching_responses": {
+    "1": "You have confirmed your turn. You will recieve an alert when it is your turn.",
+    "2": "You have cancelled your turn. You will no longer recieve alerts."
+  }
 }
