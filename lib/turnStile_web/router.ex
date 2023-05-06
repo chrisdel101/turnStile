@@ -1,12 +1,11 @@
 defmodule TurnStileWeb.Router do
+  # alias TurnStileWeb.UserController
   use TurnStileWeb, :router
-
 
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
-  import TurnStileWeb.AlertController
-  # import TurnStileWeb.UserLive
-  # alias TurnStileWeb.UserLive
+  # import TurnStileWeb.AlertController
+  import TurnStileWeb.UserController
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -21,10 +20,9 @@ defmodule TurnStileWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-     # This is the line that should be added
+    # This is the line that should be added
     post "/sms_messages", TurnStileWeb.AlertController, :receive
   end
-
 
   # Other scopes may use custom stacks.
   # scope "/api", TurnStileWeb do
@@ -65,7 +63,6 @@ defmodule TurnStileWeb.Router do
   scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser, :redirect_if_employee_is_authenticated]
 
-
     get "/employees/log_in", EmployeeSessionController, :new
     post "/employees/log_in", EmployeeSessionController, :create
     get "/employees/reset_password", EmployeeResetPasswordController, :new
@@ -83,11 +80,10 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations/:id", TurnStileWeb do
-    pipe_through [:browser, :organization_setup?,:req_auth_after_org_setup?]
+    pipe_through [:browser, :organization_setup?, :req_auth_after_org_setup?]
 
     get "/employees/register", EmployeeRegistrationController, :new
     post "/employees/register", EmployeeRegistrationController, :create
-
   end
 
   scope "/organizations/:id", TurnStileWeb do
@@ -100,7 +96,6 @@ defmodule TurnStileWeb.Router do
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
 
-
   scope "/", TurnStileWeb do
     pipe_through :browser
 
@@ -112,19 +107,34 @@ defmodule TurnStileWeb.Router do
     post "/organizations/search", OrganizationController, :search_post
 
     resources "/organizations", OrganizationController, except: [:show] do
-      resources "/employees", EmployeeController, except: [:show, :new] do
-          resources "/users", UserController, except: [:index]
-        end
-      end
+      resources "/employees", EmployeeController, except: [:show,
+      :new]
+      # do
+      #   resources "/users", UserLive.Index, except: [:show]
+      # end
+    end
+
     get "/organizations/:param/employees/:id", EmployeeController, :show
 
     get "/organizations/:param", OrganizationController, :show
 
-    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert", AlertController, :create
-    IO.puts("HERE")
-    IO.inspect(UserLive)
-    # this is :index
-    live "/organizations/:organization_id/employees/:employee_id/users/", UserLive, :index
+    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",
+         AlertController,
+         :create
 
+    live "/organizations/:organization_id/employees/:employee_id/users/", UserLive.Index, :index
+    live "/organizations/:organization_id/employees/:employee_id/users/new", UserLive.Index, :new
+    live "/organizations/:organization_id/employees/:employee_id/users/:id/edit", UserLive.Index, :edit
+
+    live "/organizations/:organization_id/employees/:employee_id/users/:user_id",
+         UserLive.Show,
+         :show
   end
 end
+
+# live "/users", UserLive.Index, :index
+# live "/users/new", UserLive.Index, :new
+# live "/users/:id/edit", UserLive.Index, :edit
+
+# live "/users/:id", UserLive.Show, :show
+# live "/users/:id/show/edit", UserLive.Show, :edit

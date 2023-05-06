@@ -90,7 +90,6 @@ defmodule TurnStile.Staff.Employee do
     else
       changeset
     end
-    # IO.inspect("PW", password)
   end
 
   @doc """

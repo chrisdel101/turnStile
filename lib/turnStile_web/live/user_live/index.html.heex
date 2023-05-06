@@ -1,0 +1,51 @@
+<h1>Listing Users</h1>
+
+<%!--
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.user_index_path(@socket, :index)}>
+    <.live_component
+      module={TurnStileWeb.UserLive.FormComponent}
+      id={@user.id || :new}
+      title={@page_title}
+      action={@live_action}
+      user={@user}
+      return_to={Routes.user_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
+--%>
+
+<table>
+  <thead>
+    <tr>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="users">
+    <%= for user <- @users do %>
+      <tr id={"user-#{user.id}"}>
+        <td><%= user.first_name %></td>
+        <td><%= user.last_name %></td>
+        <td><%= user.email %></td>
+        <td><%= user.phone %></td>
+        <td><%= user.health_card_num %></td>
+
+        <td>
+          <span><%= live_redirect "Show", to: Routes.user_show_path(@socket, :show, @current_employee.organization_id, @current_employee.id, user) %></span>
+          <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit, @current_employee.organization_id, @current_employee.id, user) %></span>
+          <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
+        </td>
+
+         <%= form_for @changeset, Routes.alert_path(@conn, :create, @current_employee.organization_id,
+        @current_employee.id,
+         user.id), fn _f -> %>
+        <%= submit "Alert", class: "btn btn-primary" %>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%!--
+<span><%= live_patch "New User", to: Routes.user_index_path(@socket, :new) %></span>
+--%>

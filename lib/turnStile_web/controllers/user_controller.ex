@@ -4,8 +4,12 @@ defmodule TurnStileWeb.UserController do
   alias TurnStile.Patients
   alias TurnStile.Patients.User
 
-  # see UserLive for index
-  # def index(conn, _params)
+  def index(conn, _params) do
+    # IO.inspect(conn)
+    changeset = Patients.change_user(%User{})
+    users = Patients.list_users()
+    render(conn, "index.html", users: users, changeset: changeset, title: "SOME TITLE")
+  end
 
   def new(conn, _params) do
     changeset = Patients.change_user(%User{})
