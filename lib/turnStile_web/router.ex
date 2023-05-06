@@ -5,13 +5,16 @@ defmodule TurnStileWeb.Router do
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
   import TurnStileWeb.AlertController
+  # import TurnStileWeb.UserLive
+  # alias TurnStileWeb.UserLive
+  import Phoenix.LiveView.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {TurnStileWeb.LayoutView, :root}
-    # plug :protect_from_forgery
+    plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_employee
   end
@@ -101,6 +104,8 @@ defmodule TurnStileWeb.Router do
   scope "/", TurnStileWeb do
     pipe_through :browser
 
+    live "/thermostat", TurnStileLive
+
     get "/", PageController, :index
     get "/setup", SetupController, :new
     get "/organizations/search", OrganizationController, :search_get
@@ -108,7 +113,7 @@ defmodule TurnStileWeb.Router do
 
     resources "/organizations", OrganizationController, except: [:show] do
       resources "/employees", EmployeeController, except: [:show, :new] do
-          resources "/users", UserController
+          resources "/users", UserController, except: [:index]
         end
       end
     get "/organizations/:param/employees/:id", EmployeeController, :show
@@ -116,6 +121,10 @@ defmodule TurnStileWeb.Router do
     get "/organizations/:param", OrganizationController, :show
 
     post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert", AlertController, :create
+    IO.puts("HERE")
+    IO.inspect(UserLive)
+    # this is :index
+    live "/organizations/:organization_id/employees/:employee_id/users/", UserLive, :index
 
   end
 end

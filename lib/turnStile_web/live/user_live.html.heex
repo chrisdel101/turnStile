@@ -23,6 +23,7 @@
       <td><%= user.phone %></td>
       <td><%= user.health_card_num %></td>
 
+    <%!--
       <td>
         <span><%= link "Show", to: Routes.organization_employee_user_path(@conn, :show, @current_employee.organization_id, @current_employee.id, user) %></span>
         <span><%= link "Edit", to: Routes.organization_employee_user_path(@conn, :edit, @current_employee.organization_id, @current_employee.id, user.id) %></span>
@@ -33,13 +34,12 @@
          user.id), fn _f -> %>
         <%= submit "Alert", class: "btn btn-primary" %>
         <% end %>
-
-
-
       </td>
+     --%>
     </tr>
 <% end %>
   </tbody>
 </table>
-
+  <%!--
 <span><%= link "New User", to: Routes.organization_employee_user_path(@conn, :new, @current_employee.organization_id, @current_employee.id) %></span>
+  --%>
