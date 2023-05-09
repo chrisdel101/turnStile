@@ -25,6 +25,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
         |> redirect(to: Routes.organization_path(conn, :index))
       end
+
       # check org exist by org_id
       organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
       # if no org by org_id flash error
@@ -38,11 +39,13 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         # check level of user being createdd
         registrant_permissions =
           TurnStile.Utils.get_permissions_level_int(Map.get(employee_params, "role"))
+
         # check perms - only register permissions level >= self -> lower numb is higher perms
         if registrant_permissions >
-        current_user_permission do
+             current_user_permission do
           # Invalid persmission - reload page
           changeset = Staff.use_employee_registration(%Employee{}, employee_params)
+
           conn
           # if employee does not have permissions - flash and re-render
           |> put_flash(:error, "Invalid Permssions to create that user")
@@ -51,52 +54,26 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           IO.inspect("HERE111")
           # add organization_id to employee_params
           employee_params = Map.put(employee_params, "organization_id", organization_id)
-
-          # employee_params = Map.replace(employee_params, "role", "own")
-          # changeset = Staff.use_employee_registration(%Employee{}, employee_params)
-          # IO.inspect(changeset)
-          # IO.inspect(employee_params)
           # if permissions okay
           case Staff.register_employee(employee_params) do
             {:ok, employee} ->
+              # IO.inspect("HERE")
               {:ok, _} =
-                # IO.inspect("HERE")
-                # IO.inspect(organization_id)
+                # &1 is a token
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
-                  &Routes.employee_confirmation_url(conn, :edit, &1)
+                  &Routes.employee_confirmation_url(conn, :edit, employee_params["organization_id"], &1)
                 )
-
-                conn
-
+              conn
               |> put_flash(:info, "Employee created successfully.")
               |> EmployeeAuth.log_in_employee(employee)
-              {:error, %Ecto.Changeset{} = changeset} ->
-                IO.inspect("HEREXXX")
-                IO.inspect(changeset)
-                IO.inspect(changeset)
-                render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+
+            {:error, %Ecto.Changeset{} = changeset} ->
+              IO.inspect("HEREXXX, ERROR")
+              render(conn, "new.html", changeset: changeset, organization_id: organization_id)
           end
         end
-      # end
       end
-      # check employee doing the creating permissions
-  end
-
-    case Staff.register_employee(employee_params) do
-      {:ok, employee} ->
-        {:ok, _} =
-          Staff.deliver_employee_confirmation_instructions(
-            employee,
-            &Routes.employee_confirmation_url(conn, :edit, &1)
-          )
-
-        conn
-        |> put_flash(:info, "Employee created successfully.")
-        |> EmployeeAuth.log_in_employee(employee)
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
     end
   end
 
@@ -114,7 +91,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         conn
         |> put_flash(:error, "Organization already setup. Login is required")
         |> redirect(to: Routes.page_path(conn, :index))
-       # if no members, allow setup
+
+        # if no members, allow setup
       else
         # add organization_id to params
         employee_params = Map.put(employee_params, "organization_id", organization_id)
@@ -124,7 +102,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             {:ok, _} =
               Staff.deliver_employee_confirmation_instructions(
                 employee,
-                &Routes.employee_confirmation_url(conn, :edit, organization_id, &1)
+                &Routes.employee_confirmation_url(conn, :edit, employee_params.id, &1)
               )
 
             conn

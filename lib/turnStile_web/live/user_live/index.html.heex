@@ -37,7 +37,7 @@
           <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
         </td>
 
-         <%= form_for @changeset, Routes.alert_path(@conn, :create, @current_employee.organization_id,
+         <%= form_for @changeset, Routes.alert_path(@socket, :create, @current_employee.organization_id,
         @current_employee.id,
          user.id), fn _f -> %>
         <%= submit "Alert", class: "btn btn-primary" %>

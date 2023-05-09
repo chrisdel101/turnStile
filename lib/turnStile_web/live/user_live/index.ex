@@ -5,15 +5,22 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Patients.User
   alias TurnStile.Staff
 
-
+  @impl true
   def mount(_params, session, socket) do
     # TODO - cannot be null
+    # get token from session
     employee_token = session["employee_token"]
-    IO.inspect(employee_token)
+    # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
     changeset = Patients.change_user(%User{})
-    users = Patients.list_users()
-    {:ok, assign(socket, users: list_users(), current_employee: current_employee, changeset: changeset)}
+
+    {:ok,
+     assign(
+      socket,
+      users: list_users(),
+      current_employee: current_employee, changeset: changeset
+      )
+    }
   end
 
   @impl true

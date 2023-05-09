@@ -14,7 +14,7 @@ defmodule TurnStileWeb.AlertController do
         |> put_flash(:info, "Alert sent successfully.")
         |> redirect(
           to:
-            Routes.organization_employee_user_path(
+            Routes.user_show_path(
               conn,
               :show,
               conn.assigns[:current_employee].organization_id,
