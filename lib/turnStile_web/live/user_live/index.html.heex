@@ -37,11 +37,13 @@
           <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
         </td>
 
-         <%= form_for @changeset, Routes.alert_path(@socket, :create, @current_employee.organization_id,
-        @current_employee.id,
-         user.id), fn _f -> %>
-        <%= submit "Alert", class: "btn btn-primary" %>
-        <% end %>
+      <td>
+        <.form let={_f} for={:alert}  phx-submit={:alert} action={Routes.alert_path(@socket, :create, @current_employee.organization_id, @current_employee.id, user.id)}  phx-trigger-action={@trigger_submit}>
+          <%= submit "Alert1", class: "btn btn-primary" %>
+        </.form>
+
+      </td>
+
       </tr>
     <% end %>
   </tbody>

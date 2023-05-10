@@ -17,15 +17,27 @@ defmodule TurnStileWeb.UserLive.Index do
     {:ok,
      assign(
       socket,
+      testValue: false,
       users: list_users(),
-      current_employee: current_employee, changeset: changeset
+      current_employee: current_employee, changeset: changeset,
+      trigger_submit: false
       )
     }
   end
 
   @impl true
   def handle_params(params, _url, socket) do
+    # ("ALERT2")
+    # IO.inspIO.putsect(params)
+
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+  def handle_event(params, value, socket) do
+    IO.inspect(params)
+    socket = assign(socket, trigger_submit: true)
+
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
