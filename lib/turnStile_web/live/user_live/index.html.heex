@@ -38,10 +38,9 @@
         </td>
 
       <td>
-      <%IO.inspect(@form) %>
-        <.form for={:alert_c}  phx-submit={:alert_s} phx-click={:alert_c} phx-value-user={user.id}>
+        <.form for={:alert}  phx-submit={:alert}>
           <input type="hidden" name="user_id" value={user.id} />
-          <button class="btn btn-primary" type="submit" phx-click={:alert_c} phx-value-user={user.id} />
+          <input class="btn btn-primary" type="submit"  />
         </.form>
 
 

@@ -38,22 +38,22 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  def handle_event("alert_c", values, socket) do
+  def handle_event("alert", values, socket) do
     IO.puts("click")
     IO.inspect(values)
     # IO.inspect(call)
     {:noreply, socket}
   end
 
-  def handle_event("alert_s", values, socket) do
-    IO.puts("submit")
+  # def handle_event("alert_s", values, socket) do
+  #   IO.puts("submit")
 
-    IO.inspect(values)
+  #   IO.inspect(values)
 
-    # socket = assign(socket, trigger_submit: true)
+  #   # socket = assign(socket, trigger_submit: true)
 
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
