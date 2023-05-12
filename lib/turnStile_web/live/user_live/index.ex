@@ -1,6 +1,7 @@
 defmodule TurnStileWeb.UserLive.Index do
   use TurnStileWeb, :live_view
 
+  alias TurnStileWeb.UserLive.FormComponent
   alias TurnStile.Patients
   alias TurnStile.Patients.User
   alias TurnStile.Staff
@@ -12,17 +13,21 @@ defmodule TurnStileWeb.UserLive.Index do
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
-    changeset = Patients.change_user(%User{})
+
+    form = %{
+      "user_id" => nil
+      # organization_id: "",
+      # employee_id: ""
+    }
 
     {:ok,
      assign(
-      socket,
-      testValue: false,
-      users: list_users(),
-      current_employee: current_employee, changeset: changeset,
-      trigger_submit: false
-      )
-    }
+       socket,
+       form: form,
+       users: list_users(),
+       current_employee: current_employee,
+       trigger_submit: false
+     )}
   end
 
   @impl true
@@ -32,10 +37,20 @@ defmodule TurnStileWeb.UserLive.Index do
 
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
-  def handle_event(params, value, socket) do
-    IO.inspect(params)
-    socket = assign(socket, trigger_submit: true)
 
+  def handle_event("alert_c", values, socket) do
+    IO.puts("click")
+    IO.inspect(values)
+    # IO.inspect(call)
+    {:noreply, socket}
+  end
+
+  def handle_event("alert_s", values, socket) do
+    IO.puts("submit")
+
+    IO.inspect(values)
+
+    # socket = assign(socket, trigger_submit: true)
 
     {:noreply, socket}
   end

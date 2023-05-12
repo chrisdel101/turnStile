@@ -38,9 +38,13 @@
         </td>
 
       <td>
-        <.form let={_f} for={:alert}  phx-submit={:alert} action={Routes.alert_path(@socket, :create, @current_employee.organization_id, @current_employee.id, user.id)}  phx-trigger-action={@trigger_submit}>
-          <%= submit "Alert1", class: "btn btn-primary" %>
+      <%IO.inspect(@form) %>
+        <.form for={:alert_c}  phx-submit={:alert_s} phx-click={:alert_c} phx-value-user={user.id}>
+          <input type="hidden" name="user_id" value={user.id} />
+          <button class="btn btn-primary" type="submit" phx-click={:alert_c} phx-value-user={user.id} />
         </.form>
+
+
 
       </td>
 
