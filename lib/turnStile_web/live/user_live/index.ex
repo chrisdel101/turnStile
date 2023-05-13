@@ -1,7 +1,6 @@
 defmodule TurnStileWeb.UserLive.Index do
   use TurnStileWeb, :live_view
-
-  alias TurnStileWeb.UserLive.FormComponent
+  alias TurnStileWeb.AlertController
   alias TurnStile.Patients
   alias TurnStile.Patients.User
   alias TurnStile.Staff
@@ -13,17 +12,9 @@ defmodule TurnStileWeb.UserLive.Index do
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
-
-    form = %{
-      "user_id" => nil
-      # organization_id: "",
-      # employee_id: ""
-    }
-
     {:ok,
      assign(
        socket,
-       form: form,
        users: list_users(),
        current_employee: current_employee,
        trigger_submit: false
@@ -32,28 +23,15 @@ defmodule TurnStileWeb.UserLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    # ("ALERT2")
-    # IO.inspIO.putsect(params)
-
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   def handle_event("alert", values, socket) do
-    IO.puts("click")
-    IO.inspect(values)
-    # IO.inspect(call)
+    user_id = values["value"]
+    employee_id = socket.assigns.current_employee.id
+    socket = send_alert(socket, %{"employee_id" => employee_id, "user_id" => user_id})
     {:noreply, socket}
   end
-
-  # def handle_event("alert_s", values, socket) do
-  #   IO.puts("submit")
-
-  #   IO.inspect(values)
-
-  #   # socket = assign(socket, trigger_submit: true)
-
-  #   {:noreply, socket}
-  # end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
@@ -84,4 +62,23 @@ defmodule TurnStileWeb.UserLive.Index do
   defp list_users do
     Patients.list_users()
   end
+
+  defp send_alert(socket, %{"employee_id" => employee_id, "user_id" => user_id}) do
+    case AlertController.create_live(%{"employee_id" => employee_id, "user_id" => user_id}) do
+      {:ok, _twl_msg} ->
+        socket =
+          socket
+          |> put_flash(:info, "Alert sent successfully.")
+          # handle twilio errors
+        {:error, error_map, error_code} ->
+        socket =
+          socket
+          |> put_flash(:error, "Alert Failed: #{error_map["message"]}")
+      true ->
+        socket =
+        socket
+        |> put_flash(:error, "An unknown error occured")
+    end
+  end
+
 end

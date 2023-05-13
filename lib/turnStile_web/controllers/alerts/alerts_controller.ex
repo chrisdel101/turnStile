@@ -3,6 +3,7 @@ defmodule TurnStileWeb.AlertController do
   alias TurnStile.Utils
   @json Utils.read_json("sms.json")
 
+  # create alert and render all server side pages
   def create(conn, %{"employee_id" => employee_id, "user_id" => user_id}) do
     case ExTwilio.Message.create(
            to: System.get_env("TEST_NUMBER"),
@@ -51,6 +52,23 @@ defmodule TurnStileWeb.AlertController do
               employee_id
             )
         )
+    end
+  end
+
+  # live-view version- create and send the alert only
+  def create_live(%{"employee_id" => employee_id, "user_id" => user_id}) do
+    case ExTwilio.Message.create(
+           to: System.get_env("TEST_NUMBER"),
+           from: System.get_env("TWILIO_PHONE_NUM"),
+           body: @json["alerts"]["request"]["initial"]
+         ) do
+      {:ok, _twilio_msg} ->
+        {:ok, _twilio_msg}
+      # handle twilio errors
+      {:error, error_map, error_code} ->
+        {:error, error_map, error_code}
+      true ->
+        "An unknown error occured"
     end
   end
 

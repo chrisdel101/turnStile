@@ -38,11 +38,8 @@
         </td>
 
       <td>
-        <.form for={:alert}  phx-submit={:alert}>
-          <input type="hidden" name="user_id" value={user.id} />
-          <input class="btn btn-primary" type="submit"  />
-        </.form>
 
+      <button class="btn btn-primary" phx-click={:alert} value={user.id}>Alert</button>
 
 
       </td>
