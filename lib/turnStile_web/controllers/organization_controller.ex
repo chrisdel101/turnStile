@@ -7,8 +7,9 @@ defmodule TurnStileWeb.OrganizationController do
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Staff.Employee
 
+  # TODO - create permissions to block all end users from seeing this page
   def index(conn, _params) do
-    # only app in-company app developers can see this
+    # no end users ever see this page
     organizations = Company.list_organizations()
     render(conn, "index.html", organizations: organizations)
   end

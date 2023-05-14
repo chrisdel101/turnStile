@@ -15,6 +15,31 @@
 
 <ul>
 
+  <li>
+    <strong>First name:</strong>
+    <%= @user.first_name %>
+  </li>
+
+  <li>
+    <strong>Last name:</strong>
+    <%= @user.last_name %>
+  </li>
+
+  <li>
+    <strong>Email:</strong>
+    <%= @user.email %>
+  </li>
+
+  <li>
+    <strong>Phone:</strong>
+    <%= @user.phone %>
+  </li>
+
+  <li>
+    <strong>Health card num:</strong>
+    <%= @user.health_card_num %>
+  </li>
+
 </ul>
 
 <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit, @organization_id, @employee_id, @user.id), class: "button" %></span> |

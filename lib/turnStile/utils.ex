@@ -30,7 +30,7 @@ defmodule TurnStile.Utils do
   end
 # checks persmission level of input role
 # IN: role: string
-# OUT: int 1-3 from PermissionGroups
+# OUT: int 1-3 from EmployeePermissionGroups
   def get_permissions_level_int(role) do
       # role = current_user.role
       cond do

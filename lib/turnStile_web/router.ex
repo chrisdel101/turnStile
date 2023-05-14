@@ -5,7 +5,7 @@ defmodule TurnStileWeb.Router do
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
   # import TurnStileWeb.AlertController
-  import TurnStileWeb.UserController
+  # import TurnStileWeb.UserController
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -106,7 +106,7 @@ defmodule TurnStileWeb.Router do
     get "/organizations/search", OrganizationController, :search_get
     post "/organizations/search", OrganizationController, :search_post
 
-    resources "/organizations", OrganizationController, except: [:show] do
+    resources "/organizations", OrganizationController, except: [:show, :index] do
       resources "/employees", EmployeeController, except: [:show,
       :new]
       # do
@@ -129,6 +129,12 @@ defmodule TurnStileWeb.Router do
     live "/organizations/:organization_id/employees/:employee_id/users/:user_id",
          UserLive.Show,
          :show
+  end
+
+  scope "/organizations", TurnStileWeb do
+    pipe_through [:browser, :require_authenticated_employee, :company_only_route]
+
+    get "/", OrganizationController, :index
   end
 end
 
