@@ -21,22 +21,28 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 # Development Notes
 
-### Steps used to build tables
+### Generators used to build tables and get pages
 
-1. Employee: Auth, schema, migration, auth html 
+1. Employee: context, Auth, schema, migration, auth html 
   - `mix phx.gen.auth Staff Employee employees`  
 2. Employee: complete html, route resources 
   - `mix phx.gen.html Staff Employee employees --no-schema`
 3. Add non-auth schema fields & migrations adds, create role type from enum
-4. Employee: Auth, schema, migrtion, auth html 
-  - `mix phx.gen.auth Staff Employee employees`
-5. Employee: complete html, route resources 
-  - `mix phx.gen.html Staff Employee employees --no-schema`
+4. User: migration
+ - `mix phx.gen.context Patient User users first_name:string last_name_string health_num:integer phone_num:integer`
+
+5. User: context
+
+- ` mix phx.gen.schema Patient.User users first_name:string last_name_string health_num:integer phone_num:integer`
+6. User: live view
+-  `mix phx.gen.live Patients User users -no-schema --no-context`
+7. Opertations Admin 
+
 
 
 # Installation
 
-- install [postgres](https://www.postgresql.org/)
+- instal[postgres](https://www.postgresql.org/)
 - install [Phoenix](https://hexdocs.pm/phoenix/installation.html) 
 - clone application
 - `mix deps.get`

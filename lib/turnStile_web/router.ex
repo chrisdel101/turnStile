@@ -132,7 +132,8 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_employee, :company_only_route]
+    pipe_through [:browser, #:require_authenticated_admin, #:company_only_route
+  ]
 
     get "/", OrganizationController, :index
   end

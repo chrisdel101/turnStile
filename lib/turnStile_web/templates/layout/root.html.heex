@@ -13,21 +13,34 @@
     <header>
       <section class="container">
         <nav>
-          <ul>
+          <%!-- comment out dashboard for now --%>
+            <%!--
+              <ul>
+                <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
+                  <li><%= link "LiveDashboard Example", to: Routes.live_dashboard_path(@conn, :home) %></li>
+                <% end %>
+              </ul>
+              --%>
 
-            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-              <li><%= link "LiveDashboard Example", to: Routes.live_dashboard_path(@conn, :home) %></li>
-            <% end %>
-          </ul>
+
           <%!-- if index page --%>
 
           <!-- comment -->
-          <%!--<%= if assigns.conn.request_path == "/" do %>--%>
+          <%!--
+          <%= if assigns.conn.request_path == "/" do %>
+          --%>
 
 
-            <li><%= link "Setup Organization", to:  Routes.organization_path(@conn, :new)%></li>
-            <li><%= link "Login", to: "/organizations/search" %></li>
-            <li><%= link "List Organizations", to: "/organizations" %></li>
+            <li>
+              <%= link "Setup Organization", to:  Routes.organization_path(@conn, :new)%>
+            </li>
+            <li>
+              <%= link "Login", to: "/organizations/search" %>
+            </li>
+            <% IO.inspect(@current_employee) %>
+            <li>
+              <%= link "List Organizations", to: "/organizations" %>
+            </li>
 
              <!-- comment -->
            <%!--<% end %>--%>
