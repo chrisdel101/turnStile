@@ -339,8 +339,8 @@ defmodule TurnStile.StaffTest do
     end
 
     test "returns employee by token", %{employee: employee, token: token} do
-      assert session_admin = Staff.get_employee_by_session_token(token)
-      assert session_admin.id == employee.id
+      assert session_employee = Staff.get_employee_by_session_token(token)
+      assert session_employee.id == employee.id
     end
 
     test "does not return employee for invalid token" do

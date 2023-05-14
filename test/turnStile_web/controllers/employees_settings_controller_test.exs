@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AdminSettingsControllerTest do
+defmodule TurnStileWeb.EmployeeSettingsControllerTest do
   use TurnStileWeb.ConnCase, async: true
 
   alias TurnStile.Staff

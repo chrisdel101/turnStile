@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AdminControllerTest do
+defmodule TurnStileWeb.EmployeeControllerTest do
   use TurnStileWeb.ConnCase
 
   import TurnStile.EmployeeFixtures

@@ -35,9 +35,9 @@ defmodule TurnStile.Utils do
       # role = current_user.role
       cond do
         # check if employee persmission
-        Enum.member?(EmployeePermissionRoles.get_employee_admin_roles, role) -> 1
+        Enum.member?(EmployeePermissionRoles.get_employee_manager_roles, role) -> 1
         # check if employee persmission
-        Enum.member?(EmployeePermissionRoles.get_employee_non_admin_roles, role) -> 2
+        Enum.member?(EmployeePermissionRoles.get_employee_non_manager_roles, role) -> 2
         "default" -> 3
     end
   end

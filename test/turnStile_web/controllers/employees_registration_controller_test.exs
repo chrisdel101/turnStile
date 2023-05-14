@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AdminRegistrationControllerTest do
+defmodule TurnStileEmployeeRegistrationControllerTest do
   use TurnStileWeb.ConnCase, async: true
 
   import TurnStile.EmployeeFixtures

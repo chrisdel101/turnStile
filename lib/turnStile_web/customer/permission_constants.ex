@@ -42,15 +42,15 @@ end
 
 # used by end users
 defmodule EmployeePermissionRoles do
-  @employee_admin_roles  [:owner, :developer, :admin]
-  @employee_non_admin_roles  [:editor, :contributor, :viewer]
+  @employee_manager_roles  [:owner, :developer, :admin]
+  @employee_non_manager_roles  [:editor, :contributor, :viewer]
   # add two lists
-  @employee_roles @employee_admin_roles ++ @employee_non_admin_roles
-  def get_employee_admin_roles do
-    @employee_admin_roles #access attribute
+  @employee_roles @employee_manager_roles ++ @employee_non_manager_roles
+  def get_employee_manager_roles do
+    @employee_manager_roles #access attribute
   end
-  def get_employee_non_admin_roles do
-    @employee_non_admin_roles #access attribute
+  def get_employee_non_manager_roles do
+    @employee_non_manager_roles #access attribute
   end
   def get_employee_all_roles do
     @employee_roles #access attribute
@@ -69,13 +69,13 @@ defmodule EmployeePermissionGroups do
     @permissions[key]
   end
 end
-defmodule EmployeeAdminRolesEnum do
+defmodule EmployeeManagerRolesEnum do
   @roles  [:owner, :developer, :admin]
   def get_roles do
     @roles #access attribute
   end
 end
-defmodule EmployeeNonAdminRolesEnum do
+defmodule EmployeeNonManagerRolesEnum do
   @roles  [:editor, :contributor, :viewer]
   def get_roles do
     @roles #access attribute

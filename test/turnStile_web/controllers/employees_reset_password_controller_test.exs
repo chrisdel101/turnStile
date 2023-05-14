@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AdminResetPasswordControllerTest do
+defmodule TurnStileWeb.EmployeeResetPasswordControllerTest do
   use TurnStileWeb.ConnCase, async: true
 
   alias TurnStile.Staff
