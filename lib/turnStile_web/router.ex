@@ -2,6 +2,8 @@ defmodule TurnStileWeb.Router do
   # alias TurnStileWeb.UserController
   use TurnStileWeb, :router
 
+  import TurnStileWeb.AdminAuth
+
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
   # import TurnStileWeb.AlertController
@@ -15,6 +17,7 @@ defmodule TurnStileWeb.Router do
     plug :put_root_layout, {TurnStileWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_admin
     plug :fetch_current_employee
   end
 
@@ -107,8 +110,7 @@ defmodule TurnStileWeb.Router do
     post "/organizations/search", OrganizationController, :search_post
 
     resources "/organizations", OrganizationController, except: [:show, :index] do
-      resources "/employees", EmployeeController, except: [:show,
-      :new]
+      resources "/employees", EmployeeController, except: [:show, :new]
       # do
       #   resources "/users", UserLive.Index, except: [:show]
       # end
@@ -124,7 +126,10 @@ defmodule TurnStileWeb.Router do
 
     live "/organizations/:organization_id/employees/:employee_id/users/", UserLive.Index, :index
     live "/organizations/:organization_id/employees/:employee_id/users/new", UserLive.Index, :new
-    live "/organizations/:organization_id/employees/:employee_id/users/:id/edit", UserLive.Index, :edit
+
+    live "/organizations/:organization_id/employees/:employee_id/users/:id/edit",
+         UserLive.Index,
+         :edit
 
     live "/organizations/:organization_id/employees/:employee_id/users/:user_id",
          UserLive.Show,
@@ -132,16 +137,48 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations", TurnStileWeb do
-    pipe_through [:browser, #:require_authenticated_admin, #:company_only_route
-  ]
+    # :require_authenticated_admin, #:company_only_route
+    pipe_through [:browser]
 
     get "/", OrganizationController, :index
   end
+
+  # live "/users", UserLive.Index, :index
+  # live "/users/new", UserLive.Index, :new
+  # live "/users/:id/edit", UserLive.Index, :edit
+
+  # live "/users/:id", UserLive.Show, :show
+  # live "/users/:id/show/edit", UserLive.Show, :edit
+  ## Authentication routes
+
+  scope "/", TurnStileWeb do
+    pipe_through [:browser, :redirect_if_admin_is_authenticated]
+
+    get "/admins/register", AdminRegistrationController, :new
+    post "/admins/register", AdminRegistrationController, :create
+    get "/admins/log_in", AdminSessionController, :new
+    post "/admins/log_in", AdminSessionController, :create
+    get "/admins/reset_password", AdminResetPasswordController, :new
+    post "/admins/reset_password", AdminResetPasswordController, :create
+    get "/admins/reset_password/:token", AdminResetPasswordController, :edit
+    put "/admins/reset_password/:token", AdminResetPasswordController, :update
+  end
+
+  scope "/", TurnStileWeb do
+    pipe_through [:browser, :require_authenticated_admin]
+
+    get "/admins/settings", AdminSettingsController, :edit
+    put "/admins/settings", AdminSettingsController, :update
+    get "/admins/settings/confirm_email/:token", AdminSettingsController, :confirm_email
+  end
+
+  scope "/", TurnStileWeb do
+    pipe_through [:browser]
+
+    delete "/admins/log_out", AdminSessionController, :delete
+    get "/admins/confirm", AdminConfirmationController, :new
+    post "/admins/confirm", AdminConfirmationController, :create
+    get "/admins/confirm/:token", AdminConfirmationController, :edit
+    post "/admins/confirm/:token", AdminConfirmationController, :update
+  end
 end
-
-# live "/users", UserLive.Index, :index
-# live "/users/new", UserLive.Index, :new
-# live "/users/:id/edit", UserLive.Index, :edit
-
-# live "/users/:id", UserLive.Show, :show
-# live "/users/:id/show/edit", UserLive.Show, :edit

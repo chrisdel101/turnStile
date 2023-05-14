@@ -36,7 +36,9 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - ` mix phx.gen.schema Patient.User users first_name:string last_name_string health_num:integer phone_num:integer`
 6. User: live view
 -  `mix phx.gen.live Patients User users -no-schema --no-context`
-7. Opertations Admin 
+7. Opertations Admin: context, Auth, schema, migration, auth html
+- `mix phx.gen.auth Operations Admin admins`
+8. 
 
 
 

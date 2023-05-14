@@ -1,24 +1,24 @@
-# used my application company
-defmodule CompanyPermissionRoles do
-  @company_admin_roles  [:system_owner, :system_admin, :system_developer]
-  @company_non_admin_roles  [:editor, :contributor, :viewer]
+# ADMINS
+defmodule AdminPermissionRoles do
+  @admin_manager_roles [:owner, :developer, :admin]
+  @admin_non_manager_roles  [:editor, :contributor, :viewer]
   # add two lists
-  @company_roles @company_admin_roles ++ @company_non_admin_roles
-  def get_company_admin_roles do
-    @company_admin_roles #access attribute
+  @admin_roles @admin_manager_roles ++ @admin_non_manager_roles
+  def get_admin_manager_roles do
+    @admin_manager_roles #access attribute
   end
-  def get_company_non_admin_roles do
-    @company_non_admin_roles #access attribute
+  def get_admin_non_manager_roles do
+    @admin_non_manager_roles #access attribute
   end
-  def get_company_all_roles do
-    @company_roles #access attribute
+  def get_admin_all_roles do
+    @admin_roles #access attribute
   end
 end
-defmodule CompanyPermissionGroups do
+defmodule AdminPermissionGroups do
   @permissions %{
-    "system_owner" => 1,
-    "system_developer" => 2,
-    "system_admin" => 3,
+    "owner" => 1,
+    "developer" => 2,
+    "admin" => 3,
     "editor" => 4,
     "contributor" => 5,
     "viewer" => 6
@@ -27,20 +27,20 @@ defmodule CompanyPermissionGroups do
     @permissions[key]
   end
 end
-defmodule CompanyAdminRolesEnum do
-  @roles  [:system_owner, :system_developer, :system_admin]
+defmodule AdminManagerRolesEnum do
+  @roles  [:owner, :developer, :admin]
   def get_roles do
     @roles #access attribute
   end
 end
-defmodule CompanyNonAdminRolesEnum do
+defmodule AdminNonManagerRolesEnum do
   @roles  [:editor, :contributor, :viewer]
   def get_roles do
     @roles #access attribute
   end
 end
 
-# used by end users
+# END USERS
 defmodule EmployeePermissionRoles do
   @employee_manager_roles  [:owner, :developer, :admin]
   @employee_non_manager_roles  [:editor, :contributor, :viewer]
