@@ -35,9 +35,16 @@
 
 
         </nav>
-        <a href="https://phoenixframework.org/" class="phx-logo">
-          <img src={Routes.static_path(@conn, "/images/phoenix.png")} alt="Phoenix Framework Logo"/>
+        <%= if @route_type == "admin" do %>
+        <a href="/" class="phx-logo">
+          <img class="logo" src={Routes.static_path(@conn, "/images/turnstile_logo_admin.jpg")} alt="Phoenix Framework Logo"/>
         </a>
+        <% else %>
+        <a href="/" class="phx-logo">
+          <img class="logo" src={Routes.static_path(@conn, "/images/turnstile_logo.jpg")} alt="Phoenix Framework Logo"/>
+        </a>
+        <% end %>
+
       </section>
     </header>
     <%= @inner_content %>

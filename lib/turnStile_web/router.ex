@@ -16,6 +16,7 @@ defmodule TurnStileWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_admin
     plug :fetch_current_employee
+    plug TurnStileWeb.Plugs.RouteType, "non-admin"
   end
 
   pipeline :api do
@@ -151,17 +152,17 @@ defmodule TurnStileWeb.Router do
   scope "/", TurnStileWeb do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 
-    get "/admins/register", AdminRegistrationController, :new
-    post "/admins/register", AdminRegistrationController, :create
-    get "/admins/log_in", AdminSessionController, :new
-    post "/admins/log_in", AdminSessionController, :create
-    get "/admins/reset_password", AdminResetPasswordController, :new
-    post "/admins/reset_password", AdminResetPasswordController, :create
-    get "/admins/reset_password/:token", AdminResetPasswordController, :edit
-    put "/admins/reset_password/:token", AdminResetPasswordController, :update
+    get "/admin/register", AdminRegistrationController, :new
+    post "/admin/register", AdminRegistrationController, :create
+    get "/admin/log_in", AdminSessionController, :new
+    post "/admin/log_in", AdminSessionController, :create
+    get "/admin/reset_password", AdminResetPasswordController, :new
+    post "/admin/reset_password", AdminResetPasswordController, :create
+    get "/admin/reset_password/:token", AdminResetPasswordController, :edit
+    put "/admin/reset_password/:token", AdminResetPasswordController, :update
   end
 
-  scope "/admins", TurnStileWeb do
+  scope "/admin", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
 
     get "/settings", AdminSettingsController, :edit
@@ -171,7 +172,7 @@ defmodule TurnStileWeb.Router do
     resources "/", AdminController
   end
 
-  scope "/admins", TurnStileWeb do
+  scope "/admin", TurnStileWeb do
     pipe_through [:browser]
 
     delete "log_out", AdminSessionController, :delete
