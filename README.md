@@ -23,22 +23,30 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ### Generators used to build tables and get pages
 
-1. Employee: context, Auth, schema, migration, auth html 
+1. Employee: Auth, schema, auth migration, auth html 
   - `mix phx.gen.auth Staff Employee employees`  
-2. Employee: complete html, route resources 
+  - half of context created here
+  - in auth migration: add roles with `execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")` 
+2. Employee: context, complete html, route resources 
   - `mix phx.gen.html Staff Employee employees --no-schema`
-3. Add non-auth schema fields & migrations adds, create role type from enum
-4. User: migration
- - `mix phx.gen.context Patient User users first_name:string last_name_string health_num:integer phone_num:integer`
-
-5. User: context
-
-- ` mix phx.gen.schema Patient.User users first_name:string last_name_string health_num:integer phone_num:integer`
+  - other half of context created here
+3. Organization: non-auth migration, context, schema, page html, resources
+- `mix phx.gen.html Company Organization organizations name:string slug:string email:string phone:string`
+4. User: schema and migration
+ - `mix phx.gen.schema Patient User users first_name:string last_name_string health_num:integer phone_num:integer`
+5. User: context and functionality
+- ` mix phx.gen.context Patient.User users first_name:string last_name_string health_num:integer phone_num:integer`
 6. User: live view
 -  `mix phx.gen.live Patients User users -no-schema --no-context`
-7. Opertations Admin: context, Auth, schema, migration, auth html
+7. Opertations Admin: Auth, schema, auth migration, auth html 
 - `mix phx.gen.auth Operations Admin admins`
-8. 
+- in auth migration: add roles with ` execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(AdminPermissionRoles.get_admin_all_roles())}")`
+  - half of context created here
+8. Opertations Admin: context, complete web html, route resources 
+- `mix phx.gen.html Operations Admin admins --no-schema`
+- other half of context created here
+
+
 
 
 

@@ -1,13 +1,10 @@
 defmodule TurnStileWeb.Router do
-  # alias TurnStileWeb.UserController
   use TurnStileWeb, :router
 
   import TurnStileWeb.AdminAuth
 
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.OrganizationController
-  # import TurnStileWeb.AlertController
-  # import TurnStileWeb.UserController
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -164,21 +161,24 @@ defmodule TurnStileWeb.Router do
     put "/admins/reset_password/:token", AdminResetPasswordController, :update
   end
 
-  scope "/", TurnStileWeb do
+  scope "/admins", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
 
-    get "/admins/settings", AdminSettingsController, :edit
-    put "/admins/settings", AdminSettingsController, :update
-    get "/admins/settings/confirm_email/:token", AdminSettingsController, :confirm_email
+    get "/settings", AdminSettingsController, :edit
+    put "/settings", AdminSettingsController, :update
+    get "/settings/confirm_email/:token", AdminSettingsController, :confirm_email
+
+    resources "/", AdminController
   end
 
-  scope "/", TurnStileWeb do
+  scope "/admins", TurnStileWeb do
     pipe_through [:browser]
 
-    delete "/admins/log_out", AdminSessionController, :delete
-    get "/admins/confirm", AdminConfirmationController, :new
-    post "/admins/confirm", AdminConfirmationController, :create
-    get "/admins/confirm/:token", AdminConfirmationController, :edit
-    post "/admins/confirm/:token", AdminConfirmationController, :update
+    delete "log_out", AdminSessionController, :delete
+    get "confirm", AdminConfirmationController, :new
+    post "confirm", AdminConfirmationController, :create
+    get "confirm/:token", AdminConfirmationController, :edit
+    post "confirm/:token", AdminConfirmationController, :update
+
   end
 end
