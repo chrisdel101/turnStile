@@ -23,29 +23,11 @@
               --%>
 
 
-          <%!-- if index page --%>
+            <li><%= link "Home", to: "/" %></li>
 
-          <!-- comment -->
-          <%!--
-          <%= if assigns.conn.request_path == "/" do %>
-          --%>
-
-
-            <li>
-              <%= link "Setup Organization", to:  Routes.organization_path(@conn, :new)%>
-            </li>
-            <li>
-              <%= link "Login", to: "/organizations/search" %>
-            </li>
-            <% IO.inspect(@current_employee) %>
-            <li>
-              <%= link "List Organizations", to: "/organizations" %>
-            </li>
 
              <!-- comment -->
            <%!--<% end %>--%>
-
-            <li><%= link "Home", to: "/" %></li>
             <%= render "_employee_menu.html", assigns %>
 
 
