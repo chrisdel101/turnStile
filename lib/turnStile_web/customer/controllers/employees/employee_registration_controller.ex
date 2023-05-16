@@ -7,7 +7,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   alias TurnStileWeb.OrganizationController
 
   def new(conn, _params) do
-    changeset = Staff.use_employee_registration(%Employee{})
+    changeset = Staff.change_employee_registration(%Employee{})
     organization_id = conn.path_params["id"]
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
@@ -35,23 +35,22 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         |> redirect(to: Routes.organization_path(conn, :new))
       else
         # check employee doing the creating permissions
-        current_user_permission = TurnStile.Utils.get_permissions_level_int(current_employee.role)
+        current_user_permission = TurnStile.Utils.get_employee_permissions_level(current_employee.role)
         # check level of user being createdd
         registrant_permissions =
-          TurnStile.Utils.get_permissions_level_int(Map.get(employee_params, "role"))
+          TurnStile.Utils.get_employee_permissions_level(Map.get(employee_params, "role"))
 
         # check perms - only register permissions level >= self -> lower numb is higher perms
         if registrant_permissions >
              current_user_permission do
           # Invalid persmission - reload page
-          changeset = Staff.use_employee_registration(%Employee{}, employee_params)
+          changeset = Staff.change_employee_registration(%Employee{}, employee_params)
 
           conn
           # if employee does not have permissions - flash and re-render
           |> put_flash(:error, "Invalid Permssions to create that user")
           |> render("new.html", changeset: changeset, organization_id: organization_id)
         else
-          IO.inspect("HERE111")
           # add organization_id to employee_params
           employee_params = Map.put(employee_params, "organization_id", organization_id)
           # if permissions okay
@@ -69,7 +68,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
               |> EmployeeAuth.log_in_employee(employee)
 
             {:error, %Ecto.Changeset{} = changeset} ->
-              IO.inspect("HEREXXX, ERROR")
               render(conn, "new.html", changeset: changeset, organization_id: organization_id)
           end
         end

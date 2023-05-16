@@ -5,11 +5,11 @@
   <li>Role: <%= @current_employee.role %></li>
   <li>
     Permission Level:
-  <%= TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_employee.role))) %>
+  <%= TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) %>
   </li>
   <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit) %></li>
   <!--employee level can register new staff -->
-    <%= if TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_employee.role))) === EmployeePermissionGroups.get_persmission_value("employee") do %>
+    <%= if TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) === EmployeePermissionGroups.get_persmission_value("employee") do %>
       <li><%= link "Register New Staff", to: Routes.employee_registration_path(@conn, :new) %></li>
   <% end %>
   <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete), method: :delete %></li>

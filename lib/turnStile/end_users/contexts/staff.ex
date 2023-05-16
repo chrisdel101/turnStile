@@ -75,22 +75,24 @@ defmodule TurnStile.Staff do
 
   """
   def register_employee(attrs) do
+    IO.puts('ATTRS')
+    IO.inspect(attrs)
     %Employee{}
     |> Employee.registration_changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking employee changes.
+  Returns an `%Ecto.Changeset{}` for tracking employee registration changes.
   Used to create new employees via register
 
   ## Examples
 
-      iex> use_employee_registration(employee)
+      iex> change_employee_registration(employee)
       %Ecto.Changeset{data: %Employee{}}
 
   """
-  def use_employee_registration(%Employee{} = employee, attrs \\ %{}) do
+  def change_employee_registration(%Employee{} = employee, attrs \\ %{}) do
     Employee.registration_changeset(employee, attrs, hash_password: false)
   end
 

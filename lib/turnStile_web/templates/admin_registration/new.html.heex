@@ -1,5 +1,11 @@
-<h1>Register</h1>
 
+<%= if @current_admin do%>
+  <h3>Insufficient persmissions for creating new admins</h3>
+<% else %>
+  <h1>Register New Admin</h1>
+  <h3>Permissions to add new admins are sufficient.</h3>
+  <p>Add new admin. TODO: set a tempPW. New admin will get email conf.</p>
+ <!-- setup procedure -->
 <.form let={f} for={@changeset} action={Routes.admin_registration_path(@conn, :create)}>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -7,18 +13,42 @@
     </div>
   <% end %>
 
+  <%= label f, :first_name %>
+  <%= text_input f, :first_name %>
+  <%= error_tag f, :first_name %>
+
+  <%= label f, :last_name %>
+  <%= text_input f, :last_name %>
+  <%= error_tag f, :last_name %>
+
+  <%= label f, :role %>
+
+  <!-- display only roles allowed by permissions -->
+  <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminPermissionRoles.get_admin_manager_roles(),  "owner"), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+
+
   <%= label f, :email %>
-  <%= email_input f, :email, required: true %>
+  <%= text_input f, :email %>
   <%= error_tag f, :email %>
 
-  <%= label f, :password %>
-  <%= password_input f, :password, required: true %>
-  <%= error_tag f, :password %>
+  <%= label f, "Confirm Email" %>
+  <%= text_input f, :email_confirmation %>
+  <%= error_tag f, :email_confirmation %>
+
+    <!-- set temorary password, new user will change via email conf -->
+    <%= label f, "Create Temp Password" %>
+    <%= password_input f, :password %>
+    <%= error_tag f, :password %>
+
+    <%= label f, "Confirm Temp Password" %>
+    <%= password_input f, :password_confirmation %>
+    <%= error_tag f, :password_confirmation %>
 
   <div>
     <%= submit "Register" %>
   </div>
 </.form>
+<%end %>
 
 <p>
   <%= link "Log in", to: Routes.admin_session_path(@conn, :new) %> |

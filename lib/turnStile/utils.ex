@@ -30,14 +30,24 @@ defmodule TurnStile.Utils do
   end
 # checks persmission level of input role
 # IN: role: string
-# OUT: int 1-3 from EmployeePermissionGroups
-  def get_permissions_level_int(role) do
+# OUT: int - 1-3 from EmployeePermissionGroups
+  def get_employee_permissions_level(role) do
       # role = current_user.role
       cond do
         # check if employee persmission
         Enum.member?(EmployeePermissionRoles.get_employee_manager_roles, role) -> 1
         # check if employee persmission
         Enum.member?(EmployeePermissionRoles.get_employee_non_manager_roles, role) -> 2
+        "default" -> 3
+    end
+  end
+  def get_admin_permissions_level(role) do
+      # role = current_user.role
+      cond do
+        # check if employee persmission
+        Enum.member?(AdminPermissionRoles.get_admin_manager_roles, role) -> 1
+        # check if employee persmission
+        Enum.member?(AdminPermissionRoles.get_admin_non_manager_roles, role) -> 2
         "default" -> 3
     end
   end

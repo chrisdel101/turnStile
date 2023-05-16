@@ -42,7 +42,9 @@ defmodule TurnStile.Company do
 
 
   def get_organization_by_name(slug) do
-    TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
+    if not is_nil(slug) do
+      TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
+    end
   end
   @doc """
   Creates a organization.

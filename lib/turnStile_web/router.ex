@@ -103,7 +103,7 @@ defmodule TurnStileWeb.Router do
     live "/thermostat", TurnStileLive
 
     get "/", PageController, :index
-    get "/setup", SetupController, :new
+
     get "/organizations/search", OrganizationController, :search_get
     post "/organizations/search", OrganizationController, :search_post
 
@@ -163,7 +163,8 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/admin", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_admin]
+    pipe_through [:browser, :require_authenticated_admin
+  ]
 
     get "/settings", AdminSettingsController, :edit
     put "/settings", AdminSettingsController, :update

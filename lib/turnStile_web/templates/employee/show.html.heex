@@ -6,7 +6,7 @@
     <li>Org: <%= @current_employee.organization_id %></li>
     <li>
       Permission Level:
-    <%= TurnStile.Utils.get_permissions_level_int(String.to_atom((@current_employee.role))) %>
+    <%= TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) %>
     </li>
 
 </ul>
