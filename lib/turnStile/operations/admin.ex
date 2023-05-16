@@ -3,6 +3,7 @@ defmodule TurnStile.Operations.Admin do
   import Ecto.Changeset
 
   schema "admins" do
+    field :client_type, :string
     field :first_name, :string
     field :last_name, :string
     field :role, :string
@@ -33,7 +34,7 @@ defmodule TurnStile.Operations.Admin do
   """
   def registration_changeset(admin, attrs, opts \\ []) do
     admin
-    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role])
+    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role, :client_type])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)

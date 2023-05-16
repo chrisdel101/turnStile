@@ -7,6 +7,7 @@ defmodule TurnStile.Staff.Employee do
     field :first_name, :string
     field :last_name, :string
     field :role, :string
+    field :client_type, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -21,7 +22,7 @@ defmodule TurnStile.Staff.Employee do
   #should be used for changing employee info - no password input
   def changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password,  :organization_id])
+    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password,  :organization_id, :client_type])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
@@ -46,7 +47,7 @@ defmodule TurnStile.Staff.Employee do
   """
   def registration_changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role,:organization_id])
+    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role,:organization_id, :client_type])
     |> validate_required([:organization_id])
     |> validate_email()
     |> validate_password(opts)

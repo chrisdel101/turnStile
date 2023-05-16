@@ -3,13 +3,15 @@ defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
 
   def change do
     execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(AdminPermissionRoles.get_admin_all_roles())}")
+    execute("create type admin_client_type as enum #{TurnStile.Utils.convert_to_parens_string(ClientTypesEnum.get_client_types())}")
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:admins) do
       add :first_name, :string
       add :last_name, :string
-      # role created above can be used here
-      add :role, :employee_role, null: false
+      # role/client_type created above - each needs two diff names
+      add :client_type, :admin_client_type, null: false
+      add :role, :admin_role, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
@@ -28,5 +30,9 @@ defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
 
     create index(:admins_tokens, [:admin_id])
     create unique_index(:admins_tokens, [:context, :token])
+  end
+  def down do
+    execute "drop type admin_role"
+    execute "drop type client_type"
   end
 end

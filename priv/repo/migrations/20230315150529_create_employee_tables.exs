@@ -3,12 +3,14 @@ defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
   def change do
     # https://stackoverflow.com/a/37216214/5972531
     execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")
+    execute("create type employee_client_type as enum #{TurnStile.Utils.convert_to_parens_string(ClientTypesEnum.get_client_types())}")
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:employees) do
       add :first_name, :string
       add :last_name, :string
-      # role created above can be used here
+      # role/client_type created above - each needs two diff names
+      add :client_type, :employee_client_type, null: false
       add :role, :employee_role, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
