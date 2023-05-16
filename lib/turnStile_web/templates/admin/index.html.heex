@@ -10,6 +10,17 @@
   <tbody>
 <%= for admin <- @admins do %>
     <tr>
+    <span>
+        <%= admin.first_name %>
+      </span>
+      <span>
+        <%= admin.last_name %>
+        |
+      </span>
+      <span>
+        Role: <%= admin.role %>
+        |
+      </span>
 
       <td>
         <span><%= link "Show", to: Routes.admin_path(@conn, :show, admin) %></span>
@@ -21,4 +32,4 @@
   </tbody>
 </table>
 
-<span><%= link "New Admin", to: Routes.admin_path(@conn, :new) %></span>
+<span><%= link "Add New Admin", to: Routes.admin_registration_path(@conn, :new) %></span>

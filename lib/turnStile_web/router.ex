@@ -17,6 +17,7 @@ defmodule TurnStileWeb.Router do
     plug :fetch_current_admin
     plug :fetch_current_employee
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
+    plug TurnStileWeb.Plugs.ClientType, "guest"
   end
 
   pipeline :api do
@@ -100,12 +101,17 @@ defmodule TurnStileWeb.Router do
   scope "/", TurnStileWeb do
     pipe_through :browser
 
-    live "/thermostat", TurnStileLive
-
     get "/", PageController, :index
 
     get "/organizations/search", OrganizationController, :search_get
     post "/organizations/search", OrganizationController, :search_post
+
+  end
+
+  # TODO - make admin only
+  scope "/", TurnStileWeb do
+    # :require_authenticated_admin, #:company_only_route
+    pipe_through [:browser, :require_authenticated_employee]
 
     resources "/organizations", OrganizationController, except: [:show, :index] do
       resources "/employees", EmployeeController, except: [:show, :new]
@@ -134,8 +140,9 @@ defmodule TurnStileWeb.Router do
          :show
   end
 
+  # TODO - make admin only
   scope "/organizations", TurnStileWeb do
-    # :require_authenticated_admin, #:company_only_route
+    # :require_authenticated_admin
     pipe_through [:browser]
 
     get "/", OrganizationController, :index
@@ -163,17 +170,6 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/admin", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_admin
-  ]
-
-    get "/settings", AdminSettingsController, :edit
-    put "/settings", AdminSettingsController, :update
-    get "/settings/confirm_email/:token", AdminSettingsController, :confirm_email
-
-    resources "/", AdminController
-  end
-
-  scope "/admin", TurnStileWeb do
     pipe_through [:browser]
 
     delete "log_out", AdminSessionController, :delete
@@ -182,5 +178,27 @@ defmodule TurnStileWeb.Router do
     get "confirm/:token", AdminConfirmationController, :edit
     post "confirm/:token", AdminConfirmationController, :update
 
+  end
+  scope "/admin", TurnStileWeb do
+    pipe_through [:browser, :require_authenticated_admin
+  ]
+
+    get "/settings", AdminSettingsController, :edit
+    put "/settings", AdminSettingsController, :update
+    get "/settings/confirm_email/:token", AdminSettingsController, :confirm_email
+
+    resources "/", AdminController, except: [:new, :index]
+    get "/", AdminController, :home
+
+  end
+
+
+  # admins index page - list all admins
+  scope "/admins", TurnStileWeb do
+    pipe_through [:browser,
+    :require_authenticated_admin,
+    #:require_client_admin
+    ]
+    get "/", AdminController, :index
   end
 end

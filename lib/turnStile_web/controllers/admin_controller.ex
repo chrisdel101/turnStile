@@ -3,28 +3,18 @@ defmodule TurnStileWeb.AdminController do
 
   alias TurnStile.Operations
   alias TurnStile.Operations.Admin
+  # new & create removed; use registration
 
+  # /admins - list all admins
   def index(conn, _params) do
     admins = Operations.list_admins()
     render(conn, "index.html", admins: admins)
   end
 
-  def new(conn, _params) do
-    changeset = Operations.change_admin(%Admin{})
-    render(conn, "new.html", changeset: changeset)
+  def home(conn, _params) do
+    render(conn, "home.html")
   end
 
-  def create(conn, %{"admin" => admin_params}) do
-    case Operations.create_admin(admin_params) do
-      {:ok, admin} ->
-        conn
-        |> put_flash(:info, "Admin created successfully.")
-        |> redirect(to: Routes.admin_path(conn, :show, admin))
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
-    end
-  end
 
   def show(conn, %{"id" => id}) do
     admin = Operations.get_admin!(id)
