@@ -557,4 +557,60 @@ defmodule TurnStile.StaffTest do
       assert %Ecto.Changeset{} = Staff.change_employee(employee)
     end
   end
+
+  describe "owners" do
+    alias TurnStile.Staff.Owner
+
+    import TurnStile.StaffFixtures
+
+    @invalid_attrs %{first_name: nil, last_name: nil}
+
+    test "list_owners/0 returns all owners" do
+      owner = owner_fixture()
+      assert Staff.list_owners() == [owner]
+    end
+
+    test "get_owner!/1 returns the owner with given id" do
+      owner = owner_fixture()
+      assert Staff.get_owner!(owner.id) == owner
+    end
+
+    test "create_owner/1 with valid data creates a owner" do
+      valid_attrs = %{first_name: "some first_name", last_name: "some last_name"}
+
+      assert {:ok, %Owner{} = owner} = Staff.create_owner(valid_attrs)
+      assert owner.first_name == "some first_name"
+      assert owner.last_name == "some last_name"
+    end
+
+    test "create_owner/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Staff.create_owner(@invalid_attrs)
+    end
+
+    test "update_owner/2 with valid data updates the owner" do
+      owner = owner_fixture()
+      update_attrs = %{first_name: "some updated first_name", last_name: "some updated last_name"}
+
+      assert {:ok, %Owner{} = owner} = Staff.update_owner(owner, update_attrs)
+      assert owner.first_name == "some updated first_name"
+      assert owner.last_name == "some updated last_name"
+    end
+
+    test "update_owner/2 with invalid data returns error changeset" do
+      owner = owner_fixture()
+      assert {:error, %Ecto.Changeset{}} = Staff.update_owner(owner, @invalid_attrs)
+      assert owner == Staff.get_owner!(owner.id)
+    end
+
+    test "delete_owner/1 deletes the owner" do
+      owner = owner_fixture()
+      assert {:ok, %Owner{}} = Staff.delete_owner(owner)
+      assert_raise Ecto.NoResultsError, fn -> Staff.get_owner!(owner.id) end
+    end
+
+    test "change_owner/1 returns a owner changeset" do
+      owner = owner_fixture()
+      assert %Ecto.Changeset{} = Staff.change_owner(owner)
+    end
+  end
 end
