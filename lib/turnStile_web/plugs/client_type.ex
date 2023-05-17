@@ -9,7 +9,8 @@ defmodule TurnStileWeb.Plugs.ClientType do
 
   # set client type
   defp set_client_type(conn, _client_type) do
-   IO.inspect(conn.assigns)
+  #  IO.inspect(conn.assigns)
+  #  IO.inspect("HERE ")
     # if length(conn.path_info) > 0 && hd(conn.path_info) in RoutePermissions.get_route_types() do
     #   assign(conn, :route_type, hd(conn.path_info))
     # else

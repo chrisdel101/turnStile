@@ -16,7 +16,7 @@ defmodule TurnStileWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_admin
     plug :fetch_current_employee
-    plug TurnStileWeb.Plugs.RouteType, "non-admin"
+    plug TurnStileWeb.Plugs.RouteType, "non-admin" #used in template
     plug TurnStileWeb.Plugs.ClientType, "guest"
   end
 
@@ -25,11 +25,6 @@ defmodule TurnStileWeb.Router do
     # This is the line that should be added
     post "/sms_messages", TurnStileWeb.AlertController, :receive
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", TurnStileWeb do
-  #   pipe_through :api
-  # end
 
   # Enables LiveDashboard only for development
   #
@@ -48,8 +43,6 @@ defmodule TurnStileWeb.Router do
     end
   end
 
-  # Enables the Swoosh mailbox preview in development.
-  #
   # Note that preview only shows emails that were sent by the same
   # node running the Phoenix server.
   if Mix.env() == :dev do
@@ -60,6 +53,11 @@ defmodule TurnStileWeb.Router do
     end
   end
 
+  scope "/", TurnStileWeb do
+    pipe_through :browser
+
+    get "/", PageController, :index
+  end
   ## Authentication routes
 
   scope "/organizations/:id", TurnStileWeb do
@@ -99,36 +97,18 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/", TurnStileWeb do
-    pipe_through :browser
-
-    get "/", PageController, :index
-
-    get "/organizations/search", OrganizationController, :search_get
-    post "/organizations/search", OrganizationController, :search_post
-
-  end
-
-  # TODO - make admin only
-  scope "/", TurnStileWeb do
-    # :require_authenticated_admin, #:company_only_route
     pipe_through [:browser, :require_authenticated_employee]
 
-    resources "/organizations", OrganizationController, except: [:show, :index] do
+    resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do #OK: edit, delete, update
       resources "/employees", EmployeeController, except: [:show, :new]
-      # do
-      #   resources "/users", UserLive.Index, except: [:show]
-      # end
     end
 
-    get "/organizations/:param/employees/:id", EmployeeController, :show
+    get "/organizations/:id/employees/:id", EmployeeController, :show
 
-    get "/organizations/:param", OrganizationController, :show
-
-    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",
-         AlertController,
-         :create
+    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert", AlertController, :create
 
     live "/organizations/:organization_id/employees/:employee_id/users/", UserLive.Index, :index
+
     live "/organizations/:organization_id/employees/:employee_id/users/new", UserLive.Index, :new
 
     live "/organizations/:organization_id/employees/:employee_id/users/:id/edit",
@@ -139,6 +119,20 @@ defmodule TurnStileWeb.Router do
          UserLive.Show,
          :show
   end
+
+  # /organizations non_authenciated
+  scope "/organizations", TurnStileWeb do
+    pipe_through :browser
+
+    get "/search", OrganizationController, :search_get
+    post "/search", OrganizationController, :search_post
+
+    get "/new", OrganizationController, :new
+    post "/", OrganizationController, :create
+
+    get "/:id", OrganizationController, :show
+  end
+
 
   # TODO - make admin only
   scope "/organizations", TurnStileWeb do
@@ -154,7 +148,8 @@ defmodule TurnStileWeb.Router do
 
   # live "/users/:id", UserLive.Show, :show
   # live "/users/:id/show/edit", UserLive.Show, :edit
-  ## Authentication routes
+
+  ## Admin Authentication routes
 
   scope "/", TurnStileWeb do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
