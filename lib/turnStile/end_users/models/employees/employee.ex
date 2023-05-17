@@ -15,7 +15,7 @@ defmodule TurnStile.Staff.Employee do
     belongs_to :organization, TurnStile.Company.Organization
     has_many :users, TurnStile.Patients.User
     has_many :alerts, TurnStile.Alert
-    belongs_to :owner, TurnStile.Staff.Owner
+    has_one :owner, TurnStile.Staff.Owner
     timestamps()
   end
 

@@ -6,7 +6,10 @@ defmodule TurnStile.Staff.Owner do
     field :first_name, :string
     field :last_name, :string
     field :employee_id, :id
-    has_one :employees, TurnStile.Staff.Employee
+    belongs_to :employees, TurnStile.Staff.Employee
+    belongs_to :organization, TurnStile.Company.Organization
+
+
 
     timestamps()
   end

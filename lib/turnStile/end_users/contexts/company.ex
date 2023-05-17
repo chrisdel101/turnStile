@@ -127,9 +127,13 @@ defmodule TurnStile.Company do
   end
 
   def check_organization_exists_by_slug(slug) do
-    q = from o in Organization,
-     where: o.slug == ^slug
-    #  select:
-    Repo.all(q)
+    if not is_nil(slug) do
+      q = from o in Organization,
+       where: o.slug == ^slug
+      #  select:
+      Repo.all(q)
+    else
+      []
+    end
   end
 end

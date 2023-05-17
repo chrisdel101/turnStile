@@ -4,18 +4,29 @@
       <p>Oops, something went wrong! Please check the errors below.</p>
     </div>
   <% end %>
-
   <%= label f, :name %>
-  <%= text_input f, :name %>
+  <%= text_input f, :name, placeholder: "Organization Name" %>
   <%= error_tag f, :name %>
 
-  <%= label f, :email %>
-  <%= text_input f, :email %>
+  <%= label f,  "Email (Optional)" %>
+  <%= text_input f, :email, placeholder: "Company Email" %>
   <%= error_tag f, :email %>
 
-  <%= label f, :phone %>
-  <%= text_input f, :phone %>
+  <%= label f, "Phone (Optional)" %>
+  <%= text_input f, :phone, placeholder: "Company Phone" %>
   <%= error_tag f, :phone %>
+
+  <%= label f, "Organization Owner First Name" %>
+  <%= text_input f, :owner_first_name, placeholder: "Owner First Name" %>
+  <%= error_tag f, :owner_first_name %>
+
+  <%= label f, "Organization Owner Last Name" %>
+  <%= text_input f, :owner_last_name, placeholder: "Owner Last Name" %>
+  <%= error_tag f, :owner_last_name %>
+
+  <%= label f, "Organization Owner Email" %>
+  <%= text_input f, :owner_email, placeholder: "Owner Last Name" %>
+  <%= error_tag f, :owner_email %>
 
   <div>
     <%= submit "Save" %>
