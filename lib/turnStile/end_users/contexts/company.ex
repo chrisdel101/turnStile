@@ -51,6 +51,9 @@ defmodule TurnStile.Company do
   @doc """
   Creates a organization.
 
+  # Creating an organization with owner_employee.
+  - build employee with params
+  - build organization with params
   ## Examples
 
       iex> create_organization(%{field: value})
@@ -60,8 +63,14 @@ defmodule TurnStile.Company do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_organization(attrs \\ %{}) do
+  def create_organization(attrs \\ %{} ) do
     %Organization{}
+    # # extract owner_employee params
+    %{"owner_employee" => map} = attrs["organization"]
+
+
+    org_attrs = Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
+
     |> Organization.changeset(attrs)
     |> Repo.insert()
   end
@@ -110,7 +119,7 @@ defmodule TurnStile.Company do
 
   """
   def change_organization(%Organization{} = organization, attrs \\ %{}) do
-    Organization.create_changeset(organization, attrs)
+    Organization.form_changeset(organization, attrs)
   end
 
   # utilitites

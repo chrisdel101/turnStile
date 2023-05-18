@@ -22,16 +22,18 @@ defmodule TurnStileWeb.OrganizationController do
 
   def create(conn, organization_params) do
     IO.inspect(organization_params)
-
-    %{"owner_employee"=>map} = organization_params["organization"]
-    %{"email"=> email, "name"=>name, "phone"=>phone} = organization_params["organization"]
-    org_only_params =%{"email"=> email, "name"=>name, "phone"=>phone}
-    slug = Slug.slugify(org_only_params["name"])
-    org_only_params = Map.put(org_only_params, "slug", slug)
-    IO.inspect(org_only_params)
+    # # extract owner_employee params
+    # %{"owner_employee"=>map} = organization_params["organization"]
+    # extract org params
+    %{"name"=>name} = organization_params["organization"]
+    # assign to new variable
+    # org_only_params = %{"email"=> email, "name"=>name, "phone"=>phone}
+    slug = Slug.slugify(name)
+    # org_only_params = Map.put(org_only_params, "slug", slug)
+    # IO.inspect(org_only_params)
     organizations? = Company.check_organization_exists_by_slug(slug)
     IO.inspect(organizations?)
-
+    organization_params = Map.put_new(organization_params, "slug", slug)
     # don't allow duplicate org names
     if length(organizations?) !== 0 do
       conn
@@ -39,7 +41,7 @@ defmodule TurnStileWeb.OrganizationController do
       |> redirect(to: Routes.organization_path(conn, :new))
     # if doesn't already exist, allow create
     else
-      x = Company.create_organization(org_only_params)
+      x = Company.create_organization(organization_params)
       IO.inspect(x)
       case x do
         {:ok, organization} ->

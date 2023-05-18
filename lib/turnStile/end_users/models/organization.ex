@@ -22,14 +22,14 @@ defmodule TurnStile.Company.Organization do
 
   end
 
-  @doc false
+  # create changeset of org attrs only
   def changeset(organization, attrs) do
     organization
     |> cast(attrs, [:name, :email, :phone, :slug])
     |> validate_required([:name, :slug])
   end
-
-  def create_changeset(organization, attrs) do
+  # used to build form form new org with attached owner
+  def form_changeset(organization, attrs) do
     organization
     |> cast(attrs, [:name, :email, :phone, :slug])
     |> validate_required([:name, :slug])
