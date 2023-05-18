@@ -16,29 +16,38 @@ defmodule TurnStileWeb.OrganizationController do
 
   def new(conn, _params) do
     changeset = Company.change_organization(%Organization{})
+    # IO.inspect(changeset)
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, %{"organization" => organization_params}) do
-    slug = Slug.slugify(organization_params["name"])
-    organization_params = Map.put(organization_params, "slug", slug)
-    organizations? = Company.check_organization_exists_by_slug(slug)
-    # don't allow duplicate org names
-    if length(organizations?) !== 0 do
-      conn
-      |> put_flash(:info, "That Organization already exists. Try another name.")
-      |> redirect(to: Routes.organization_path(conn, :new))
-    # if doesn't already exist, allow create
-    else
-      case Company.create_organization(organization_params) do
-        {:ok, organization} ->
-          conn
-          |> put_flash(:info, "Organization created successfully.")
-          |> redirect(to: Routes.organization_path(conn, :show, organization.id))
-        {:error, %Ecto.Changeset{} = changeset} ->
-          render(conn, "new.html", changeset: changeset)
-      end
-    end
+  def create(conn, organization_params) do
+    IO.inspect(organization_params)
+
+    %{"owner_employee"=>map} = organization_params["organization"]
+    %{"email"=> email, "name"=>name, "phone"=>phone} = organization_params["organization"]
+    org_only_params =%{"email"=> email, "name"=>name, "phone"=>phone}
+    slug = Slug.slugify(org_only_params["name"])
+    IO.inspect(slug)
+    org_only_params = Map.put(org_only_params, "slug", slug)
+    IO.inspect(org_only_params)
+    # organizations? = Company.check_organization_exists_by_slug(slug)
+
+    # # don't allow duplicate org names
+    # if length(organizations?) !== 0 do
+    #   conn
+    #   |> put_flash(:info, "That Organization already exists. Try another name.")
+    #   |> redirect(to: Routes.organization_path(conn, :new))
+    # # if doesn't already exist, allow create
+    # else
+    #   case Company.create_organization(org_only_params) do
+    #     {:ok, organization} ->
+    #       conn
+    #       |> put_flash(:info, "Organization created successfully.")
+    #       |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+    #     {:error, %Ecto.Changeset{} = changeset} ->
+    #       render(conn, "new.html", changeset: changeset)
+    #   end
+    # end
   end
 
   # takes ID or name
