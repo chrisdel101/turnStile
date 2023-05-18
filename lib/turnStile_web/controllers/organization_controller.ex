@@ -27,27 +27,29 @@ defmodule TurnStileWeb.OrganizationController do
     %{"email"=> email, "name"=>name, "phone"=>phone} = organization_params["organization"]
     org_only_params =%{"email"=> email, "name"=>name, "phone"=>phone}
     slug = Slug.slugify(org_only_params["name"])
-    IO.inspect(slug)
     org_only_params = Map.put(org_only_params, "slug", slug)
     IO.inspect(org_only_params)
-    # organizations? = Company.check_organization_exists_by_slug(slug)
+    organizations? = Company.check_organization_exists_by_slug(slug)
+    IO.inspect(organizations?)
 
-    # # don't allow duplicate org names
-    # if length(organizations?) !== 0 do
-    #   conn
-    #   |> put_flash(:info, "That Organization already exists. Try another name.")
-    #   |> redirect(to: Routes.organization_path(conn, :new))
-    # # if doesn't already exist, allow create
-    # else
-    #   case Company.create_organization(org_only_params) do
-    #     {:ok, organization} ->
-    #       conn
-    #       |> put_flash(:info, "Organization created successfully.")
-    #       |> redirect(to: Routes.organization_path(conn, :show, organization.id))
-    #     {:error, %Ecto.Changeset{} = changeset} ->
-    #       render(conn, "new.html", changeset: changeset)
-    #   end
-    # end
+    # don't allow duplicate org names
+    if length(organizations?) !== 0 do
+      conn
+      |> put_flash(:info, "That Organization already exists. Try another name.")
+      |> redirect(to: Routes.organization_path(conn, :new))
+    # if doesn't already exist, allow create
+    else
+      x = Company.create_organization(org_only_params)
+      IO.inspect(x)
+      case x do
+        {:ok, organization} ->
+          conn
+          |> put_flash(:info, "Organization created successfully.")
+          |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+        {:error, %Ecto.Changeset{} = changeset} ->
+          render(conn, "new.html", changeset: changeset)
+      end
+    end
   end
 
   # takes ID or name

@@ -27,6 +27,12 @@ defmodule TurnStile.Company.Organization do
     organization
     |> cast(attrs, [:name, :email, :phone, :slug])
     |> validate_required([:name, :slug])
+  end
+
+  def create_changeset(organization, attrs) do
+    organization
+    |> cast(attrs, [:name, :email, :phone, :slug])
+    |> validate_required([:name, :slug])
     |> cast_embed(:owner_employee, required: true, with: &owner_employee_changeset/2)
   end
 

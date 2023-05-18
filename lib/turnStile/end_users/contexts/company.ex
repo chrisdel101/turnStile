@@ -19,7 +19,9 @@ defmodule TurnStile.Company do
 
   """
   def list_organizations do
-    Repo.all(Organization)
+    query = from o in Organization,
+    select: %{o | owner_employee: nil}
+    Repo.all(query)
   end
 
   @doc """
@@ -108,7 +110,7 @@ defmodule TurnStile.Company do
 
   """
   def change_organization(%Organization{} = organization, attrs \\ %{}) do
-    Organization.changeset(organization, attrs)
+    Organization.create_changeset(organization, attrs)
   end
 
   # utilitites
@@ -121,7 +123,8 @@ defmodule TurnStile.Company do
 
   def check_organization_exists_by_id(id) do
     q = from o in Organization,
-     where: o.id == ^id
+     where: o.id == ^id,
+     select: %{o | owner_employee: nil}
     #  select:
     Repo.all(q)
   end
@@ -129,7 +132,8 @@ defmodule TurnStile.Company do
   def check_organization_exists_by_slug(slug) do
     if not is_nil(slug) do
       q = from o in Organization,
-       where: o.slug == ^slug
+       where: o.slug == ^slug,
+       select: %{o | owner_employee: nil}
       #  select:
       Repo.all(q)
     else
