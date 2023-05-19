@@ -12,14 +12,14 @@ defmodule TurnStile.Staff.Employee do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-    # all employees with in the company
+    # all employees within the company
     belongs_to :organization, TurnStile.Company.Organization
     # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
     has_many :alerts, TurnStile.Alert
-    # all users created by an employee
-    has_many :owner, TurnStile.Staff.Owner
+    # any employees that is an owner
+    has_one :owner, TurnStile.Staff.Owner
     timestamps()
   end
 

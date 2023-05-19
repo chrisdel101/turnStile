@@ -64,14 +64,16 @@ defmodule TurnStile.Company do
 
   """
   def create_organization(attrs \\ %{} ) do
-    %Organization{}
-    # # extract owner_employee params
+    # # extract owner_employee params- embedded schema
     %{"owner_employee" => map} = attrs["organization"]
 
 
+    IO.inspect(map)
+    # extract the org params - main schema
     org_attrs = Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
 
-    |> Organization.changeset(attrs)
+    %Organization{}
+    |> Organization.changeset(org_attrs)
     |> Repo.insert()
   end
 
