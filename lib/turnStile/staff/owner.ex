@@ -8,8 +8,8 @@ defmodule TurnStile.Staff.Owner do
     field :employee_id, :id
     # an employees that is an owner
     belongs_to :employees, TurnStile.Staff.Employee
-    # all owners within a company
-    belongs_to :organization, TurnStile.Company.Organization
+    # all owners within a company - can be owners of multiple companies
+    many_to_many :organiztions, TurnStile.Staff.Organization, join_through: "organization_owners"
 
 
 

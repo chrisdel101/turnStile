@@ -10,7 +10,7 @@ defmodule TurnStile.Repo.Migrations.CreateAdminsAuthTables do
       add :first_name, :string
       add :last_name, :string
       # role/client_type created above - each needs two diff names
-      add :client_type, :admin_client_type, null: false
+      add :client_type, :admin_client_type, null: false, default: ClientTypesEnum.get_client_type_value("admin")
       add :role, :admin_role, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false

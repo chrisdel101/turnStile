@@ -12,8 +12,8 @@ defmodule TurnStile.Staff.Employee do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-    # all employees within the company
-    belongs_to :organization, TurnStile.Company.Organization
+    # org has many employees within the company; employees belongs to many orgs
+    many_to_many :organizations, TurnStile.Company.Organization, join_through: "organization_employees"
     # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
@@ -27,7 +27,7 @@ defmodule TurnStile.Staff.Employee do
   #should be used for changing employee info - no password input
   def changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password,  :organization_id, :client_type])
+    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
@@ -52,8 +52,7 @@ defmodule TurnStile.Staff.Employee do
   """
   def registration_changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role,:organization_id, :client_type])
-    |> validate_required([:organization_id])
+    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)

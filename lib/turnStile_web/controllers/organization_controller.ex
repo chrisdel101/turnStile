@@ -106,7 +106,7 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # reload to display rest with :slug not :id
-  defp reload_with_name_rest(conn, organization_slug) do
+  defp _reload_with_name_rest(conn, organization_slug) do
     redirect(conn, to: "/organizations/#{organization_slug}")
   end
 

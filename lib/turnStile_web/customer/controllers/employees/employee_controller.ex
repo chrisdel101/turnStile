@@ -13,7 +13,7 @@ defmodule TurnStileWeb.EmployeeController do
     end
     employees = Staff.list_employees_by_organization(organization_id)
     # get employees in this org
-    render(conn, "index.html", employees: employees, organization_id: organization_id, )
+    render(conn, "index.html", employees: employees, organization_id: organization_id)
   end
 
 

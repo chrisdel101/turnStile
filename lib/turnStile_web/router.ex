@@ -17,7 +17,6 @@ defmodule TurnStileWeb.Router do
     plug :fetch_current_admin
     plug :fetch_current_employee
     plug TurnStileWeb.Plugs.RouteType, "non-admin" #used in template
-    plug TurnStileWeb.Plugs.ClientType, "guest"
   end
 
   pipeline :api do

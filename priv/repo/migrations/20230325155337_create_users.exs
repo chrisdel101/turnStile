@@ -8,7 +8,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :first_name, :string
       add :last_name, :string
       add :email, :citext
-      add :client_type, :user_client_type
+      add :client_type, :user_client_type, default: ClientTypesEnum.get_client_type_value("user")
       add :phone, :string
       add :health_card_num, :integer
       add :employee_id, references("employees"), null: false

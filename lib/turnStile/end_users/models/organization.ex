@@ -8,19 +8,22 @@ defmodule TurnStile.Company.Organization do
     field :name, :string
     field :slug, :string
     field :phone, :string
-    has_many :employee, TurnStile.Staff.Employee
-    has_many :owner, TurnStile.Staff.Owner
+    # org has many employees; employees can belong to many organiztions (mostly for owners)
+    many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employees"
+    # org has many owners; owners can have many orgs
+    many_to_many :owners, TurnStile.Staff.Owner, join_through: "organization_owners"
 
     embeds_one :owner_employee, TurnStile.Staff.Employee do
-      field :first_name, :string
-      field :last_name, :string
-      field :_email, :string
+      field :first_name, :string, virtual: true
+      field :last_name, :string, virtual: true
+      field :_email, :string, virtual: true
       field :password, :string, virtual: true, redact: true
     end
     timestamps()
 
 
   end
+  def __field__(:owner_employee), do: nil
 
   # create changeset of org attrs only
   def changeset(organization, attrs) do
@@ -28,7 +31,7 @@ defmodule TurnStile.Company.Organization do
     |> cast(attrs, [:name, :email, :phone, :slug])
     |> validate_required([:name, :slug])
   end
-  # used to build form form new org with attached owner
+  # only used to validate the new form
   def form_changeset(organization, attrs) do
     organization
     |> cast(attrs, [:name, :email, :phone, :slug])

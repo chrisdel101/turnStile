@@ -75,8 +75,6 @@ defmodule TurnStile.Staff do
 
   """
   def register_employee(attrs) do
-    IO.puts('ATTRS')
-    IO.inspect(attrs)
     %Employee{}
     |> Employee.registration_changeset(attrs)
     |> Repo.insert()
