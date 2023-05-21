@@ -16,32 +16,39 @@ defmodule TurnStileWeb.OrganizationController do
 
   def new(conn, %{"organization" => org_params}) do
     changeset = Company.change_organization(%Organization{}, org_params)
-    IO.inspect(changeset)
-  #  check if name is filled in
+    # IO.inspect(conn)
+  # make sure name is not empty
     case Ecto.Changeset.get_change(changeset, :name) do
-      # handle empty required params
+      # handle empty name
      value when value in [nil, ""] ->
         # change changset action to insert
         {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
-        # render new again
+        conn = assign(conn, :org_form_submitted, false)
+        # re-render "new" again
           render(conn, "new.html", changeset: changeset)
-      _ ->
-        # Handle the case when the form is submitted with non-empty parameters
-        # Process the submitted data and perform any necessary actions
+      _ -> # name is not empty
+        # extract name
+        %{"name"=>name} = org_params
+        # make slug
+        slug = Slug.slugify(name)
+        # check DB for org
+        organizations? = Company.check_organization_exists_by_slug(slug)
+        org_params = Map.put_new(org_params, "slug", slug)
+        # handle duplicate org
+        if is_nil(organizations?) || length(organizations?) !== 0 do
+          conn = assign(conn, :org_form_submitted, false)
+          conn
+          |> put_flash(:info, "That Organization already exists. Try another name.")
+          |> render("new.html", changeset: changeset)
+        else
+          employee_changeset = Staff.change_employee(%Employee{})
+          # IO.inspect(org_params)
+          # add org params to sessions
+          conn = Plug.Conn.put_session(conn, :org_params, org_params)
+          # set from partial flag on conn
           conn = assign(conn, :org_form_submitted, true)
-          render(conn, "new.html", changeset: changeset)
-        # case Repo.insert(changeset) do
-        #   {:ok, organization} ->
-        #     # Redirect to a success page or perform other actions
-        #     conn
-        #     |> put_flash(:info, "Organization created successfully!")
-        #     |> redirect(to: Routes.organization_path(conn, :show, organization))
-
-        #   {:error, changeset} ->
-        #     # Handle the case when there are validation errors or other issues
-        #     # For example, re-render the form with error messages
-        #     render(conn, "new.html", changeset: changeset)
-        # end
+          render(conn, "new.html", changeset: employee_changeset)
+        end
     end
   end
   # init render
@@ -50,16 +57,17 @@ defmodule TurnStileWeb.OrganizationController do
     # add flag for org form submission
     conn = assign(conn, :org_form_submitted, false)
     # IO.inspect(param)
-    IO.inspect(changeset)
+    # IO.inspect(changeset)
     render(conn, "new.html", changeset: changeset)
   end
 
   def create(conn, organization_params) do
-    # IO.inspect(organization_params)
+    IO.inspect(organization_params)
+    IO.inspect(Plug.Conn.get_session(conn))
     # # extract owner_employee params
     # %{"owner_employee"=>map} = organization_params["organization"]
     # extract org params
-    %{"name"=>name} = organization_params["organization"]
+    %{"name"=>name} = organization_params
     # assign to new variable
     # org_only_params = %{"email"=> email, "name"=>name, "phone"=>phone}
     slug = Slug.slugify(name)
