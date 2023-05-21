@@ -66,12 +66,13 @@ defmodule TurnStile.Company do
 
   """
   def create_organization(attrs \\ %{}) do
-    IO.inspect(attrs)
+    # IO.inspect(attrs)
     org_changeset =
       Organization.changeset(
         %Organization{},
         Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
       )
+      IO.inspect("create_organization")
       IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
@@ -166,7 +167,7 @@ defmodule TurnStile.Company do
 
   """
   def change_organization(%Organization{} = organization, attrs \\ %{}) do
-    Organization.form_changeset(organization, attrs)
+    Organization.changeset(organization, attrs)
   end
 
   # utilitites

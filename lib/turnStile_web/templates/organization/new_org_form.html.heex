@@ -1,0 +1,52 @@
+<h2>First, Create a new organization</h2>
+<.form let={f} for={@changeset} action={@action}>
+  <%= if @changeset.action do %>
+    <div class="alert alert-danger">
+      <p>Oops, something went wrong! Please check the errors below.</p>
+    </div>
+  <% end %>
+
+  <h4>We'll start with the Organization Basics</h4>
+  <%= label f, :name %>
+  <%= text_input f, :name, placeholder: "Organization Name" %>
+  <%= error_tag f, :name %>
+
+  <%= label f,  "Email (Optional)" %>
+  <%= text_input f, :email, placeholder: "Company Email" %>
+  <%= error_tag f, :email %>
+
+  <%= label f, "Phone (Optional)" %>
+  <%= text_input f, :phone, placeholder: "Company Phone" %>
+  <%= error_tag f, :phone %>
+  <%!--
+      <%= inputs_for f, :owner_employee, fn fp -> %>
+
+        <%= label fp, "Organization Owner First Name" %>
+        <%= text_input fp, :first_name, placeholder: "Owner First Name" %>
+        <%= error_tag fp, :first_name %>
+
+        <%= label fp, "Organization Owner Last Name" %>
+        <%= text_input fp, :last_name, placeholder: "Owner Last Name" %>
+        <%= error_tag fp, :last_name %>
+
+        <%= label fp, "Email" %>
+        <%= text_input fp, :email, placeholder: "Owner Email" %>
+        <%= error_tag fp, :email %>
+
+        <%= label fp, "Email Confirmation" %>
+        <%= text_input fp, :email_confirmation, placeholder: "Re-enter Owner Email" %>
+        <%= error_tag fp, :email_confirmation %>
+
+        <%= label fp, :password %>
+        <%= text_input fp, :password, placeholder: "Enter a Password"%>
+        <%= error_tag fp, :password %>
+
+        <%= label fp, :password_confirmation %>
+        <%= text_input fp, :password_confirmation, placeholder: "Re-enter a Password" %>
+        <%= error_tag fp, :password_confirmation %>
+    <% end %>
+  --%>
+  <div>
+    <%= submit "Save" %>
+  </div>
+</.form>

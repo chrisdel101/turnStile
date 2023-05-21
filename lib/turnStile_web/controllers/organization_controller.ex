@@ -14,14 +14,48 @@ defmodule TurnStileWeb.OrganizationController do
     render(conn, "index.html", organizations: organizations)
   end
 
+  def new(conn, %{"organization" => org_params}) do
+    changeset = Company.change_organization(%Organization{}, org_params)
+    IO.inspect(changeset)
+  #  check if name is filled in
+    case Ecto.Changeset.get_change(changeset, :name) do
+      # handle empty required params
+     value when value in [nil, ""] ->
+        # change changset action to insert
+        {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
+        # render new again
+          render(conn, "new.html", changeset: changeset)
+      _ ->
+        # Handle the case when the form is submitted with non-empty parameters
+        # Process the submitted data and perform any necessary actions
+          conn = assign(conn, :org_form_submitted, true)
+          render(conn, "new.html", changeset: changeset)
+        # case Repo.insert(changeset) do
+        #   {:ok, organization} ->
+        #     # Redirect to a success page or perform other actions
+        #     conn
+        #     |> put_flash(:info, "Organization created successfully!")
+        #     |> redirect(to: Routes.organization_path(conn, :show, organization))
+
+        #   {:error, changeset} ->
+        #     # Handle the case when there are validation errors or other issues
+        #     # For example, re-render the form with error messages
+        #     render(conn, "new.html", changeset: changeset)
+        # end
+    end
+  end
+  # init render
   def new(conn, _params) do
     changeset = Company.change_organization(%Organization{})
-    # IO.inspect(changeset)
+    # add flag for org form submission
+    conn = assign(conn, :org_form_submitted, false)
+    # IO.inspect(param)
+    IO.inspect(changeset)
     render(conn, "new.html", changeset: changeset)
   end
 
   def create(conn, organization_params) do
-    IO.inspect(organization_params)
+    # IO.inspect(organization_params)
     # # extract owner_employee params
     # %{"owner_employee"=>map} = organization_params["organization"]
     # extract org params
@@ -42,13 +76,15 @@ defmodule TurnStileWeb.OrganizationController do
     # if doesn't already exist, allow create
     else
       x = Company.create_organization(organization_params)
-      IO.inspect(x)
+      # IO.inspect(x)
       case x do
         {:ok, organization} ->
           conn
           |> put_flash(:info, "Organization created successfully.")
           |> redirect(to: Routes.organization_path(conn, :show, organization.id))
         {:error, %Ecto.Changeset{} = changeset} ->
+          IO.inspect("CREATE ERROR")
+          IO.inspect(changeset)
           render(conn, "new.html", changeset: changeset)
       end
     end
