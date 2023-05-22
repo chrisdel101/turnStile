@@ -17,6 +17,7 @@ defmodule TurnStileWeb.Router do
     plug :fetch_current_admin
     plug :fetch_current_employee
     plug TurnStileWeb.Plugs.RouteType, "non-admin" #used in template
+    plug :is_org_form_submitted, false
   end
 
   pipeline :api do

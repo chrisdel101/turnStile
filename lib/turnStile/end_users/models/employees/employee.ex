@@ -53,6 +53,7 @@ defmodule TurnStile.Staff.Employee do
   def registration_changeset(employee, attrs, opts \\ []) do
     employee
     |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role])
+    |> validate_required([:last_name, :first_name])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)

@@ -19,11 +19,7 @@ defmodule TurnStile.Company do
 
   """
   def list_organizations do
-    query =
-      from o in Organization,
-        select: %{o | owner_employee: nil}
-
-    Repo.all(query)
+    Repo.all(Organization)
   end
 
   @doc """
@@ -66,18 +62,13 @@ defmodule TurnStile.Company do
 
   """
   def create_organization(attrs \\ %{}) do
-    # IO.inspect(attrs)
-    org_changeset =
-      Organization.changeset(
-        %Organization{},
-        Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
-      )
+    org_changeset = Organization.changeset(%Organization{},attrs)
       IO.inspect("create_organization")
       IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
         IO.inspect(new_org)
-
+        {:ok, new_org}
 
       {:error, changeset} ->
         IO.inspect("error")
@@ -86,41 +77,41 @@ defmodule TurnStile.Company do
 
     end
   end
-  def create_organization_and_owner(attrs \\ %{}) do
-    org_attrs = Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
-    org_changeset = Organization.changeset(%Organization{}, org_attrs)
+  # def create_organization_and_owner(attrs \\ %{}) do
+  #   org_attrs = Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
+  #   org_changeset = Organization.changeset(%Organization{}, org_attrs)
 
-    case Repo.insert(org_changeset) do
-      {:ok, org} ->
-        IO.inspect(org)
-        %{"owner_employee" => employee_attrs} = attrs["organization"]
-        case TurnStile.Staff.register_employee(employee_attrs) do
-          {:ok, employee} ->
-            IO.puts('HERE1')
-            org_with_employee = Ecto.Changeset.put_assoc(:employees, [employee])
-            IO.puts('HERE2')
+  #   case Repo.insert(org_changeset) do
+  #     {:ok, org} ->
+  #       IO.inspect(org)
+  #       %{"owner_employee" => employee_attrs} = attrs["organization"]
+  #       case TurnStile.Staff.register_employee(employee_attrs) do
+  #         {:ok, employee} ->
+  #           IO.puts('HERE1')
+  #           org_with_employee = Ecto.Changeset.put_assoc(:employees, [employee])
+  #           IO.puts('HERE2')
 
-            case Repo.update(org_with_employee) do
-              {:ok, _updated_org} ->
-                IO.puts('HERE2')
-                {:ok, :updated}
+  #           case Repo.update(org_with_employee) do
+  #             {:ok, _updated_org} ->
+  #               IO.puts('HERE2')
+  #               {:ok, :updated}
 
-              {:error, changeset} ->
-                IO.inspect("error")
-                IO.inspect(changeset)
-                {:error, changeset}
-            end
+  #             {:error, changeset} ->
+  #               IO.inspect("error")
+  #               IO.inspect(changeset)
+  #               {:error, changeset}
+  #           end
 
-          {:error, changeset} ->
-            {:error, changeset}
-        end
+  #         {:error, changeset} ->
+  #           {:error, changeset}
+  #       end
 
-      {:error, changeset} ->
-        IO.puts('ERROR CHSNGE')
+  #     {:error, changeset} ->
+  #       IO.puts('ERROR CHSNGE')
 
-        {:error, changeset}
-    end
-  end
+  #       {:error, changeset}
+  #   end
+  # end
 
 
   @doc """
@@ -181,22 +172,22 @@ defmodule TurnStile.Company do
   end
 
   def check_organization_exists_by_id(id) do
-    q =
-      from o in Organization,
-        where: o.id == ^id,
-        select: %{o | owner_employee: nil}
-
-    #  select:
-    Repo.all(q)
+    if not is_nil(id) do
+      q =
+        from o in Organization,
+          where: o.id == ^id
+      #  select:
+      Repo.all(q)
+    else
+      []
+    end
   end
 
   def check_organization_exists_by_slug(slug) do
     if not is_nil(slug) do
       q =
         from o in Organization,
-          where: o.slug == ^slug,
-          select: %{o | owner_employee: nil}
-
+          where: o.slug == ^slug
       #  select:
       Repo.all(q)
     else

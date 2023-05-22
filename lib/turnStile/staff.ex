@@ -370,12 +370,20 @@ defmodule TurnStile.Staff do
   end
 
   def list_employees_by_organization(organization_id) do
-    # IO.inspect(organization_id)
-    q = from a in Employee,
-    where: a.organization_id == ^organization_id,
-    select: a
-    Repo.all(q)
+    if not is_nil(organization_id) do
+      q = from o in "organization_employees",
+      join: o1 in "organizations",
+      on: o.organization_id == o1.id,
+      join: e in "employees",
+      on: o.employee_id == e.id,
+      where: o1.id == ^organization_id,
+      select: e.id
+      Repo.all(q)
+    else
+      []
+    end
   end
+
 
   @doc """
   Gets a single employee.

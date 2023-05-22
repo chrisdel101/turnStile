@@ -14,9 +14,11 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
   def create(conn, %{"employee" => employee_params}) do
     current_employee = conn.assigns[:current_employee]
-    # setup organization process
+    # if no logged in employee
     if !current_employee do
-      setup_initial_owner(conn, %{"employee" => employee_params})
+      conn
+        |> put_flash(:error, "You must be log in to your Organization.")
+        |> redirect(to: Routes.organization_path(conn, :search_get))
     else
       organization_id = conn.path_params["id"]
       # if no org_id found flash error
@@ -79,10 +81,10 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     current_employee = conn.assigns[:current_employee]
     # setup organization process
     if !current_employee do
-      setup_initial_owner(conn, %{"employee" => employee_params})
+      # setup_initial_owner(conn, %{"employee" => employee_params})
     else
       organization_id = conn.path_params["id"]
-      # if no org_id found flash error
+      # if n  o org_id found flash error
       if !organization_id do
         conn
         |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
@@ -139,20 +141,27 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   end
 
   # create first user as owner
-  defp setup_initial_owner(conn, %{"employee" => employee_params}) do
-    # confirm org exists
-    organization_id = conn.path_params["id"]
+  def setup_initial_owner(conn, organization, %{"employee" => employee_params}) do
+    IO.inspect("employee_params INNER")
+    IO.inspect(employee_params)
+      # extract org id
+    organization_id = Map.get(organization, "id") || Map.get(organization, :id)
+    IO.inspect(organization)
+
     organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
-    # check if org already exis
+    IO.inspect("organizations?")
+    IO.inspect(organizations?)
+    # check if org already exist
     if length(organizations?) === 1 do
       # confirm org has no members/ so is not setup
       members? = OrganizationController.organization_has_members?(organization_id)
       # if member, send error
+      IO.inspect("members??")
+      IO.inspect(members?)
       if members? do
-        conn
-        |> put_flash(:error, "Organization already setup. Login is required")
-        |> redirect(to: Routes.page_path(conn, :index))
-
+        error  = "Organization already setup. Login is required"
+        {:error, error}
+        halt(conn)
         # if no members, allow setup
       else
         # add organization_id to params
@@ -160,24 +169,28 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         # create owner
         case Staff.register_employee(employee_params) do
           {:ok, employee} ->
-            {:ok, _} =
+            IO.inspect("YYYYYY")
+            IO.inspect(employee)
+            x =
               Staff.deliver_employee_confirmation_instructions(
                 employee,
                 &Routes.employee_confirmation_url(conn, :edit, employee_params.id, &1)
               )
-
-            conn
-            |> put_flash(:info, "Setup Owner created successfully.")
-            |> EmployeeAuth.log_in_employee(employee)
+              IO.inspect("HERE")
+              IO.inspect(x)
+              x
+            # conn
+            # |> put_flash(:info, "Setup Owner created successfully.")
+            # |> EmployeeAuth.log_in_employee(employee)
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+            {:error, changeset}
         end
       end
     else
-      conn
-      |> put_flash(:error, "Organization does not exist")
-      |> redirect(to: Routes.page_path(conn, :index))
+      error  = "Organization not found error. Does not exist"
+      {:error, error}
+      halt(conn)
     end
   end
 end

@@ -1,6 +1,7 @@
 defmodule TurnStileWeb.OrganizationController do
   use TurnStileWeb, :controller
 
+  alias TurnStileWeb.EmployeeRegistrationController
   alias TurnStile.Staff
   alias TurnStile.Company
   alias TurnStile.Company.Organization
@@ -17,18 +18,19 @@ defmodule TurnStileWeb.OrganizationController do
   def new(conn, %{"organization" => org_params}) do
     changeset = Company.change_organization(%Organization{}, org_params)
     # IO.inspect(conn)
-  # make sure name is not empty
+    # make sure name is not empty
     case Ecto.Changeset.get_change(changeset, :name) do
       # handle empty name
-     value when value in [nil, ""] ->
+      value when value in [nil, ""] ->
         # change changset action to insert
         {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
-        conn = assign(conn, :org_form_submitted, false)
         # re-render "new" again
-          render(conn, "new.html", changeset: changeset)
-      _ -> # name is not empty
+        render(conn, "new.html", changeset: changeset)
+
+      # name is not empty
+      _ ->
         # extract name
-        %{"name"=>name} = org_params
+        %{"name" => name} = org_params
         # make slug
         slug = Slug.slugify(name)
         # check DB for org
@@ -36,7 +38,6 @@ defmodule TurnStileWeb.OrganizationController do
         org_params = Map.put_new(org_params, "slug", slug)
         # handle duplicate org
         if is_nil(organizations?) || length(organizations?) !== 0 do
-          conn = assign(conn, :org_form_submitted, false)
           conn
           |> put_flash(:info, "That Organization already exists. Try another name.")
           |> render("new.html", changeset: changeset)
@@ -51,56 +52,87 @@ defmodule TurnStileWeb.OrganizationController do
         end
     end
   end
+
   # init render
   def new(conn, _params) do
     changeset = Company.change_organization(%Organization{})
-    # add flag for org form submission
-    conn = assign(conn, :org_form_submitted, false)
     # IO.inspect(param)
     # IO.inspect(changeset)
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, organization_params) do
-    IO.inspect(organization_params)
-    IO.inspect(Plug.Conn.get_session(conn))
-    # # extract owner_employee params
-    # %{"owner_employee"=>map} = organization_params["organization"]
-    # extract org params
-    %{"name"=>name} = organization_params
-    # assign to new variable
-    # org_only_params = %{"email"=> email, "name"=>name, "phone"=>phone}
-    slug = Slug.slugify(name)
-    # org_only_params = Map.put(org_only_params, "slug", slug)
-    # IO.inspect(org_only_params)
-    organizations? = Company.check_organization_exists_by_slug(slug)
-    IO.inspect(organizations?)
-    organization_params = Map.put_new(organization_params, "slug", slug)
-    # don't allow duplicate org names
-    if length(organizations?) !== 0 do
-      conn
-      |> put_flash(:info, "That Organization already exists. Try another name.")
-      |> redirect(to: Routes.organization_path(conn, :new))
-    # if doesn't already exist, allow create
-    else
-      x = Company.create_organization(organization_params)
-      # IO.inspect(x)
-      case x do
-        {:ok, organization} ->
-          conn
-          |> put_flash(:info, "Organization created successfully.")
-          |> redirect(to: Routes.organization_path(conn, :show, organization.id))
-        {:error, %Ecto.Changeset{} = changeset} ->
-          IO.inspect("CREATE ERROR")
-          IO.inspect(changeset)
-          render(conn, "new.html", changeset: changeset)
-      end
+  def create(conn, employee_params) do
+    # IO.inspect(Plug.Conn.get_session(conn))
+    # employee_params = Map.get
+    # IO.inspect(employee_params)
+    org_params = Map.get(Plug.Conn.get_session(conn), "org_params")
+    # add organization
+    case Company.create_organization(org_params) do
+      {:ok, organization} ->
+        # IO.inspect("ORG HERE")
+        # IO.inspect(organization)
+        # IO.inspect("employee_params")
+        # IO.inspect(employee_params)
+
+        x =
+          EmployeeRegistrationController.setup_initial_owner(conn, organization, employee_params)
+
+        case x do
+          {:error, error} ->
+            IO.inspect("ERROR")
+            IO.inspect(error)
+            conn = assign(conn, :org_form_submitted, true)
+
+            conn
+            |> put_flash(:error, "Employee not created. Try again.")
+
+            |> render("new.html", changeset: error)
+
+            conn
+            |> put_flash(:info, "Employee not created. Try again.")
+            |> render("new.html", changeset: error)
+
+          {:ok, employee} ->
+            IO.inspect("OK")
+            IO.inspect(employee)
+            # add employee to organization
+            case Staff.add_employee_to_organization(employee, organization) do
+              {:ok, employee} ->
+                IO.inspect("OK")
+                IO.inspect(employee)
+
+                conn
+                |> put_flash(:info, "Employee created successfully.")
+                |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+
+              {:error, error} ->
+                IO.inspect("ERROR")
+                conn = assign(conn, :org_form_submitted, true)
+                IO.inspect(conn.assigns)
+
+                conn
+                |> halt()
+                |> put_flash(:error, "Employee not created. Try again.")
+
+                render("new.html", changeset: error)
+            end
+        end
+
+        conn
+        |> put_flash(:info, "Organization created successfully.")
+        |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        IO.inspect("CREATE ERROR")
+        IO.inspect(changeset)
+        render(conn, "new.html", changeset: changeset)
     end
   end
 
   # takes ID or name
   def show(conn, %{"id" => id}) do
     organization = Company.get_organization(id)
+
     if !organization do
       conn
       |> put_flash(:info, "That Organization doesn't exist. Try again.")
@@ -108,7 +140,8 @@ defmodule TurnStileWeb.OrganizationController do
     else
       conn
       members? = organization_has_members?(organization.id)
-      changeset   = Staff.change_employee(%Employee{})
+      changeset = Staff.change_employee(%Employee{})
+
       render(conn, "show.html",
         organization: organization,
         changeset: changeset,
@@ -116,8 +149,6 @@ defmodule TurnStileWeb.OrganizationController do
         organization_id: organization.id
       )
     end
-
-
   end
 
   def edit(conn, %{"id" => id}) do
@@ -147,11 +178,6 @@ defmodule TurnStileWeb.OrganizationController do
     conn
     |> put_flash(:info, "Organization deleted successfully.")
     |> redirect(to: Routes.organization_path(conn, :index))
-  end
-
-  # reload to display rest with :slug not :id
-  defp _reload_with_name_rest(conn, organization_slug) do
-    redirect(conn, to: "/organizations/#{organization_slug}")
   end
 
   # check if org has employee members
@@ -223,5 +249,9 @@ defmodule TurnStileWeb.OrganizationController do
       # Kernal.inpsect makes id a string
       show(conn, %{"param" => Kernel.inspect(organization.id)})
     end
+  end
+
+  def is_org_form_submitted(conn, bool) do
+    assign(conn, :org_form_submitted, bool)
   end
 end
