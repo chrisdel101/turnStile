@@ -77,25 +77,27 @@ defmodule TurnStileWeb.OrganizationController do
         x =
           EmployeeRegistrationController.setup_initial_owner(conn, organization, employee_params)
 
+          IO.inspect("XXXX")
+          IO.inspect(x)
         case x do
           {:error, error} ->
             IO.inspect("ERROR")
             IO.inspect(error)
             conn = assign(conn, :org_form_submitted, true)
-
             conn
             |> put_flash(:error, "Employee not created. Try again.")
-
             |> render("new.html", changeset: error)
-
-            conn
-            |> put_flash(:info, "Employee not created. Try again.")
-            |> render("new.html", changeset: error)
-
-          {:ok, employee} ->
+          {:ok, employee, success} ->
             IO.inspect("OK")
             IO.inspect(employee)
             # add employee to organization
+            a = TurnStile.Repo.preload(organization, :employees)
+            b= TurnStile.Repo.preload(employee, :organizations)
+            IO.inspect(a)
+            IO.inspect(b)
+            org_change = Ecto.Changeset.change(organization)
+           org_with_emp = Ecto.Changeset.put_assoc(org_change, :employees, [employee])
+           IO.inspect(org_with_emp)
             case Staff.add_employee_to_organization(employee, organization) do
               {:ok, employee} ->
                 IO.inspect("OK")

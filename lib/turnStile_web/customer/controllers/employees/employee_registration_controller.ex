@@ -142,18 +142,20 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
   # create first user as owner
   def setup_initial_owner(conn, organization, %{"employee" => employee_params}) do
-    IO.inspect("employee_params INNER")
-    IO.inspect(employee_params)
+    # IO.inspect("employee_params INNER")
+    # IO.inspect(employee_params)
+
       # extract org id
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     IO.inspect(organization)
-
+    # check if org already exist
     organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
+
     IO.inspect("organizations?")
     IO.inspect(organizations?)
     # check if org already exist
     if length(organizations?) === 1 do
-      # confirm org has no members/ so is not setup
+      # confirm org has no members yet
       members? = OrganizationController.organization_has_members?(organization_id)
       # if member, send error
       IO.inspect("members??")
@@ -161,28 +163,25 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
       if members? do
         error  = "Organization already setup. Login is required"
         {:error, error}
-        halt(conn)
         # if no members, allow setup
       else
-        # add organization_id to params
-        employee_params = Map.put(employee_params, "organization_id", organization_id)
-        # create owner
+        # add organization_id, role
+        employee_params = employee_params
+        |> Map.put("organization_id", organization_id)
+        |> Map.put("role", to_string(hd EmployeeManagerRolesEnum.get_roles()))
         case Staff.register_employee(employee_params) do
           {:ok, employee} ->
             IO.inspect("YYYYYY")
             IO.inspect(employee)
-            x =
-              Staff.deliver_employee_confirmation_instructions(
+              case Staff.deliver_employee_confirmation_instructions(
                 employee,
-                &Routes.employee_confirmation_url(conn, :edit, employee_params.id, &1)
-              )
-              IO.inspect("HERE")
-              IO.inspect(x)
-              x
-            # conn
-            # |> put_flash(:info, "Setup Owner created successfully.")
-            # |> EmployeeAuth.log_in_employee(employee)
-
+                &Routes.employee_confirmation_url(conn, :edit, employee.id, &1)) do
+                {:ok, _} ->
+                  success = "Account created. Please check your email for confirmation link."
+                  {:ok, employee, success}
+                {:error, error} ->
+                  {:error, error}
+              end
           {:error, %Ecto.Changeset{} = changeset} ->
             {:error, changeset}
         end

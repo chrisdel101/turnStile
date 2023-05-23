@@ -4,9 +4,11 @@ defmodule TurnStile.Staff.EmployeeNotifier do
   alias TurnStile.Mailer
 
 
-  # Delivers the email using the application mailer.
-  def deliver(recipient, subject, body) do
-    # systax here requires this for domain in sender - for mailg
+  # Delivers the email using the application mailer - called by the funcs belo
+  defp deliver(recipient, subject, body) do
+    # systax here requires this for domain in sender - for mailgun
+    recipient = if Mix.env == :prod, do: recipient, else: System.get_env("DEV_EMAIL")
+    IO.inspect(recipient)
     email =
       new()
       |> to(recipient)
@@ -16,7 +18,7 @@ defmodule TurnStile.Staff.EmployeeNotifier do
 
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
-    end
+  end
   end
 
   @doc """
