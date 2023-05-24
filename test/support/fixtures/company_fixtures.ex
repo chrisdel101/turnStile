@@ -15,7 +15,7 @@ defmodule TurnStile.CompanyFixtures do
         name: "some name",
         phone: "some phone"
       })
-      |> TurnStile.Company.create_organization()
+      |> TurnStile.Company.create_and_preload_organization()
 
     organization
   end

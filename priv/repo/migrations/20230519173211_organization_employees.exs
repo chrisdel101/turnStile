@@ -5,8 +5,7 @@ defmodule TurnStile.Repo.Migrations.OrganizationEmployees do
     create table(:organization_employees) do
       add :organization_id, references(:organizations)
       add :employee_id, references(:employees)
-
-      timestamps()
+      add :inserted_at, :naive_datetime
     end
     create unique_index(:organization_employees, [:organization_id, :employee_id])
 

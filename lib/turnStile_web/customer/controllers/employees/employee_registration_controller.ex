@@ -56,7 +56,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           # add organization_id to employee_params
           employee_params = Map.put(employee_params, "organization_id", organization_id)
           # if permissions okay
-          case Staff.register_employee(employee_params) do
+          case Staff.register_and_preload_employee(employee_params) do
             {:ok, employee} ->
               # IO.inspect("HERE")
               {:ok, _} =
@@ -119,7 +119,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           # add organization_id to employee_params
           employee_params = Map.put(employee_params, "organization_id", organization_id)
           # if permissions okay
-          case Staff.register_employee(employee_params) do
+          case Staff.register_and_preload_employee(employee_params) do
             {:ok, employee} ->
               # IO.inspect("HERE")
               {:ok, _} =
@@ -169,7 +169,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         employee_params = employee_params
         |> Map.put("organization_id", organization_id)
         |> Map.put("role", to_string(hd EmployeeManagerRolesEnum.get_roles()))
-        case Staff.register_employee(employee_params) do
+        case Staff.register_and_preload_employee(employee_params) do
           {:ok, employee} ->
             IO.inspect("YYYYYY")
             IO.inspect(employee)
@@ -177,8 +177,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                 employee,
                 &Routes.employee_confirmation_url(conn, :edit, employee.id, &1)) do
                 {:ok, _} ->
-                  success = "Account created. Please check your email for confirmation link."
-                  {:ok, employee, success}
+                  {:ok, employee}
                 {:error, error} ->
                   {:error, error}
               end

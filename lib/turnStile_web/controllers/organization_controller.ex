@@ -62,58 +62,51 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def create(conn, employee_params) do
-    # IO.inspect(Plug.Conn.get_session(conn))
-    # employee_params = Map.get
-    # IO.inspect(employee_params)
+    # extract params from session
     org_params = Map.get(Plug.Conn.get_session(conn), "org_params")
     # add organization
-    case Company.create_organization(org_params) do
+    case Company.create_and_preload_organization(org_params) do
       {:ok, organization} ->
-        # IO.inspect("ORG HERE")
-        # IO.inspect(organization)
-        # IO.inspect("employee_params")
-        # IO.inspect(employee_params)
+        IO.inspect("ORG HERE")
+        IO.inspect(organization)
 
-        x =
-          EmployeeRegistrationController.setup_initial_owner(conn, organization, employee_params)
-
-          IO.inspect("XXXX")
-          IO.inspect(x)
-        case x do
+        case EmployeeRegistrationController.setup_initial_owner(
+               conn,
+               organization,
+               employee_params
+             ) do
           {:error, error} ->
-            IO.inspect("ERROR")
-            IO.inspect(error)
-            conn = assign(conn, :org_form_submitted, true)
+            # delete any organization just saved
+            Company.delete_organization(organization)
+            IO.inspect("ERROR in create orgnization_controller")
+            # conn = assign(conn, :org_form_submitted, true)
             conn
-            |> put_flash(:error, "Employee not created. Try again.")
+            |> assign( :org_form_submitted, true)
+            |> put_flash(:error, "Error in Employee creation. Try again.")
             |> render("new.html", changeset: error)
-          {:ok, employee, success} ->
-            IO.inspect("OK")
-            IO.inspect(employee)
-            # add employee to organization
-            a = TurnStile.Repo.preload(organization, :employees)
-            b= TurnStile.Repo.preload(employee, :organizations)
-            IO.inspect(a)
-            IO.inspect(b)
-            org_change = Ecto.Changeset.change(organization)
-           org_with_emp = Ecto.Changeset.put_assoc(org_change, :employees, [employee])
-           IO.inspect(org_with_emp)
-            case Staff.add_employee_to_organization(employee, organization) do
-              {:ok, employee} ->
-                IO.inspect("OK")
-                IO.inspect(employee)
 
+          {:ok, employee} ->
+            # IO.inspect("OK2222")
+            # IO.inspect(employee)
+            # build instance changeset
+            org_changeset = Ecto.Changeset.change(organization)
+            # put_assoc
+            org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
+            IO.inspect(org_with_emps)
+            case Company.update_organization_changeset(org_with_emps) do
+              {:ok, updated_org} ->
+                # IO.inspect("OK")
+                # IO.inspect(updated_org)
                 conn
-                |> put_flash(:info, "Employee created successfully.")
+                |> put_flash(:info, "Organization Successfully created.")
                 |> redirect(to: Routes.organization_path(conn, :show, organization.id))
 
               {:error, error} ->
                 IO.inspect("ERROR")
-                conn = assign(conn, :org_form_submitted, true)
-                IO.inspect(conn.assigns)
+
 
                 conn
-                |> halt()
+                |> assign( :org_form_submitted, true)
                 |> put_flash(:error, "Employee not created. Try again.")
 
                 render("new.html", changeset: error)

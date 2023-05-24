@@ -18,7 +18,7 @@ defmodule TurnStile.EmployeeFixtures do
     {:ok, employee} =
       attrs
       |> valid_employee_attributes()
-      |> TurnStile.Staff.register_employee()
+      |> TurnStile.Staff.register_and_preload_employee()
 
     employee
   end

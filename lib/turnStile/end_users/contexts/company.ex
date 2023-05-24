@@ -54,68 +54,33 @@ defmodule TurnStile.Company do
   - build organization with params
   ## Examples
 
-      iex> create_organization(%{field: value})
+      iex> create_and_preload_organization(%{field: value})
       {:ok, %Organization{}}
 
-      iex> create_organization(%{field: bad_value})
+      iex> create_and_preload_organization(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_organization(attrs \\ %{}) do
+  def create_and_preload_organization(attrs \\ %{}) do
     org_changeset = Organization.changeset(%Organization{},attrs)
-      IO.inspect("create_organization")
-      IO.inspect(org_changeset)
+      # IO.inspect("create_and_preload_organization")
+      # IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
-        IO.inspect(new_org)
-        {:ok, new_org}
+        org_preload = Repo.preload(new_org, :employees)
+        # IO.inspect(org_preload)
+        {:ok, org_preload}
 
-      {:error, changeset} ->
-        IO.inspect("error")
-        IO.inspect(changeset)
-        {:error, changeset}
+      {:error, error} ->
+        # IO.inspect("ERROR create_and_preload_organization")
+        # IO.inspect(error)
+        {:error, error}
 
     end
   end
-  # def create_organization_and_owner(attrs \\ %{}) do
-  #   org_attrs = Map.take(attrs["organization"], ["name", "phone", "email", "slug"])
-  #   org_changeset = Organization.changeset(%Organization{}, org_attrs)
-
-  #   case Repo.insert(org_changeset) do
-  #     {:ok, org} ->
-  #       IO.inspect(org)
-  #       %{"owner_employee" => employee_attrs} = attrs["organization"]
-  #       case TurnStile.Staff.register_employee(employee_attrs) do
-  #         {:ok, employee} ->
-  #           IO.puts('HERE1')
-  #           org_with_employee = Ecto.Changeset.put_assoc(:employees, [employee])
-  #           IO.puts('HERE2')
-
-  #           case Repo.update(org_with_employee) do
-  #             {:ok, _updated_org} ->
-  #               IO.puts('HERE2')
-  #               {:ok, :updated}
-
-  #             {:error, changeset} ->
-  #               IO.inspect("error")
-  #               IO.inspect(changeset)
-  #               {:error, changeset}
-  #           end
-
-  #         {:error, changeset} ->
-  #           {:error, changeset}
-  #       end
-
-  #     {:error, changeset} ->
-  #       IO.puts('ERROR CHSNGE')
-
-  #       {:error, changeset}
-  #   end
-  # end
-
 
   @doc """
-  Updates a organization.
+  Updates a organization. Builds changeset within
 
   ## Examples
 
@@ -130,6 +95,11 @@ defmodule TurnStile.Company do
     organization
     |> Organization.changeset(attrs)
     |> Repo.update()
+  end
+
+  # takes a formed changeset and updates table
+  def update_organization_changeset(org_changeset) do
+    TurnStile.Repo.update(org_changeset)
   end
 
   @doc """

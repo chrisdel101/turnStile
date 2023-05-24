@@ -67,17 +67,25 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> register_employee(%{field: value})
+      iex> register_and_preload_employee(%{field: value})
       {:ok, %Employee{}}
 
-      iex> register_employee(%{field: bad_value})
+      iex> register_and_preload_employee(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_employee(attrs) do
-    %Employee{}
-    |> Employee.registration_changeset(attrs)
-    |> Repo.insert()
+  def register_and_preload_employee(attrs) do
+    emp_changeset = Employee.registration_changeset(%Employee{}, attrs)
+      # IO.inspect("create_employee")
+      # IO.inspect(emp_changeset)
+    case Repo.insert(emp_changeset) do
+      {:ok, new_emp} ->
+        emp_preload = Repo.preload(new_emp, :organizations)
+        {:ok, emp_preload}
+      {:error, error} ->
+        {:error, error}
+
+    end
   end
 
   @doc """
