@@ -25,10 +25,11 @@ defmodule TurnStileWeb.EmployeeAuth do
   if you are not using LiveView.
   """
   def log_in_employee(conn, employee, params \\ %{}) do
-
-    organization_id = employee.organization_id || conn.path_params["id"]
+    # get org id from url
+    organization_id = Map.get(conn.path_params, "id") ||  Map.get(conn.path_params, :id)
     if !organization_id do
       conn
+      # TODO - error msg here
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
       |> redirect(to: Routes.organization_path(conn, :show))
     end
@@ -36,8 +37,9 @@ defmodule TurnStileWeb.EmployeeAuth do
     is_in_organization? = Staff.check_employee_is_in_organization(employee,organization_id)
     if !is_in_organization? do
       conn
-      |> put_flash(:error, "Employee is not in the correct organization.")
+      |> put_flash(:error, "Invalid or Non-Existent Organization afflitiation")
       |> redirect(to: "/organizations/#{conn.path_params["id"]}")
+      |> halt()
     end
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
@@ -45,8 +47,9 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> renew_session()
     |> put_session(:employee_token, token)
     |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
+    |> put_session(:current_organization_id, organization_id)
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: "/organizations/#{employee.organization_id}/employees/#{employee.id}/users" || employee_return_to )
+    |> redirect(to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to )
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -176,6 +179,10 @@ defmodule TurnStileWeb.EmployeeAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
-
-
+  # plug
+  def current_employee_logged_in_organization(conn, organization) do
+    if !is_nil(organization) do
+      assign(conn, :current_organization_id, organization)
+    end
+  end
 end

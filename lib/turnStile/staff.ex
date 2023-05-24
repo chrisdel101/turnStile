@@ -472,14 +472,20 @@ defmodule TurnStile.Staff do
   end
 
   def check_employee_is_in_organization(employee, organization_id) do
-    organization = Company.get_organization(organization_id)
-    if organization do
-      if organization.id == employee.organization_id do
-        true
+    if !is_nil(organization_id) && !is_nil(employee) do
+      organization_id = TurnStile.Utils.convert_to_int(organization_id)
+      organization = Company.get_organization(organization_id)
+      employee_id = TurnStile.Utils.convert_to_int(Map.get(employee, :id) || Map.get(employee, "id"))
+      if organization do
+        q = from o in "organization_employees",
+          where: o.employee_id == ^employee_id and o.organization_id == ^organization_id,
+          select: o.id
+        Repo.one(q)
       else
         false
       end
     else
+      IO.inspect("Error in check_employee_is_in_organization. Inputs are nil")
       false
     end
   end

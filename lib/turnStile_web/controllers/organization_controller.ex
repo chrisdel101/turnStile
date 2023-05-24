@@ -245,8 +245,8 @@ defmodule TurnStileWeb.OrganizationController do
       show(conn, %{"param" => Kernel.inspect(organization.id)})
     end
   end
-
-  def is_org_form_submitted(conn, bool) do
+  # plug
+  def first_org_form_submit?(conn, bool) do
     assign(conn, :org_form_submitted, bool)
   end
 end
