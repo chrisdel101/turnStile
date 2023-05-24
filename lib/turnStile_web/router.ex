@@ -17,7 +17,8 @@ defmodule TurnStileWeb.Router do
     plug :fetch_current_admin
     plug :fetch_current_employee
     plug TurnStileWeb.Plugs.RouteType, "non-admin" #used in template
-    plug :is_org_form_submitted, false
+    plug :first_org_form_submit?, false
+    plug :fetch_current_organization
   end
 
   pipeline :api do
@@ -171,11 +172,11 @@ defmodule TurnStileWeb.Router do
   scope "/admin", TurnStileWeb do
     pipe_through [:browser]
 
-    delete "log_out", AdminSessionController, :delete
-    get "confirm", AdminConfirmationController, :new
-    post "confirm", AdminConfirmationController, :create
-    get "confirm/:token", AdminConfirmationController, :edit
-    post "confirm/:token", AdminConfirmationController, :update
+    delete "/log_out", AdminSessionController, :delete
+    get "/confirm", AdminConfirmationController, :new
+    post "/confirm", AdminConfirmationController, :create
+    get "/confirm/:token", AdminConfirmationController, :edit
+    post "/confirm/:token", AdminConfirmationController, :update
 
   end
   scope "/admin", TurnStileWeb do

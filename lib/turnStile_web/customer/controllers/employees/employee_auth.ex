@@ -47,7 +47,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> renew_session()
     |> put_session(:employee_token, token)
     |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
-    |> put_session(:current_organization_id, organization_id)
+    |> put_session(:current_organization_id_str, organization_id)
     |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to )
   end
@@ -95,6 +95,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
 
     conn
+    |> delete_session(:organization_id_str)
     |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: "/")
@@ -108,6 +109,16 @@ defmodule TurnStileWeb.EmployeeAuth do
     {employee_token, conn} = ensure_employee_token(conn)
     employee = employee_token && Staff.get_employee_by_session_token(employee_token)
     assign(conn, :current_employee, employee)
+  end
+
+  # gets signed in org from sessions, adds to conn each req
+  def fetch_current_organization(conn, _opts) do
+    # IO.inspect("fetch_current_organization")
+    current_organization_id_str = get_session(conn, :current_organization_id_str) || get_session(conn, "current_organization_id_str")
+    # IO.inspect(current_organization_id_str)
+    conn =  assign(conn,:current_organization_id_str,current_organization_id_str)
+    IO.inspect(conn.assigns)
+    conn
   end
 
   defp ensure_employee_token(conn) do
@@ -130,13 +141,13 @@ defmodule TurnStileWeb.EmployeeAuth do
   def redirect_if_employee_is_authenticated(conn, _opts) do
     # if logged in
     current_employee = conn.assigns[:current_employee]
-
+    current_organization_id_str = conn.assigns[:current_organization_id_str]
     if current_employee do
       # if owner/employee - don't redirect from registartion
       # if (current_employee.role != "owner" or current_employee.role != "employee") and
       #      List.last(conn.path_info) != "register" do
         conn
-        |> redirect(to: "/organizations/#{current_employee.organization_id}/employees/#{current_employee.id}/users")
+        |> redirect(to: "/organizations/#{current_organization_id_str}/employees/#{current_employee.id}/users")
         |> halt()
       # else
         # conn
@@ -180,9 +191,5 @@ defmodule TurnStileWeb.EmployeeAuth do
 
   defp maybe_store_return_to(conn), do: conn
   # plug
-  def current_employee_logged_in_organization(conn, organization) do
-    if !is_nil(organization) do
-      assign(conn, :current_organization_id, organization)
-    end
-  end
+
 end

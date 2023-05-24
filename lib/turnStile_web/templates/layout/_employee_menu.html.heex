@@ -1,16 +1,17 @@
 <ul>
   <%= if @current_employee do %>
-
-    <li><%= link "Account", to: Routes.employee_path(@conn, :show,  @current_employee.organization_id, @current_employee.id) %></li>
-    <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit,  @current_employee.organization_id) %></li>
+  
+    
+   
+    <li><%= link "Account", to: Routes.employee_path(@conn, :show,  @conn.assigns[:current_organization_id_str]) %></li>
+    <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit,   @conn.assigns[:current_organization_id_str]) %></li>
 
     <!--employee level can register new staff -->
     <%= if TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) <= EmployeePermissionGroups.get_persmission_value("employee") do %>
-        <li><%= link "Register New Staff", to: Routes.employee_registration_path(@conn, :new,@current_employee.organization_id) %></li>
+        <li><%= link "Register New Staff", to: Routes.employee_registration_path(@conn, :new, @conn.assigns[:current_organization_id_str]) %></li>
     <% end %>
 
-
-    <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete, @current_employee.organization_id), method: :delete %></li>
+    <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete, 1), method: :delete %></li>
 
   <% end %>
 </ul>

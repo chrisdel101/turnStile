@@ -4,8 +4,8 @@ defmodule TurnStileWeb.EmployeeSessionController do
   alias TurnStile.Staff
   alias TurnStileWeb.EmployeeAuth
 
+  # redirect to org sign in page
   def new(conn, _params) do
-    # redirect to org sign in page
     redirect(conn, to: "/organizations/#{conn.path_params["id"]}")
   end
 
