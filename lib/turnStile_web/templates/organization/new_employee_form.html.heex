@@ -55,3 +55,9 @@
     <%= submit "Save" %>
   </div>
 </.form>
+ <div>
+    <%= link "Cancel", method: :get, to: Routes.page_path(@conn, :index, %{"empty" => true})   %>
+  </div>
+
+<span><%= link "Back", to: Routes.
+organization_path(@conn, :new) %></span>

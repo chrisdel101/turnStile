@@ -16,21 +16,28 @@ defmodule TurnStileWeb.PageController do
       # show employee menu
     end
   end
-
   def index(conn, _params) do
-    # try to delete sessino params
+    # IO.inspect("Seesions at the top")
+    # IO.inspect(get_session(conn))
+    # if canceled, delete sessions
     if Map.has_key?(conn.query_params, "empty") && conn.query_params["empty"] == "true" do
-      conn = TurnStile.Utils.empty_sesssion_params(conn)
-    end
-    IO.inspect(conn.query_params)
-    # if employee logged in, redirect to organuzation show
-    if conn.assigns[:current_employee] do
+          # IO.inspect("Seesions after delete")
+          IO.inspect(get_session(conn))
+
+          employees? = runSetupCheck()
+          conn
+          |> TurnStile.Utils.empty_sesssion_params("org_params")
+          |> assign(:employees?, employees?)
+          |> render("index.html")
+    else
+      employees? = runSetupCheck()
       conn
-      |> redirect(to: Routes.organization_path(conn, :show, conn.assigns[:current_organization_id_str]))
+      |> assign(:employees?, employees?)
+      |> render("index.html")
+
     end
-    employees? = runSetupCheck()
-    conn
-    |> assign(:employees?, employees?)
-    |> render("index.html")
   end
+
+
+
 end

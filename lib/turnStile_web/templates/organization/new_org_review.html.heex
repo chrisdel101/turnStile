@@ -1,5 +1,5 @@
 <h2>Review Organization Details</h2>
-<.form let={f} for={@changeset} action={@action}>
+<.form let={_f} for={@changeset} action={@action} method="POST">
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
       <p>Oops, something went wrong! Please check the errors below.</p>
@@ -24,9 +24,10 @@
     <%= submit "Save" %>
   </div>
 </.form>
-<% IO.inspect(TurnStile.Company.Organization.changeset(%TurnStile.Company.Organization{}, Map.get(Plug.Conn.get_session(@conn), "org_params"))) %>
 
-
+ <div>
+    <%= link "Cancel", method: :get, to: Routes.page_path(@conn, :index, %{"empty" => true})   %>
+  </div>
 
 <span><%= link "Back", to: Routes.
 organization_path(@conn, :new) %></span>

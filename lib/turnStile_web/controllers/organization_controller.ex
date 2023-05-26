@@ -18,13 +18,13 @@ defmodule TurnStileWeb.OrganizationController do
   # init - render form 1
   def new(conn, _params) do
     org_params = get_session(conn, :org_params)
-    changeset = Company.change_organization(%Organization{}, org_params)
+    changeset = Company.change_organization(%Organization{}, org_params || %{})
     IO.inspect(changeset)
     render(conn, "new.html", changeset: changeset)
   end
 
   # second render - handle submuit form 1; display form 2
-  def handle_new(conn, %{"organization"=> org_params}) do
+  def handle_new(conn, %{"organization" => org_params}) do
     changeset = Company.change_organization(%Organization{}, org_params)
     # make sure name is not empty
     case Ecto.Changeset.get_change(changeset, :name) do
@@ -34,6 +34,7 @@ defmodule TurnStileWeb.OrganizationController do
         {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
         # re-render "new" again
         render(conn, "new.html", changeset: changeset)
+
       # when valid name field
       _ ->
         # extract name
@@ -50,83 +51,118 @@ defmodule TurnStileWeb.OrganizationController do
           |> render("new.html", changeset: changeset)
         else
           current_employee = conn.assigns[:current_employee]
+
           if current_employee do
             employee_changeset = Ecto.Changeset.change(current_employee)
-             # add org params to sessions
-          conn = Plug.Conn.put_session(conn, :org_params, org_params)
-          # set from partial flag on conn
-          conn = assign(conn, :org_form_submitted, true)
-          render(conn, "new.html", changeset: employee_changeset)
+            # add org params to sessions
+            conn = Plug.Conn.put_session(conn, :org_params, org_params)
+            # set from partial flag on conn
+            conn = assign(conn, :org_form_submitted, true)
+            render(conn, "new.html", changeset: employee_changeset)
           else
             employee_changeset = Staff.change_employee(%Employee{})
 
-          # add org params to sessions
-          conn = Plug.Conn.put_session(conn, :org_params, org_params)
-          # set from partial flag on conn
-          conn = assign(conn, :org_form_submitted, true)
-          render(conn, "new.html", changeset: employee_changeset)
+            # add org params to sessions
+            conn = Plug.Conn.put_session(conn, :org_params, org_params)
+            # set from partial flag on conn
+            conn = assign(conn, :org_form_submitted, true)
+            render(conn, "new.html", changeset: employee_changeset)
           end
         end
     end
   end
+
   # second render - handle same func w/ invalid params for error
   def handle_new(conn, org_params) do
     changeset = Company.change_organization(%Organization{}, org_params)
-   conn
-   |> put_flash(:error, "A parameter error ocurred. Try again")
+
+    conn
+    |> put_flash(:error, "A parameter error ocurred. Try again")
     # re-render "new" again w error
     |> render("new.html", changeset: changeset)
   end
 
   def create(conn, employee_params) do
     # extract params from session
+    current_employee = conn.assigns[:current_employee]
     org_params = Map.get(Plug.Conn.get_session(conn), "org_params")
     # add organization
     case Company.create_and_preload_organization(org_params) do
       {:ok, organization} ->
         IO.inspect("ORG HERE")
         IO.inspect(organization)
-        case EmployeeRegistrationController.setup_initial_owner(
-               conn,
-               organization,
-               employee_params
-             ) do
-          {:error, error} ->
-            # delete any organization just saved
-            Company.delete_organization(organization)
-            IO.inspect("ERROR in create orgnization_controller")
-            # conn = assign(conn, :org_form_submitted, true)
-            conn
-            |> assign( :org_form_submitted, true)
-            |> put_flash(:error, "Error in Employee creation. Try again.")
-            |> render("new.html", changeset: error)
 
-          {:ok, employee} ->
-            # IO.inspect("OK2222")
-            # IO.inspect(employee)
-            # build instance changeset
-            org_changeset = Ecto.Changeset.change(organization)
-            # put_assoc
-            org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
-            IO.inspect(org_with_emps)
-            case Company.update_organization_changeset(org_with_emps) do
-              {:ok, updated_org} ->
-                # IO.inspect("OK")
-                # IO.inspect(updated_org)
-                conn
-                |> put_flash(:info, "Organization Successfully created.")
-                |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+        if !current_employee do
+          case EmployeeRegistrationController.setup_initial_owner(
+                 conn,
+                 organization,
+                 employee_params
+               ) do
+            {:error, error} ->
+              # delete any organization just saved
+              Company.delete_organization(organization)
+              IO.inspect("ERROR in create orgnization_controller")
+              # conn = assign(conn, :org_form_submitted, true)
+              conn
+              |> assign(:org_form_submitted, true)
+              |> put_flash(:error, "Error in Employee creation. Try again.")
+              |> render("new.html", changeset: error)
 
-              {:error, error} ->
-                IO.inspect("ERROR")
+            {:ok, employee} ->
+              # IO.inspect("OK2222")
+              # IO.inspect(employee)
+              # build instance changeset
+              org_changeset = Ecto.Changeset.change(organization)
+              # put_assoc
+              org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
+              IO.inspect(org_with_emps)
 
+              case Company.update_organization_changeset(org_with_emps) do
+                {:ok, _updated_org} ->
+                  # IO.inspect("OK")
+                  # IO.inspect(updated_org)
+                  conn
+                  |> TurnStile.Utils.empty_sesssion_params()
+                  |> put_flash(:info, "Organization Successfully created.")
+                  |> redirect(to: Routes.organization_path(conn, :show, organization.id))
 
-                conn
-                |> assign( :org_form_submitted, true)
-                |> put_flash(:error, "Employee not created. Try again.")
+                {:error, error} ->
+                  IO.inspect("ERROR")
 
-                render("new.html", changeset: error)
-            end
+                  conn
+                  |> assign(:org_form_submitted, true)
+                  |> put_flash(:error, "Employee not created. Try again.")
+
+                  render("new.html", changeset: error)
+              end
+          end
+        else
+          # IO.inspect("OK2222")
+          # IO.inspect(employee)
+          # build instance changeset
+          org_changeset = Ecto.Changeset.change(organization)
+          # put_assoc
+          org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [current_employee])
+          IO.inspect(org_with_emps)
+
+          case Company.update_organization_changeset(org_with_emps) do
+            {:ok, _updated_org} ->
+              # IO.inspect("OK")
+              # IO.inspect(updated_org)
+              conn
+              |> TurnStile.Utils.empty_sesssion_params()
+              |> put_flash(:info, "Organization Successfully created.")
+              |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+
+            {:error, error} ->
+              IO.inspect("ERROR")
+
+              conn
+              |> assign(:org_form_submitted, true)
+              |> put_flash(:error, "Employee not created. Try again.")
+
+              render("new.html", changeset: error)
+          end
         end
 
         conn
@@ -261,6 +297,7 @@ defmodule TurnStileWeb.OrganizationController do
       show(conn, %{"param" => Kernel.inspect(organization.id)})
     end
   end
+
   # plug
   def first_org_form_submit?(conn, bool) do
     assign(conn, :org_form_submitted, bool)
