@@ -17,8 +17,10 @@ defmodule TurnStileWeb.Router do
     plug :fetch_current_admin
     plug :fetch_current_employee
     plug TurnStileWeb.Plugs.RouteType, "non-admin" #used in template
+    plug TurnStileWeb.Plugs.EmptyParams
     plug :first_org_form_submit?, false
     plug :fetch_current_organization
+
   end
 
   pipeline :api do
@@ -58,6 +60,7 @@ defmodule TurnStileWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/clear_sessions", PageController, :clear_sessions
   end
   ## Authentication routes
 

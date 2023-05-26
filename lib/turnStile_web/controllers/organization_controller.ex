@@ -122,9 +122,9 @@ defmodule TurnStileWeb.OrganizationController do
                   # IO.inspect("OK")
                   # IO.inspect(updated_org)
                   conn
-                  |> TurnStile.Utils.empty_sesssion_params()
+
                   |> put_flash(:info, "Organization Successfully created.")
-                  |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+                  |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
 
                 {:error, error} ->
                   IO.inspect("ERROR")
@@ -150,9 +150,8 @@ defmodule TurnStileWeb.OrganizationController do
               # IO.inspect("OK")
               # IO.inspect(updated_org)
               conn
-              |> TurnStile.Utils.empty_sesssion_params()
               |> put_flash(:info, "Organization Successfully created.")
-              |> redirect(to: Routes.organization_path(conn, :show, organization.id))
+              |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
 
             {:error, error} ->
               IO.inspect("ERROR")
@@ -302,4 +301,5 @@ defmodule TurnStileWeb.OrganizationController do
   def first_org_form_submit?(conn, bool) do
     assign(conn, :org_form_submitted, bool)
   end
+
 end

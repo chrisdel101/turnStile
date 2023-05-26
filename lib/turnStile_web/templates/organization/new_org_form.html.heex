@@ -51,5 +51,5 @@
   </div>
 </.form>
   <div>
-    <%= link "Cancel", method: :get, to: Routes.page_path(@conn, :index, %{"empty" => true})   %>
+    <%= link "Cancel", method: :get, to: Routes.page_path(@conn, :index, %{"emptyParams" => true, "paramsKey" => "org_params"})   %>
   </div>

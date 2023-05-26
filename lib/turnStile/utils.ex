@@ -108,18 +108,4 @@ defmodule TurnStile.Utils do
     |> Jason.decode!()
   end
 
-  # known stored params: [org_params]
-  def empty_sesssion_params(conn, key_name) do
-    IO.inspect("EMPTY")
-
-    if Plug.Conn.get_session(conn, key_name) do
-      # IO.inspect(Plug.Conn.get_session(conn))
-      # IO.inspect(Plug.Conn.get_session(conn, key_name))
-      conn |>
-      Plug.Conn.delete_session(key_name)
-      # IO.inspect(Plug.Conn.get_session(conn))
-    else
-      conn
-    end
-  end
 end
