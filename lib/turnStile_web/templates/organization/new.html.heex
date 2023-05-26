@@ -1,10 +1,12 @@
 <h1>Sign-up now to start using our service</h1>
 <%= if @org_form_submitted do %>
-  <%= render "new_employee_form.html", Map.put(assigns, :action, Routes.organization_path(@conn, :create)) %>
+  <%= if !@current_employee do %>
+    <%= render "new_employee_form.html", Map.put(assigns, :action, Routes.organization_path(@conn, :create)) %>
+  <% else %>
+    <%= render "new_org_review.html", Map.put(assigns, :action, Routes.organization_path(@conn, :create)) %>
+  <% end %>
 <% else %>
   <%= render "new_org_form.html", Map.put(assigns, :action, Routes.organization_path(@conn, :new)) %>
 <% end %>
 
-<span><%= link "Back", to: Routes.
-organization_path(@conn, :index) %></span>
 <span><%= link "Login", to: Routes.organization_path(@conn, :search_get) %></span>

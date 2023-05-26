@@ -18,10 +18,15 @@ defmodule TurnStileWeb.PageController do
   end
 
   def index(conn, _params) do
+    # try to delete sessino params
+    if Map.has_key?(conn.query_params, "empty") && conn.query_params["empty"] == "true" do
+      conn = TurnStile.Utils.empty_sesssion_params(conn)
+    end
+    IO.inspect(conn.query_params)
     # if employee logged in, redirect to organuzation show
     if conn.assigns[:current_employee] do
       conn
-      |> redirect(to: Routes.organization_path(conn, :show, conn.assigns[:current_employee].organization_id))
+      |> redirect(to: Routes.organization_path(conn, :show, conn.assigns[:current_organization_id_str]))
     end
     employees? = runSetupCheck()
     conn

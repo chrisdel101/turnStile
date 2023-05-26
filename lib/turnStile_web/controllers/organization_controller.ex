@@ -15,9 +15,17 @@ defmodule TurnStileWeb.OrganizationController do
     render(conn, "index.html", organizations: organizations)
   end
 
-  def new(conn, %{"organization" => org_params}) do
+  # init - render form 1
+  def new(conn, _params) do
+    org_params = get_session(conn, :org_params)
     changeset = Company.change_organization(%Organization{}, org_params)
-    # IO.inspect(conn)
+    IO.inspect(changeset)
+    render(conn, "new.html", changeset: changeset)
+  end
+
+  # second render - handle submuit form 1; display form 2
+  def handle_new(conn, %{"organization"=> org_params}) do
+    changeset = Company.change_organization(%Organization{}, org_params)
     # make sure name is not empty
     case Ecto.Changeset.get_change(changeset, :name) do
       # handle empty name
@@ -26,8 +34,7 @@ defmodule TurnStileWeb.OrganizationController do
         {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
         # re-render "new" again
         render(conn, "new.html", changeset: changeset)
-
-      # name is not empty
+      # when valid name field
       _ ->
         # extract name
         %{"name" => name} = org_params
@@ -42,23 +49,33 @@ defmodule TurnStileWeb.OrganizationController do
           |> put_flash(:info, "That Organization already exists. Try another name.")
           |> render("new.html", changeset: changeset)
         else
-          employee_changeset = Staff.change_employee(%Employee{})
-          # IO.inspect(org_params)
+          current_employee = conn.assigns[:current_employee]
+          if current_employee do
+            employee_changeset = Ecto.Changeset.change(current_employee)
+             # add org params to sessions
+          conn = Plug.Conn.put_session(conn, :org_params, org_params)
+          # set from partial flag on conn
+          conn = assign(conn, :org_form_submitted, true)
+          render(conn, "new.html", changeset: employee_changeset)
+          else
+            employee_changeset = Staff.change_employee(%Employee{})
+
           # add org params to sessions
           conn = Plug.Conn.put_session(conn, :org_params, org_params)
           # set from partial flag on conn
           conn = assign(conn, :org_form_submitted, true)
           render(conn, "new.html", changeset: employee_changeset)
+          end
         end
     end
   end
-
-  # init render
-  def new(conn, _params) do
-    changeset = Company.change_organization(%Organization{})
-    # IO.inspect(param)
-    # IO.inspect(changeset)
-    render(conn, "new.html", changeset: changeset)
+  # second render - handle same func w/ invalid params for error
+  def handle_new(conn, org_params) do
+    changeset = Company.change_organization(%Organization{}, org_params)
+   conn
+   |> put_flash(:error, "A parameter error ocurred. Try again")
+    # re-render "new" again w error
+    |> render("new.html", changeset: changeset)
   end
 
   def create(conn, employee_params) do
@@ -69,7 +86,6 @@ defmodule TurnStileWeb.OrganizationController do
       {:ok, organization} ->
         IO.inspect("ORG HERE")
         IO.inspect(organization)
-
         case EmployeeRegistrationController.setup_initial_owner(
                conn,
                organization,

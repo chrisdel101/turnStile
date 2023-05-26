@@ -117,7 +117,10 @@ defmodule TurnStileWeb.EmployeeAuth do
     current_organization_id_str = get_session(conn, :current_organization_id_str) || get_session(conn, "current_organization_id_str")
     # IO.inspect(current_organization_id_str)
     conn =  assign(conn,:current_organization_id_str,current_organization_id_str)
-    IO.inspect(conn.assigns)
+    IO.inspect("fetch_current_organization")
+    IO.inspect(conn.params)
+    IO.inspect(conn)
+    IO.inspect(get_session(conn))
     conn
   end
 

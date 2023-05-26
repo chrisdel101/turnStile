@@ -128,9 +128,8 @@ defmodule TurnStileWeb.Router do
     get "/search", OrganizationController, :search_get
     post "/search", OrganizationController, :search_post
 
-
     get "/new", OrganizationController, :new
-    post "/new", OrganizationController, :new
+    post "/new", OrganizationController, :handle_new
     post "/", OrganizationController, :create
 
     # get "/new-organization", OrganizationController, :confirm_organization
