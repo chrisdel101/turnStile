@@ -187,7 +187,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
               zz =
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
-                  &Routes.employee_confirmation_url(conn, :edit, employee.id, &1)
+                  &Routes.employee_confirmation_url(conn, :edit, organization_id, &1)
                 )
 
               IO.inspect('zzzzzzzzz')

@@ -52,12 +52,12 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> redirect(to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to )
   end
 
-  def log_in_employee_on_create(conn, employee, organization, redirect_path, params \\ %{}) do
+  def log_in_employee_on_create(conn, employee, organization_id, redirect_path, params \\ %{}) do
     # get org id from url
-    organization_id = Map.get(organization, "id") || Map.get(organization, :id)
+    # organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     IO.puts("organization_id")
     IO.inspect(organization_id)
-    IO.inspect(organization)
+    # IO.inspect(organization)
     if !organization_id do
       conn
       # TODO - error msg here

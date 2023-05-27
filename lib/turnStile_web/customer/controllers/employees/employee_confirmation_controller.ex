@@ -2,6 +2,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
+  alias TurnStileWeb.EmployeeAuth
 
   def new(conn, _params) do
     render(conn, "new.html")
@@ -24,18 +25,30 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     |> redirect(to: "/")
   end
 
+  # comes from email tokenized URL
   def edit(conn, %{"token" => token}) do
-    render(conn, "edit.html", token: token)
+    # get org id from tokenized URL
+    organization_id = Map.get(conn.params,"id")
+    render(conn, "edit.html", id: organization_id, token: token)
   end
 
   # Do not log in the employee after confirmation to avoid a
   # leaked token giving the employee access to the account.
-  def update(conn, %{"token" => token}) do
+  def update(conn, %{"token" => token, "id"=> organization_id}) do
     case Staff.confirm_employee(token) do
-      {:ok, _} ->
-        conn
-        |> put_flash(:info, "Employee confirmed successfully.")
-        |> redirect(to: "/")
+      {:ok, employee} ->
+        if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
+          IO.inspect("YYYYYY")
+          params = %{flash: "Organization Successfully created"}
+          conn
+          |> EmployeeAuth.log_in_employee_on_create(employee, organization_id, Routes.organization_path(conn, :show, organization_id, %{"emptyParams" => true, "paramsKey" => "org_params"}), params)
+        # require manual login
+        else
+          IO.inspect("XXXXXXX")
+          conn
+          |> put_flash(:info, "Employee confirmed successfully.")
+          |> redirect(to: "/")
+        end
 
       :error ->
         # If there is a current employee and the account was already confirmed,
