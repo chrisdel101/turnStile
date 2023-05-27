@@ -14,14 +14,19 @@
   border-color: #bce8f1;
 }
 .alert-warning {
-  color: #8a6d3b;
-  background-color: #fcf8e3;
-  border-color: #faebcc;
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;;
 }
 .alert-danger {
   color: #a94442;
   background-color: #f2dede;
   border-color: #ebccd1;
+}
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #d4edda;
 }
 .alert p {
   margin-bottom: 0;

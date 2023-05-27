@@ -277,10 +277,10 @@ defmodule TurnStile.Staff do
   end
 
   @doc """
-  Delivers the welcome email. Use when EMPLOYEE_CONFIRM_REQ != "true"
+  Delivers the welcome email. Use when EMPLOYEE_CREATE_CONFIRM_IS_REQUIRED != "true"
 
   """
-  def deliver_employee_welcome_email(%Employee{} = employee, _confirmation_url_fun) do
+  def deliver_employee_welcome_email(%Employee{} = employee) do
         EmployeeNotifier.deliver_welcome_email_instructions(employee)
   end
 

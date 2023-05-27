@@ -110,8 +110,8 @@ defmodule TurnStileWeb.OrganizationController do
               |> assign(:org_form_submitted, true)
               |> put_flash(:error, "Error in Employee creation. Try again.")
               |> render("new.html", changeset: error)
-
-            {:ok, employee} ->
+        # create_initial_owner returns employee & log_in bool
+            {:ok, employee, log_in} ->
               # IO.inspect("OK2222")
               # IO.inspect(employee)
               # build instance changeset
@@ -121,12 +121,21 @@ defmodule TurnStileWeb.OrganizationController do
               IO.inspect(org_with_emps)
 
               case Company.update_organization_changeset(org_with_emps) do
-                {:ok, updated_org} ->
-                  IO.inspect("OK")
-                  IO.inspect(updated_org)
-                  conn
-                  |> put_flash(:info, "Organization Successfully created.")
-                  |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
+                {:ok, _updated_org} ->
+                  IO.inspect("log_in")
+                  IO.inspect(log_in)
+                  if log_in === "true" do
+                    IO.inspect("OK TRUE")
+                    params = %{flash: "Organization Successfully created"}
+
+                    EmployeeAuth.log_in_employee_on_create(conn, employee, organization, Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}), params)
+                  else
+                    IO.inspect("OK FALSE")
+                    # IO.inspect(updated_org)
+                    conn
+                    |> put_flash(:succss, "Organization Successfully created.")
+                    |> redirect(to: Routes.organization_path(:show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
+                  end
 
                 {:error, error} ->
                   IO.inspect("ERROR")
@@ -154,22 +163,14 @@ defmodule TurnStileWeb.OrganizationController do
               conn
               |> put_flash(:info, "Organization Successfully created.")
               |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
-
             {:error, error} ->
               IO.inspect("ERROR")
-
               conn
               |> assign(:org_form_submitted, true)
               |> put_flash(:error, "Employee not created. Try again.")
-
               render("new.html", changeset: error)
           end
         end
-
-        conn
-        |> put_flash(:info, "Organization created successfully.")
-        |> redirect(to: Routes.organization_path(conn, :show, organization.id))
-
       {:error, %Ecto.Changeset{} = changeset} ->
         IO.inspect("CREATE ERROR")
         IO.inspect(changeset)
@@ -186,7 +187,6 @@ defmodule TurnStileWeb.OrganizationController do
       |> put_flash(:info, "That Organization doesn't exist. Try again.")
       |> redirect(to: Routes.organization_path(conn, :index))
     else
-      conn
       members? = organization_has_members?(organization.id)
       changeset = Staff.change_employee(%Employee{})
 

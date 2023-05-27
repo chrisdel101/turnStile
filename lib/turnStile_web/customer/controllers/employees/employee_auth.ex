@@ -52,6 +52,31 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> redirect(to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to )
   end
 
+  def log_in_employee_on_create(conn, employee, organization, redirect_path, params \\ %{}) do
+    # get org id from url
+    organization_id = Map.get(organization, "id") || Map.get(organization, :id)
+    IO.puts("organization_id")
+    IO.inspect(organization_id)
+    IO.inspect(organization)
+    if !organization_id do
+      conn
+      # TODO - error msg here
+      |> put_flash(:error, "An auto-login error occured. Please click login to manually login")
+      |> redirect(to: Routes.page_path(conn, :index))
+    end
+    # IO.puts("log_in_employee_on_create")
+    token = Staff.generate_employee_session_token(employee)
+    employee_return_to = get_session(conn, :employee_return_to)
+    conn
+    |> renew_session()
+    |> put_session(:employee_token, token)
+    |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
+    |> put_session(:current_organization_id_str, organization_id)
+    |> maybe_write_remember_me_cookie(token, params)
+    |> put_flash(:success, "#{params.flash}. You have been automatically logged in.")
+    |> redirect(to: redirect_path || employee_return_to)
+  end
+
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
     put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
   end
