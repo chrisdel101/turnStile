@@ -58,7 +58,7 @@ defmodule TurnStile.Staff do
       ** (Ecto.NoResultsError)
 
   """
-  def get_employee!(id), do: Repo.get!(Employee, id)
+  def get_employee(id), do: Repo.get(Employee, id)
 
   ## Employee registration
 
@@ -385,7 +385,16 @@ defmodule TurnStile.Staff do
     Repo.all(query)
   end
 
-  def list_employees_by_organization(organization_id) do
+  @doc """
+  Return all employees list that are assoc with an organization .
+
+  ## Examples
+
+      iex> list_employee_ids_by_organization(org_id)
+      [...]
+
+  """
+  def list_employee_ids_by_organization(organization_id) do
     if not is_nil(organization_id) do
       q = from o in "organization_employees",
       join: o1 in "organizations",
@@ -399,20 +408,25 @@ defmodule TurnStile.Staff do
       []
     end
   end
-
-
   @doc """
-  Gets a single employee.
-
-  Raises if the Employee does not exist.
+  Find all ids in employees table and return list of employees.
 
   ## Examples
 
-      iex> get_employee!(123)
-      %Employee{}
+      iex> list_employees_by_ids(ids)
+      [...]
 
   """
-  def get_employee!(id), do: raise "TODO"
+  def list_employees_by_ids(ids) do
+    if not is_nil(ids) do
+      q = from e in Employee,
+      where: e.id in ^ids,
+      select: e
+      Repo.all(q)
+    else
+      []
+    end
+  end
 
   @doc """
   Creates a employee.
@@ -479,6 +493,15 @@ defmodule TurnStile.Staff do
     Employee.changeset(employee, attrs)
   end
 
+   @doc """
+  Checks if there is entry with both org_id and employee_id. Returns id of entry row, else nil
+
+  ## Examples
+
+      iex> change_employee(employee)
+      %Todo{...}
+
+  """
   def check_employee_is_in_organization(employee, organization_id) do
     if !is_nil(organization_id) && !is_nil(employee) do
       organization_id = TurnStile.Utils.convert_to_int(organization_id)
@@ -489,12 +512,10 @@ defmodule TurnStile.Staff do
           where: o.employee_id == ^employee_id and o.organization_id == ^organization_id,
           select: o.id
         Repo.one(q)
-      else
-        false
       end
     else
       IO.inspect("Error in check_employee_is_in_organization. Inputs are nil")
-      false
+      nil
     end
   end
 

@@ -1,9 +1,7 @@
 <ul>
   <%= if @current_employee do %>
   
-    
-   
-    <li><%= link "Account", to: Routes.employee_path(@conn, :show,  @conn.assigns[:current_organization_id_str]) %></li>
+
     <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit,   @conn.assigns[:current_organization_id_str]) %></li>
 
     <!--employee level can register new staff -->

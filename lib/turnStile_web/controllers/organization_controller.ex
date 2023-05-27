@@ -229,7 +229,7 @@ defmodule TurnStileWeb.OrganizationController do
   # check if org has employee members
   def organization_has_members?(id) do
     # members? = Company.check_organization_has_employees(id)
-    members? = Staff.list_employees_by_organization(id)
+    members? = Staff.list_employee_ids_by_organization(id)
 
     if !members? or length(members?) === 0 do
       false

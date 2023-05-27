@@ -22,9 +22,9 @@
         Role: <%= employee.role %>
         |
       </span>
-        <span><%= link "Show", to: Routes.employee_path(@conn, :show, employee.organization_id, employee.id) %></span>
-        <span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit, employee.organization_id, employee.id) %></span>
-        <span><%= link "Delete", to: Routes.organization_employee_path(@conn, :delete,  employee.organization_id, employee.id), method: :delete, data: [confirm: "Are you sure?"] %></span>
+        <span><%= link "Show", to: Routes.organization_employee_path(@conn, :show, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"), employee.id) %></span>
+        <span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"), employee.id) %></span>
+        <span><%= link "Delete", to: Routes.organization_employee_path(@conn, :delete,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"), employee.id), method: :delete, data: [confirm: "Are you sure?"] %></span>
       </td>
     </tr>
 <% end %>

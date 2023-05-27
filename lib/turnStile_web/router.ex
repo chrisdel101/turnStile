@@ -104,10 +104,10 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :require_authenticated_employee]
 
     resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do #OK: edit, delete, update
-      resources "/employees", EmployeeController, except: [:show, :new]
+      resources "/employees", EmployeeController, except: [:new] #new is removed - use register instead
     end
 
-    get "/organizations/:id/employees/:id", EmployeeController, :show
+    # get "/organizations/:id/employees/:id", EmployeeController, :show
 
     post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert", AlertController, :create
 
@@ -141,11 +141,9 @@ defmodule TurnStileWeb.Router do
   end
 
 
-  # TODO - make admin only
   scope "/organizations", TurnStileWeb do
-    # :require_authenticated_admin
-    pipe_through [:browser]
-
+    pipe_through [:browser, :require_authenticated_admin]
+    # only admins can see all organizations
     get "/", OrganizationController, :index
   end
 

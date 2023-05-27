@@ -1,9 +1,9 @@
-<h1>Show Employee</h1>
+<h1>Show Employee Assoc within Organization</h1>
 
 <ul>
      <li>Email: <%= @current_employee.email %></li>
     <li>Role: <%= @current_employee.role %></li>
-    <li>Org: <%= @current_employee.organization_id %></li>
+    <li>Org: <%= Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str") %></li>
     <li>
       Permission Level:
     <%= TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) %>
@@ -11,5 +11,5 @@
 
 </ul>
 
-<span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  @current_employee.organization_id,@current_employee.id) %></span> |
-<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  @current_employee.organization_id) %></span>
+<span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"),@current_employee.id) %></span> |
+<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str")) %></span>

@@ -1,4 +1,4 @@
-<h1>Sign-up now to start using our service</h1>
+<h1>Sign-up your Organization</h1>
 <%= if @org_form_submitted do %>
   <%= if !@current_employee do %>
     <%= render "new_employee_form.html", Map.put(assigns, :action, Routes.organization_path(@conn, :create)) %>

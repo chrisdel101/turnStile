@@ -128,14 +128,17 @@ defmodule TurnStileWeb.AdminAuth do
   they use the application at all, here would be a good place.
   """
   def require_authenticated_admin(conn, _opts) do
-    if conn.assigns[:current_admin] do
-      conn
+    if System.get_env("ENFORCE_ADMIN_ONLY_ACCESS") === true do
+      if conn.assigns[:current_admin] do
+        conn
+      else
+        IO.puts("Admin only route")
+        conn
+        |> redirect(to: Routes.page_path(conn, :index))
+        |> halt()
+      end
     else
       conn
-      |> put_flash(:error, "You must log in to access this page.")
-      |> maybe_store_return_to()
-      |> redirect(to: Routes.admin_session_path(conn, :new))
-      |> halt()
     end
   end
 

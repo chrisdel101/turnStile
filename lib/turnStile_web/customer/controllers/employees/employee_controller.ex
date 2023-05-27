@@ -3,16 +3,19 @@ defmodule TurnStileWeb.EmployeeController do
 
   alias TurnStile.Staff
 
-  # new - removed. Use /empployees/register instead
+  # def new - removed: Use /employess/register instead
+
   def index(conn, _params) do
-    organization_id = conn.params["organization_id"]
+    organization_id = get_session(conn)["current_organization_id_str"] || conn.params["organization_id"]
     if !organization_id do
       conn
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
       |> redirect(to: Routes.organization_path(conn, :index))
     end
-    employees = Staff.list_employees_by_organization(organization_id)
-    # get employees in this org
+    # get all employees in the organization by id
+    employee_ids = Staff.list_employee_ids_by_organization(TurnStile.Utils.convert_to_int(organization_id))
+    # lookup all those ids
+    employees = Staff.list_employees_by_ids(employee_ids)
     render(conn, "index.html", employees: employees, organization_id: organization_id)
   end
 
@@ -29,18 +32,29 @@ defmodule TurnStileWeb.EmployeeController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    employee = Staff.get_employee!(id)
-    render(conn, "show.html", employee: employee)
+  def show(conn, %{"id" => id, "organization_id" =>organization_id}) do
+    IO.inspect("HERE")
+    # confirm employee is assoc with this org
+    employee = Staff.get_employee(id)
+    employee_in_org? = Staff.check_employee_is_in_organization(employee, organization_id)
+    IO.inspect(employee_in_org?)
+    IO.inspect(!!employee_in_org?)
+    if !!employee_in_org? do
+      render(conn, "show.html", employee: employee)
+    else
+      conn
+      |> put_flash(:error, "Invalid employee association.")
+      |> redirect(to: Routes.organization_path(conn, :show, organization_id))
+    end
   end
 
-  def edit(conn, %{"id" => id}) do
-    employee = Staff.get_employee!(id)
+  def edit(conn,  %{"id" => id, "organization_id" =>organization_id}) do
+    employee = Staff.get_employee(id)
     changeset = Staff.change_employee(employee)
     # add an action
-    Map.put(conn.assigns, :action, Routes.organization_employee_path(conn, :create, employee.organization_id, employee_id: employee.id))
+    Map.put(conn.assigns, :action, Routes.organization_employee_path(conn, :create, organization_id, employee_id: id))
     conn
-    |> render("edit.html", changeset: changeset, employee: employee, organization_id: employee.organization_id)
+    |> render("edit.html", changeset: changeset, employee: employee, organization_id: organization_id)
   end
 
   # updates name, etc not email/PW
