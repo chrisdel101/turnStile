@@ -93,11 +93,14 @@ defmodule TurnStileWeb.OrganizationController do
         IO.inspect(organization)
 
         if !current_employee do
-          case EmployeeRegistrationController.setup_initial_owner(
-                 conn,
-                 organization,
-                 employee_params
-               ) do
+          x = EmployeeRegistrationController.create_initial_owner(
+            conn,
+            organization,
+            employee_params
+          )
+          IO.inspect("X HERE")
+          IO.inspect(x)
+          case x do
             {:error, error} ->
               # delete any organization just saved
               Company.delete_organization(organization)
@@ -118,11 +121,10 @@ defmodule TurnStileWeb.OrganizationController do
               IO.inspect(org_with_emps)
 
               case Company.update_organization_changeset(org_with_emps) do
-                {:ok, _updated_org} ->
-                  # IO.inspect("OK")
-                  # IO.inspect(updated_org)
+                {:ok, updated_org} ->
+                  IO.inspect("OK")
+                  IO.inspect(updated_org)
                   conn
-
                   |> put_flash(:info, "Organization Successfully created.")
                   |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
 

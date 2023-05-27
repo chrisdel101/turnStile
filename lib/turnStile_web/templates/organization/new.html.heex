@@ -8,5 +8,3 @@
 <% else %>
   <%= render "new_org_form.html", Map.put(assigns, :action, Routes.organization_path(@conn, :new)) %>
 <% end %>
-
-<span><%= link "Login", to: Routes.organization_path(@conn, :search_get) %></span>

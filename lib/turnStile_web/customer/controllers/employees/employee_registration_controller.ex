@@ -81,7 +81,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     current_employee = conn.assigns[:current_employee]
     # setup organization process
     if !current_employee do
-      # setup_initial_owner(conn, %{"employee" => employee_params})
+      # create_initial_owner(conn, %{"employee" => employee_params})
     else
       organization_id = conn.path_params["id"]
       # if n  o org_id found flash error
@@ -141,46 +141,54 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   end
 
   # create first user as owner
-  def setup_initial_owner(conn, organization, %{"employee" => employee_params}) do
-    # IO.inspect("employee_params INNER")
-    # IO.inspect(employee_params)
+  def create_initial_owner(conn, organization, %{"employee" => employee_params}) do
 
       # extract org id
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     IO.inspect(organization)
-    # check if org already exist
+    # check if org already exist - it was just created
     organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
-
-    IO.inspect("organizations?")
-    IO.inspect(organizations?)
     # check if org already exist
     if length(organizations?) === 1 do
-      # confirm org has no members yet
+      # confirm exists but has no members yet
       members? = OrganizationController.organization_has_members?(organization_id)
       # if member, send error
-      IO.inspect("members??")
-      IO.inspect(members?)
       if members? do
-        error  = "Organization already setup. Login is required"
+        error  = "Organization setup error. Members already exist."
         {:error, error}
-        # if no members, allow setup
       else
-        # add organization_id, role
-        employee_params = employee_params
+        # add organization_id, role; employee_params = employee_params syntax is required to persist
+        employee_params =
+          employee_params
         |> Map.put("organization_id", organization_id)
         |> Map.put("role", to_string(hd EmployeeManagerRolesEnum.get_roles()))
         case Staff.register_and_preload_employee(employee_params) do
           {:ok, employee} ->
             IO.inspect("YYYYYY")
             IO.inspect(employee)
-              case Staff.deliver_employee_confirmation_instructions(
+            if System.get_env("EMPLOYEE_CONFIRM_REQ") === "true" do
+              zz = Staff.deliver_employee_confirmation_instructions(
                 employee,
-                &Routes.employee_confirmation_url(conn, :edit, employee.id, &1)) do
-                {:ok, _} ->
+                &Routes.employee_confirmation_url(conn, :edit, employee.id, &1))
+                IO.inspect('zzzzzzzzz')
+                IO.inspect(zz)
+              case zz do
+                {:ok, _email_body} ->
                   {:ok, employee}
                 {:error, error} ->
                   {:error, error}
               end
+            else
+              vv = Staff.deliver_employee_welcome_email(employee)
+                IO.inspect('vvvvvvvvv')
+                IO.inspect(vv)
+              case vv do
+                {:ok, _email_body} ->
+                  {:ok, employee}
+                {:error, error} ->
+                  {:error, error}
+              end
+            end
           {:error, %Ecto.Changeset{} = changeset} ->
             {:error, changeset}
         end

@@ -80,4 +80,21 @@ defmodule TurnStile.Staff.EmployeeNotifier do
     ==============================
     """)
   end
+  @doc """
+  Deliver instructions to update a employee email.
+  """
+  def deliver_welcome_email_instructions(employee) do
+    deliver(employee.email, "Welcome Email", """
+
+    ==============================
+
+    Hi #{employee.email},
+
+    Weclome to TurnStile! Your login email is #{employee.email}.
+
+    If you didn't request this account, please ignore this email.
+
+    ==============================
+    """)
+  end
 end

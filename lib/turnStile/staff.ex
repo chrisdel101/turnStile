@@ -277,6 +277,14 @@ defmodule TurnStile.Staff do
   end
 
   @doc """
+  Delivers the welcome email. Use when EMPLOYEE_CONFIRM_REQ != "true"
+
+  """
+  def deliver_employee_welcome_email(%Employee{} = employee, _confirmation_url_fun) do
+        EmployeeNotifier.deliver_welcome_email_instructions(employee)
+  end
+
+  @doc """
   Confirms a employee by the given token.
 
   If the token matches, the employee account is marked as confirmed
