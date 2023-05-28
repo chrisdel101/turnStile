@@ -51,10 +51,10 @@ defmodule TurnStile.Staff do
 
   ## Examples
 
-      iex> get_employee!(123)
+      iex> get_employee(123)
       %Employee{}
 
-      iex> get_employee!(456)
+      iex> get_employee(456)
       ** (Ecto.NoResultsError)
 
   """
@@ -441,7 +441,7 @@ defmodule TurnStile.Staff do
 
   """
   def create_employee(%Employee{} = employee, attrs \\ %{}) do
-    Employee.changeset(employee, attrs)
+    Employee.creation_changeset(employee, attrs)
   end
 
 
@@ -492,6 +492,7 @@ defmodule TurnStile.Staff do
   def change_employee(%Employee{} = employee, attrs \\ %{}) do
     Employee.changeset(employee, attrs)
   end
+
 
    @doc """
   Checks if there is entry with both org_id and employee_id. Returns id of entry row, else nil

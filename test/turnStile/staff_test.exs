@@ -35,16 +35,16 @@ defmodule TurnStile.StaffTest do
     end
   end
 
-  describe "get_employee!/1" do
+  describe "get_employee/1" do
     test "raises if id is invalid" do
       assert_raise Ecto.NoResultsError, fn ->
-        Staff.get_employee!(-1)
+        Staff.get_employee(-1)
       end
     end
 
     test "returns the employee with the given id" do
       %{id: id} = employee = employee_fixture()
-      assert %Employee{id: ^id} = Staff.get_employee!(employee.id)
+      assert %Employee{id: ^id} = Staff.get_employee(employee.id)
     end
   end
 
@@ -170,7 +170,7 @@ defmodule TurnStile.StaffTest do
       email = unique_employee_email()
       {:ok, employee} = Staff.apply_employee_email(employee, valid_employee_password(), %{email: email})
       assert employee.email == email
-      assert Staff.get_employee!(employee.id).email != email
+      assert Staff.get_employee(employee.id).email != email
     end
   end
 
@@ -518,9 +518,9 @@ defmodule TurnStile.StaffTest do
       assert Staff.list_all_employees() == [employee]
     end
 
-    test "get_employee!/1 returns the employee with given id" do
+    test "get_employee/1 returns the employee with given id" do
       employee = employee_fixture()
-      assert Staff.get_employee!(employee.id) == employee
+      assert Staff.get_employee(employee.id) == employee
     end
 
     test "create_employee/1 with valid data creates a employee" do
@@ -543,13 +543,13 @@ defmodule TurnStile.StaffTest do
     test "update_employee/2 with invalid data returns error changeset" do
       employee = employee_fixture()
       assert {:error, %Ecto.Changeset{}} = Staff.update_employee(employee, @invalid_attrs)
-      assert employee == Staff.get_employee!(employee.id)
+      assert employee == Staff.get_employee(employee.id)
     end
 
     test "delete_employee/1 deletes the employee" do
       employee = employee_fixture()
       assert {:ok, %Employee{}} = Staff.delete_employee(employee)
-      assert_raise Ecto.NoResultsError, fn -> Staff.get_employee!(employee.id) end
+      assert_raise Ecto.NoResultsError, fn -> Staff.get_employee(employee.id) end
     end
 
     test "change_employee/1 returns a employee changeset" do

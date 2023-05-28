@@ -59,8 +59,10 @@ defmodule TurnStileWeb.EmployeeController do
 
   # updates name, etc not email/PW
   def update(conn, %{"id" => id, "employee" => employee_params}) do
+    IO.inspect("HERE")
+    IO.inspect(employee_params)
     # look up employee - could also use session
-    employee = Staff.get_employee!(id)
+    employee = Staff.get_employee(id)
 # update automatically - framework uses changeset
     case Staff.update_employee(employee, employee_params) do
       {:ok, employee} ->
@@ -70,12 +72,14 @@ defmodule TurnStileWeb.EmployeeController do
         employee_path(conn, :show, employee.organization_id, employee.id))
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        IO.inspect("ERROR")
+        IO.inspect(changeset)
         render(conn, "edit.html", employee: employee, changeset: changeset)
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    employee = Staff.get_employee!(id)
+    employee = Staff.get_employee(id)
     {:ok, _employee} = Staff.delete_employee(employee)
 
     conn

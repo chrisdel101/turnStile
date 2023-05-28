@@ -76,7 +76,7 @@ defmodule TurnStileWebEmployeeConfirmationControllerTest do
       conn = post(conn, Routes.employee_confirmation_path(conn, :update, token))
       assert redirected_to(conn) == "/"
       assert get_flash(conn, :info) =~ "Employee confirmed successfully"
-      assert Staff.get_employee!(employee.id).confirmed_at
+      assert Staff.get_employee(employee.id).confirmed_at
       refute get_session(conn, :employee_token)
       assert Repo.all(Staff.EmployeeToken) == []
 
@@ -99,7 +99,7 @@ defmodule TurnStileWebEmployeeConfirmationControllerTest do
       conn = post(conn, Routes.employee_confirmation_path(conn, :update, "oops"))
       assert redirected_to(conn) == "/"
       assert get_flash(conn, :error) =~ "Employee confirmation link is invalid or it has expired"
-      refute Staff.get_employee!(employee.id).confirmed_at
+      refute Staff.get_employee(employee.id).confirmed_at
     end
   end
 end

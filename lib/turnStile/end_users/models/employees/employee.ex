@@ -23,15 +23,21 @@ defmodule TurnStile.Staff.Employee do
     timestamps()
   end
 
+  #should be used for changing employee info - no fields reqirments
+  def changeset(employee, attrs, _opts \\ []) do
+    employee
+    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password])
+  end
 
   #should be used for changing employee info - no password input
-  def changeset(employee, attrs, opts \\ []) do
+  def creation_changeset(employee, attrs, opts \\ []) do
     employee
     |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
   end
+
 
   @doc """
   A employee changeset for registration.
