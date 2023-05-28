@@ -4,11 +4,11 @@ defmodule TurnStileWeb.Plugs.EmptyParams do
   def init(default), do: default
 
   def call(conn, _params) do
-    empty_seesion_by_key(conn)
+    empty_session_by_key(conn)
   end
 
   # fire when query str empty=true
-  def empty_seesion_by_key(conn) do
+  def empty_session_by_key(conn) do
   #  check for query param flags,; check exists in sessions
     if Map.has_key?(conn.query_params, "emptyParams") &&
      conn.query_params["emptyParams"] == "true" &&

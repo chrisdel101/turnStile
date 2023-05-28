@@ -92,7 +92,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
       # create_initial_owner(conn, %{"employee" => employee_params})
     else
       organization_id = conn.path_params["id"]
-      # if n  o org_id found flash error
+      # if no org_id found flash error
       if !organization_id do
         conn
         |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")

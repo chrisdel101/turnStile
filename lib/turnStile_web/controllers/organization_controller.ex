@@ -60,7 +60,7 @@ defmodule TurnStileWeb.OrganizationController do
             conn = assign(conn, :org_form_submitted, true)
             render(conn, "new.html", changeset: employee_changeset)
           else
-            employee_changeset = Staff.change_employee(%Employee{})
+            employee_changeset = Staff.create_employee(%Employee{})
 
             # add org params to sessions
             conn = Plug.Conn.put_session(conn, :org_params, org_params)

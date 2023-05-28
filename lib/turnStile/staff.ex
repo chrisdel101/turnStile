@@ -446,7 +446,7 @@ defmodule TurnStile.Staff do
 
 
   @doc """
-  Updates a employee.
+  Updates a employee. Used changeset with no validations
 
   ## Examples
 
