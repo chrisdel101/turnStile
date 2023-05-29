@@ -213,6 +213,64 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
   end
 
+  # check if employee is owner, admin, or developer
+  def require_write_access_employee(conn, _params) do
+    current_employee = conn.assigns[:current_employee]
+    IO.inspect(current_employee)
+    if !current_employee do
+      conn
+      |> maybe_store_return_to()
+      |> redirect(to: Routes.organization_employee_path(conn, :index,9))
+      |> halt()
+    else
+      role_value = TurnStile.Utils.convert_to_int(current_employee.role_value)
+      IO.inspect(conn.assigns)
+      IO.inspect(role_value)
+      IO.inspect(role_value <= 3)
+      if role_value <= 3 do
+        conn
+      else
+        IO.inspect("TTTTTTTT")
+        conn
+        |> put_flash(:error, "Insufficient permissions to access this page.")
+        |> maybe_store_return_to()
+        |> redirect(to: Routes.organization_employee_path(conn, :index,9))
+        |> halt()
+      end
+    end
+  end
+
+  # check current employee has greater persmissions to edit
+  def is_employee_updatable?(conn, employee_to_update) do
+    # check employee trying to edit
+    current_employee = conn.assigns[:current_employee]
+
+    if !current_employee do
+      false
+    else
+      if current_employee.role_value === to_string(EmployeePermissionGroups.get_persmission_value("owner"))
+      do
+        # owner has full access
+        true
+      else
+        current_user_permission =
+          TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
+
+        # check level of user being createdd
+        registrant_permissions =
+          TurnStile.PermissionsUtils.get_employee_permissions_level(employee_to_update.role)
+
+        # current must be LESS to edit
+        if current_user_permission <
+        registrant_permissions do
+          true
+        else
+          false
+        end
+      end
+    end
+  end
+
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :employee_return_to, current_path(conn))
   end

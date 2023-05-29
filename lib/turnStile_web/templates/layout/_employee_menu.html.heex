@@ -5,7 +5,7 @@
     <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit,   @conn.assigns[:current_organization_id_str]) %></li>
 
     <!--employee level can register new staff -->
-    <%= if TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) <= EmployeePermissionGroups.get_persmission_value("employee") do %>
+    <%= if TurnStile.PermissionsUtils.get_employee_permissions_level(String.to_atom((@current_employee.role))) <= EmployeePermissionGroups.get_persmission_value("employee") do %>
         <li><%= link "Register New Staff", to: Routes.employee_registration_path(@conn, :new, @conn.assigns[:current_organization_id_str]) %></li>
     <% end %>
 

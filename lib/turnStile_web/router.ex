@@ -100,11 +100,12 @@ defmodule TurnStileWeb.Router do
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
 
+
   scope "/", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_employee]
 
     resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do #OK: edit, delete, update
-      resources "/employees", EmployeeController, except: [:new] #new is removed - use register instead
+      resources "/employees", EmployeeController, except: [:new, :edit, :update]
     end
 
     # get "/organizations/:id/employees/:id", EmployeeController, :show
@@ -122,6 +123,15 @@ defmodule TurnStileWeb.Router do
     live "/organizations/:organization_id/employees/:employee_id/users/:user_id",
          UserLive.Show,
          :show
+  end
+
+  # employee edit and update req write access
+  scope "/organizations/:organization_id/employees/:id", TurnStileWeb do
+    pipe_through [:browser, :require_authenticated_employee,
+    :require_write_access_employee]
+
+    get "/edit", EmployeeController, :edit
+    put "/edit", EmployeeController, :update
   end
 
   # /organizations non_authenciated

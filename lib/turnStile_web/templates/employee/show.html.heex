@@ -6,10 +6,10 @@
     <li>Org: <%= Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str") %></li>
     <li>
       Permission Level:
-    <%= TurnStile.Utils.get_employee_permissions_level(String.to_atom((@current_employee.role))) %>
+    <%= TurnStile.PermissionsUtils.get_employee_permissions_level(String.to_atom((@current_employee.role))) %>
     </li>
 
 </ul>
 
-<span><%= link "Edit", to: Routes.organization_employee_path(@conn, :edit,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"),@current_employee.id) %></span> |
+<span><%= link "Edit", to: Routes.employee_path(@conn, :edit,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"),@current_employee.id) %></span> |
 <span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str")) %></span>
