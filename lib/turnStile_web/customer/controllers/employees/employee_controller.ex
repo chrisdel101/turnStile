@@ -6,8 +6,7 @@ defmodule TurnStileWeb.EmployeeController do
   # def new - removed: Use /employess/register instead
 
   def index(conn, _params) do
-    organization_id =
-      get_session(conn)["current_organization_id_str"] || conn.params["organization_id"]
+    organization_id = conn.params["organization_id"]
 
     if !organization_id do
       conn
@@ -68,14 +67,20 @@ defmodule TurnStileWeb.EmployeeController do
     )
   end
 
-  # updates fields related to employee organization only - see settings for others
+  @doc """
+  Updates organization-only related fields
+  - require_authenticated_employee
+  - require_write_access_employee
+  - is_employee_updatable?
+
+  """
   def update(conn, %{"id" => id, "employee" => employee_params}) do
     IO.inspect("HERE")
     IO.inspect(employee_params)
     # look up employee that is being edited
     employee_to_update = Staff.get_employee(id)
 
-    if !is_employee_updatable?(conn, employee_to_update) do
+    if !TurnStileWeb.EmployeeAuth.is_employee_updatable?(conn, employee_to_update) do
       conn
       |> put_flash(:error, "Error in employee edit. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))
@@ -109,32 +114,5 @@ defmodule TurnStileWeb.EmployeeController do
     conn
     |> put_flash(:info, "Employee deleted successfully.")
     |> redirect(to: Routes.employee_path(conn, :index))
-  end
-
-  # check current employee has permissions to update employee
-  defp is_employee_updatable?(conn, employee_to_update) do
-    # check employee doing the creating permissions
-    current_employee = conn.assigns[:current_employee]
-
-    if !current_employee do
-      conn
-      |> put_flash(:error, "Error in update. Make sure you are logged in.")
-      |> redirect(to: Routes.organization_path(conn, :index))
-    else
-      current_user_permission =
-        TurnStile.Utils.get_employee_permissions_level(current_employee.role)
-
-      # check level of user being createdd
-      registrant_permissions =
-        TurnStile.Utils.get_employee_permissions_level(employee_to_update.role)
-
-      # check perms - only register permissions level >= self -> lower numb is higher perms
-      if registrant_permissions >
-           current_user_permission do
-        true
-      else
-        false
-      end
-    end
   end
 end

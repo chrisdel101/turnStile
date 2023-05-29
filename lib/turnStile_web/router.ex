@@ -197,18 +197,9 @@ defmodule TurnStileWeb.Router do
     put "/settings", AdminSettingsController, :update
     get "/settings/confirm_email/:token", AdminSettingsController, :confirm_email
 
-    resources "/", AdminController, except: [:new, :index]
+    resources "/admins", AdminController, except: [:new]
     get "/", AdminController, :home
 
   end
 
-
-  # admins index page - list all admins
-  scope "/admins", TurnStileWeb do
-    pipe_through [:browser,
-    :require_authenticated_admin,
-    #:require_client_admin
-    ]
-    get "/", AdminController, :index
-  end
 end

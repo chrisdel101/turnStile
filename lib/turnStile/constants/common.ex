@@ -1,3 +1,5 @@
+# TODO - remove enum  where not enum
+# - leaving for now since easier to search for RouteTypesEnum than just RouteTypes
 defmodule RouteTypesEnum do
   @moduledoc """
   Route Types.
@@ -5,10 +7,15 @@ defmodule RouteTypesEnum do
    - Types are used to determine what type of route is being accessing by a client.
   ex /admin or not-/admin
   """
-  @route_types ["admin", "non-admins"]
+  @route_types %{
+    "ADMIN" => "admin",
+    "NON-ADMIN" => "non-admin"
+  }
   def get_route_types do
-    # getter
     @route_types
+  end
+  def get_route_type_value(key) do
+    Map.get(@route_types, key)
   end
 end
 

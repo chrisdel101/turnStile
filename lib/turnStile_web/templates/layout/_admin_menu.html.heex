@@ -1,7 +1,10 @@
 <ul>
-<%= if @current_admin do %>
-  <li><%= @current_admin.email %></li>
-  <li><%= link "Settings", to: Routes.admin_settings_path(@conn, :edit) %></li>
-  <li><%= link "Log out", to: Routes.admin_session_path(@conn, :delete), method: :delete %></li>
-<% end %>
+  <%= if @conn.assigns.route_type === RouteTypesEnum.get_route_type_value("ADMIN")  do %>
+    <%= if @current_admin do %>
+      <li><%= @current_admin.email %></li>
+      <li><%= link "Settings", to: Routes.admin_settings_path(@conn, :edit) %></li>
+      <li><%= link "Log out", to: Routes.admin_session_path(@conn, :delete), method: :delete %></li>
+    <% end %>
+    <li><%= link "Login", to: "/organizations/search" %></li>
+  <% end %>
 </ul>

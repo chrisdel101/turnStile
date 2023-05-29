@@ -38,11 +38,11 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
       else
         # check employee doing the creating permissions
         current_user_permission =
-          TurnStile.Utils.get_employee_permissions_level(current_employee.role)
+          TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
 
         # check level of user being createdd
         registrant_permissions =
-          TurnStile.Utils.get_employee_permissions_level(Map.get(employee_params, "role"))
+          TurnStile.PermissionsUtils.get_employee_permissions_level(Map.get(employee_params, "role"))
 
         # check perms - only register permissions level >= self -> lower numb is higher perms
         if registrant_permissions >
@@ -109,11 +109,11 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
       else
         # check employee doing the creating permissions
         current_user_permission =
-          TurnStile.Utils.get_employee_permissions_level(current_employee.role)
+          TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
 
         # check level of user being createdd
         registrant_permissions =
-          TurnStile.Utils.get_employee_permissions_level(Map.get(employee_params, "role"))
+          TurnStile.PermissionsUtils.get_employee_permissions_level(Map.get(employee_params, "role"))
 
         # check perms - only register permissions level >= self -> lower numb is higher perms
         if registrant_permissions >
