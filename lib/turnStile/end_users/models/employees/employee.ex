@@ -7,6 +7,7 @@ defmodule TurnStile.Staff.Employee do
     field :first_name, :string
     field :last_name, :string
     field :role, :string
+    field :role_value, :string
     field :client_type, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -58,11 +59,12 @@ defmodule TurnStile.Staff.Employee do
   """
   def registration_changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role])
+    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role, :role_value])
     |> validate_required([:last_name, :first_name])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
+    |> put_change(:role_value,  to_string(RoleValuesEnum.get_permission_value(attrs["role"])))
     # TODO: mayeb add check for this
     # |> valdiate_has_permissions(employee)
   end

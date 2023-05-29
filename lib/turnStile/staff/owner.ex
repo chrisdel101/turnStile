@@ -6,6 +6,7 @@ defmodule TurnStile.Staff.Owner do
     field :first_name, :string
     field :last_name, :string
     field :employee_id, :id
+    field :role_value, :integer
     # an employees that is an owner
     belongs_to :employees, TurnStile.Staff.Employee
     # all owners within a company - can be owners of multiple companies
