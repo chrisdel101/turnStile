@@ -42,6 +42,8 @@ defmodule AdminNonManagerRolesEnum do
     @roles #getter
   end
 end
+# EmployeePermissionRoles being used to populate DB for both employee and admins
+# TODO - maybe seperate tables if required
 defmodule EmployeePermissionRoles do
   @doc """
    END-USER permission constants.

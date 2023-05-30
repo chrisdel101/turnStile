@@ -6,8 +6,6 @@ defmodule TurnStile.Staff.Employee do
   schema "employees" do
     field :first_name, :string
     field :last_name, :string
-    field :role, :string
-    field :role_value, :string
     field :client_type, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -15,7 +13,9 @@ defmodule TurnStile.Staff.Employee do
     field :confirmed_at, :naive_datetime
     # org has many employees within the company; employees belongs to many orgs
     many_to_many :organizations, TurnStile.Company.Organization, join_through: "organization_employees"
-    # all users created by an employee
+    # employee has one role for many orgs;
+    has_many :roles, TurnStile.Role
+   # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
     has_many :alerts, TurnStile.Alert
@@ -27,13 +27,13 @@ defmodule TurnStile.Staff.Employee do
   #should be used for changing employee info - no fields reqirments
   def changeset(employee, attrs, _opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password])
+    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
   end
 
   #should be used for changing employee info - no password input
   def creation_changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :role, :password, :hashed_password])
+    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
@@ -59,12 +59,12 @@ defmodule TurnStile.Staff.Employee do
   """
   def registration_changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role, :role_value])
+    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name])
     |> validate_required([:last_name, :first_name])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
-    |> put_change(:role_value,  to_string(RoleValuesEnum.get_permission_value(attrs["role"])))
+    # |> put_change(:role_value,  to_string(RoleValuesEnum.get_permission_value(attrs["role"])))
     # TODO: mayeb add check for this
     # |> valdiate_has_permissions(employee)
   end
