@@ -74,29 +74,7 @@ defmodule TurnStile.Staff do
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_owner(attrs, organization) do
-    organization = Repo.preload(organization, :roles)
-    role = Ecto.build_assoc(organization, :roles, %{name: "owner", value: "1"})
-    IO.inspect(organization)
-    IO.inspect(role)
-    Repo.transaction(fn ->
-      %Employee{}
-      |> Employee.registration_changeset(attrs)
-      |> Ecto.Changeset.put_assoc(:roles, [role])
-      |> Repo.insert()
-      |> case do
-        # I'm not sure if this is necessary
-        {:ok, employee} ->
-          Repo.preload(employee, :roles)
-          Repo.preload(employee, :organizations)
-        other -> other
-      end
-
-      # Repo.rollback({:rolling})
-    end)
-  end
-
-  def register_and_preload_employee_new(attrs) do
+  def register_and_preload_employee_new(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
     role_name = attrs["role"] || attrs.role
     # build a Role
@@ -105,34 +83,26 @@ defmodule TurnStile.Staff do
       value: to_string(EmployeePermissionGroups.get_persmission_value(role_name)),
       organization_id: 2
     }
+    # assoc role with organization
+    role = Ecto.build_assoc(organization, :roles, role)
+    # build employee and assoc the role
+    emp_changeset = %Employee{}
+    |> Employee.registration_changeset(attrs)
+    |> Ecto.Changeset.put_assoc(:roles, [role])
+    Repo.transaction(fn ->
+      # insert employee - auto insert role using associations``
+      case Repo.insert(emp_changeset) do
+        {:ok, new_emp} ->
+          emp_preload =
+            Repo.preload(new_emp, :organizations)
+            |> Repo.preload(:roles)
+          {:ok, emp_preload}
+        {:error, error} ->
+          {:error, error}
+      end
+      Repo.rollback({:rolling})
+    end)
 
-    # bulld Employee changset
-    emp_changeset = Employee.registration_changeset(%Employee{}, attrs)
-    # put_assoc Role on changeset
-    emp_changeset = Ecto.Changeset.put_assoc(emp_changeset, :roles, [role])
-
-    Repo.insert(emp_changeset)
-  end
-
-  def register_and_preload_employee(attrs) do
-    emp_changeset = Employee.registration_changeset(%Employee{}, attrs)
-    # IO.inspect("create_employee")
-    organization_id = attrs["organization_id"] || attrs.organization_id
-    organization = Company.get_organization(organization_id)
-    IO.inspect(organization)
-
-    case Repo.insert(emp_changeset) do
-      {:ok, new_emp} ->
-        emp_preload =
-          Repo.preload(new_emp, :organizations)
-          |> Repo.preload(:roles)
-          |> Repo.preload(:employees)
-
-        {:ok, emp_preload}
-
-      {:error, error} ->
-        {:error, error}
-    end
   end
 
   @doc """
