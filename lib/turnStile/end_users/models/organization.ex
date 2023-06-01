@@ -14,13 +14,6 @@ defmodule TurnStile.Company.Organization do
     has_many :roles, TurnStile.Role
     # org has many owners; owners can have many orgs
     many_to_many :owners, TurnStile.Staff.Owner, join_through: "organization_owners"
-
-    # embeds_one :owner_employee, TurnStile.Staff.Employee do
-    #   field :first_name, :string, virtual: true
-    #   field :last_name, :string, virtual: true
-    #   field :_email, :string, virtual: true
-    #   field :password, :string, virtual: true, redact: true
-    # end
     timestamps()
 
 

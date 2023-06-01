@@ -67,7 +67,7 @@ defmodule TurnStile.Company do
       # IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
-        org_preload = Repo.preload(new_org, :employees)
+        org_preload = Repo.preload(new_org, :employees) |> Repo.preload(:roles)
         # IO.inspect(org_preload)
         {:ok, org_preload}
 

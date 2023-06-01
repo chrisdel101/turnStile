@@ -63,25 +63,16 @@ defmodule TurnStile.Staff do
   ## Employee registration
 
   @doc """
-  Registers a employee.
-
-  ## Examples
-
-      iex> register_and_preload_employee(%{field: value})
-      {:ok, %Employee{}}
-
-      iex> register_and_preload_employee(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+  # Registers a employee assocaited with organizatio and role
 
   """
-  def register_and_preload_employee_new(attrs, organization) do
+  def register_and_preload_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
     role_name = attrs["role"] || attrs.role
     # build a Role
     role = %TurnStile.Role{
       name: "developer",
-      value: to_string(EmployeePermissionGroups.get_persmission_value(role_name)),
-      organization_id: 2
+      value: to_string(EmployeePermissionGroups.get_persmission_value(role_name))
     }
     # assoc role with organization
     role = Ecto.build_assoc(organization, :roles, role)
@@ -89,7 +80,7 @@ defmodule TurnStile.Staff do
     emp_changeset = %Employee{}
     |> Employee.registration_changeset(attrs)
     |> Ecto.Changeset.put_assoc(:roles, [role])
-    Repo.transaction(fn ->
+    # Repo.transaction(fn ->
       # insert employee - auto insert role using associations``
       case Repo.insert(emp_changeset) do
         {:ok, new_emp} ->
@@ -100,8 +91,8 @@ defmodule TurnStile.Staff do
         {:error, error} ->
           {:error, error}
       end
-      Repo.rollback({:rolling})
-    end)
+    #   Repo.rollback({:rolling})
+    # end)
 
   end
 
