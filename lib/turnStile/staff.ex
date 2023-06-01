@@ -58,7 +58,7 @@ defmodule TurnStile.Staff do
       ** (Ecto.NoResultsError)
 
   """
-  def get_employee(id), do: Repo.get(Employee, id)
+  def get_employee(id), do: Repo.get(Employee, id) |> Repo.preload(:roles)
 
   ## Employee registration
 
@@ -458,7 +458,7 @@ defmodule TurnStile.Staff do
           where: e.id in ^ids,
           select: e
 
-      Repo.all(q)
+      Repo.all(q) |> Repo.preload(:roles)
     else
       []
     end
