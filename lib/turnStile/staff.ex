@@ -74,6 +74,28 @@ defmodule TurnStile.Staff do
       {:error, %Ecto.Changeset{}}
 
   """
+  def register_owner(attrs, organization) do
+    organization = Repo.preload(organization, :roles)
+    role = Ecto.build_assoc(organization, :roles, %{name: "owner", value: "1"})
+    IO.inspect(organization)
+    IO.inspect(role)
+    Repo.transaction(fn ->
+      %Employee{}
+      |> Employee.registration_changeset(attrs)
+      |> Ecto.Changeset.put_assoc(:roles, [role])
+      |> Repo.insert()
+      |> case do
+        # I'm not sure if this is necessary
+        {:ok, employee} ->
+          Repo.preload(employee, :roles)
+          Repo.preload(employee, :organizations)
+        other -> other
+      end
+
+      # Repo.rollback({:rolling})
+    end)
+  end
+
   def register_and_preload_employee_new(attrs) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
     role_name = attrs["role"] || attrs.role
@@ -81,15 +103,15 @@ defmodule TurnStile.Staff do
     role = %TurnStile.Role{
       name: "developer",
       value: to_string(EmployeePermissionGroups.get_persmission_value(role_name)),
-      organization_id: attrs["organization_id"]
+      organization_id: 2
     }
+
     # bulld Employee changset
     emp_changeset = Employee.registration_changeset(%Employee{}, attrs)
     # put_assoc Role on changeset
     emp_changeset = Ecto.Changeset.put_assoc(emp_changeset, :roles, [role])
 
     Repo.insert(emp_changeset)
-
   end
 
   def register_and_preload_employee(attrs) do
@@ -105,6 +127,7 @@ defmodule TurnStile.Staff do
           Repo.preload(new_emp, :organizations)
           |> Repo.preload(:roles)
           |> Repo.preload(:employees)
+
         {:ok, emp_preload}
 
       {:error, error} ->
@@ -517,7 +540,6 @@ defmodule TurnStile.Staff do
   def update_employee(employee) do
     u_employee = Ecto.Changeset.change(employee)
     Repo.update(u_employee)
-
   end
 
   @doc """
