@@ -10,7 +10,7 @@ defmodule TurnStile.Company.Organization do
     field :phone, :string
     # org has many employees; employees can belong to many organiztions (mostly for owners)
     many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employees"
-    has_many :roles, TurnStile.Role
+    # has_many :roles, TurnStile.Role
     # org has many owners; owners can have many orgs
     many_to_many :owners, TurnStile.Staff.Owner, join_through: "organization_owners"
 

@@ -74,17 +74,41 @@ defmodule TurnStile.Staff do
       {:error, %Ecto.Changeset{}}
 
   """
+  def register_and_preload_employee_new(attrs) do
+    # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
+    role_name = attrs["role"] || attrs.role
+    # build a Role
+    role = %TurnStile.Role{
+      name: "developer",
+      value: to_string(EmployeePermissionGroups.get_persmission_value(role_name)),
+      organization_id: attrs["organization_id"]
+    }
+    # bulld Employee changset
+    emp_changeset = Employee.registration_changeset(%Employee{}, attrs)
+    # put_assoc Role on changeset
+    emp_changeset = Ecto.Changeset.put_assoc(emp_changeset, :roles, [role])
+
+    Repo.insert(emp_changeset)
+
+  end
+
   def register_and_preload_employee(attrs) do
     emp_changeset = Employee.registration_changeset(%Employee{}, attrs)
-      # IO.inspect("create_employee")
-      # IO.inspect(emp_changeset)
+    # IO.inspect("create_employee")
+    organization_id = attrs["organization_id"] || attrs.organization_id
+    organization = Company.get_organization(organization_id)
+    IO.inspect(organization)
+
     case Repo.insert(emp_changeset) do
       {:ok, new_emp} ->
-        emp_preload = Repo.preload(new_emp, :organizations)
+        emp_preload =
+          Repo.preload(new_emp, :organizations)
+          |> Repo.preload(:roles)
+          |> Repo.preload(:employees)
         {:ok, emp_preload}
+
       {:error, error} ->
         {:error, error}
-
     end
   end
 
@@ -163,7 +187,10 @@ defmodule TurnStile.Staff do
 
     Ecto.Multi.new()
     |> Ecto.Multi.update(:employee, changeset)
-    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, [context]))
+    |> Ecto.Multi.delete_all(
+      :tokens,
+      EmployeeToken.employee_and_contexts_query(employee, [context])
+    )
   end
 
   @doc """
@@ -175,12 +202,21 @@ defmodule TurnStile.Staff do
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_update_email_instructions(%Employee{} = employee, current_email, update_email_url_fun)
+  def deliver_update_email_instructions(
+        %Employee{} = employee,
+        current_email,
+        update_email_url_fun
+      )
       when is_function(update_email_url_fun, 1) do
-    {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "change:#{current_email}")
+    {encoded_token, employee_token} =
+      EmployeeToken.build_email_token(employee, "change:#{current_email}")
 
     Repo.insert!(employee_token)
-    EmployeeNotifier.deliver_update_email_instructions(employee, update_email_url_fun.(encoded_token))
+
+    EmployeeNotifier.deliver_update_email_instructions(
+      employee,
+      update_email_url_fun.(encoded_token)
+    )
   end
 
   @doc """
@@ -272,7 +308,11 @@ defmodule TurnStile.Staff do
     else
       {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "confirm")
       Repo.insert!(employee_token)
-      EmployeeNotifier.deliver_confirmation_instructions(employee, confirmation_url_fun.(encoded_token))
+
+      EmployeeNotifier.deliver_confirmation_instructions(
+        employee,
+        confirmation_url_fun.(encoded_token)
+      )
     end
   end
 
@@ -281,7 +321,7 @@ defmodule TurnStile.Staff do
 
   """
   def deliver_employee_welcome_email(%Employee{} = employee) do
-        EmployeeNotifier.deliver_welcome_email_instructions(employee)
+    EmployeeNotifier.deliver_welcome_email_instructions(employee)
   end
 
   @doc """
@@ -303,7 +343,10 @@ defmodule TurnStile.Staff do
   defp confirm_employee_multi(employee) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:employee, Employee.confirm_changeset(employee))
-    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, ["confirm"]))
+    |> Ecto.Multi.delete_all(
+      :tokens,
+      EmployeeToken.employee_and_contexts_query(employee, ["confirm"])
+    )
   end
 
   ## Reset password
@@ -321,7 +364,11 @@ defmodule TurnStile.Staff do
       when is_function(reset_password_url_fun, 1) do
     {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "reset_password")
     Repo.insert!(employee_token)
-    EmployeeNotifier.deliver_reset_password_instructions(employee, reset_password_url_fun.(encoded_token))
+
+    EmployeeNotifier.deliver_reset_password_instructions(
+      employee,
+      reset_password_url_fun.(encoded_token)
+    )
   end
 
   @doc """
@@ -396,18 +443,21 @@ defmodule TurnStile.Staff do
   """
   def list_employee_ids_by_organization(organization_id) do
     if not is_nil(organization_id) do
-      q = from o in "organization_employees",
-      join: o1 in "organizations",
-      on: o.organization_id == o1.id,
-      join: e in "employees",
-      on: o.employee_id == e.id,
-      where: o1.id == ^organization_id,
-      select: e.id
+      q =
+        from o in "organization_employees",
+          join: o1 in "organizations",
+          on: o.organization_id == o1.id,
+          join: e in "employees",
+          on: o.employee_id == e.id,
+          where: o1.id == ^organization_id,
+          select: e.id
+
       Repo.all(q)
     else
       []
     end
   end
+
   @doc """
   Find all ids in employees table and return list of employees.
 
@@ -419,9 +469,11 @@ defmodule TurnStile.Staff do
   """
   def list_employees_by_ids(ids) do
     if not is_nil(ids) do
-      q = from e in Employee,
-      where: e.id in ^ids,
-      select: e
+      q =
+        from e in Employee,
+          where: e.id in ^ids,
+          select: e
+
       Repo.all(q)
     else
       []
@@ -444,7 +496,6 @@ defmodule TurnStile.Staff do
     Employee.creation_changeset(employee, attrs)
   end
 
-
   @doc """
   Updates a employee. Used changeset with no validations
 
@@ -461,6 +512,11 @@ defmodule TurnStile.Staff do
     employee
     |> Employee.changeset(attrs)
     |> Repo.update()
+  end
+
+  def update_employee(employee) do
+    u_employee = Ecto.Changeset.change(employee)
+    Repo.update(u_employee)
 
   end
 
@@ -493,8 +549,7 @@ defmodule TurnStile.Staff do
     Employee.changeset(employee, attrs)
   end
 
-
-   @doc """
+  @doc """
   Checks if there is entry with both org_id and employee_id. Returns id of entry row, else nil
 
   ## Examples
@@ -507,11 +562,16 @@ defmodule TurnStile.Staff do
     if !is_nil(organization_id) && !is_nil(employee) do
       organization_id = TurnStile.Utils.convert_to_int(organization_id)
       organization = Company.get_organization(organization_id)
-      employee_id = TurnStile.Utils.convert_to_int(Map.get(employee, :id) || Map.get(employee, "id"))
+
+      employee_id =
+        TurnStile.Utils.convert_to_int(Map.get(employee, :id) || Map.get(employee, "id"))
+
       if organization do
-        q = from o in "organization_employees",
-          where: o.employee_id == ^employee_id and o.organization_id == ^organization_id,
-          select: o.id
+        q =
+          from o in "organization_employees",
+            where: o.employee_id == ^employee_id and o.organization_id == ^organization_id,
+            select: o.id
+
         Repo.one(q)
       end
     else

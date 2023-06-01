@@ -96,6 +96,12 @@ defmodule TurnStile.Company do
     |> Organization.changeset(attrs)
     |> Repo.update()
   end
+# same as above but takes a formed struct
+  def update_organization(organization) do
+    u_organization = Ecto.Changeset.change(organization)
+    u = Repo.update(u_organization)
+    IO.inspect(u)
+  end
 
   # takes a formed changeset and updates table
   def update_organization_changeset(org_changeset) do

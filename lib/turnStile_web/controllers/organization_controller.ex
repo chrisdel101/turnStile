@@ -85,7 +85,7 @@ defmodule TurnStileWeb.OrganizationController do
   def create(conn, employee_params) do
     # extract params from session
     current_employee = conn.assigns[:current_employee]
-    org_params = Map.get(Plug.Conn.get_session(conn), "org_params")
+    org_params = Map.get(get_session(conn), "org_params")
     # add organization
     case Company.create_and_preload_organization(org_params) do
       {:ok, organization} ->

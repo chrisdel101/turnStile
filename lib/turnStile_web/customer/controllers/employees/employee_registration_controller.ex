@@ -176,7 +176,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         employee_params =
           employee_params
           |> Map.put("organization_id", organization_id)
-          |> Map.put("role", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
+          |> Map.put("roles", [to_string(hd(EmployeeManagerRolesEnum.get_roles()))])
 
         case Staff.register_and_preload_employee(employee_params) do
           {:ok, employee} ->

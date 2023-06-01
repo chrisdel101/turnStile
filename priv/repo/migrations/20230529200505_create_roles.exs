@@ -9,11 +9,14 @@ defmodule TurnStile.Repo.Migrations.CreateRoles do
     create table(:roles) do
       add :name, :employee_role, null: false
       add :value, :employee_role_value, null: false
-      add :organization_id, references(:organizations)
-      add :employee_id, references(:employees)
+      add :organization_id, :integer
+      add :employee_id, references(:employees),  null: false
 
 
       timestamps()
     end
+  end
+  def down do
+    drop table(:roles)
   end
 end
