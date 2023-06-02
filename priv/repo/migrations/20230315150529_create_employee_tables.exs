@@ -14,8 +14,9 @@ defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
       add :last_name, :string
       # role/client_type created above - each needs two diff names
       add :client_type, :employee_client_type, null: false, default: ClientTypesEnum.get_client_type_value("employee")
-      # add :role, :employee_role, null: false
-      # add :role_value, :employee_role_value
+      add :current_organization_login_id, :integer
+      add :role_value_on_current_organization, :integer
+      add :is_logged_in?, :boolean
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime

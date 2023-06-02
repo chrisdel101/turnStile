@@ -40,14 +40,13 @@ defmodule TurnStile.Staff do
   """
   def get_employee_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    employee = Repo.get_by(Employee, email: email)
+    employee = Repo.get_by(Employee, email: email) |> Repo.preload(:roles)
     if Employee.valid_password?(employee, password), do: employee
   end
 
   @doc """
   Gets a single employee.
 
-  Raises `Ecto.NoResultsError` if the Employee does not exist.
 
   ## Examples
 
@@ -59,6 +58,24 @@ defmodule TurnStile.Staff do
 
   """
   def get_employee(id), do: Repo.get(Employee, id) |> Repo.preload(:roles)
+
+  @doc """
+  Gets role on current organization.
+
+  """
+
+  def get_organization_role(employee, organization_id) do
+    if is_nil(employee) || is_nil(organization_id) do
+      IO.puts("get_organization_role: nil input")
+      nil
+    else
+      q = from r in TurnStile.Role,
+        where: r.organization_id == ^organization_id,
+        where: r.employee_id == ^employee.id,
+        select: r
+      Repo.one(q)
+    end
+  end
 
   ## Employee registration
 
@@ -98,7 +115,9 @@ defmodule TurnStile.Staff do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking employee registration changes.
-  Used to create new employees via register
+  Used to change employees via register.
+  - hash_password: false
+
 
   ## Examples
 
@@ -477,7 +496,7 @@ defmodule TurnStile.Staff do
 
   """
   def create_employee(%Employee{} = employee, attrs \\ %{}) do
-    Employee.creation_changeset(employee, attrs)
+    Employee.creation_form_changeset(employee, attrs)
   end
 
   @doc """
@@ -529,7 +548,7 @@ defmodule TurnStile.Staff do
 
   """
   def change_employee(%Employee{} = employee, attrs \\ %{}) do
-    Employee.changeset(employee, attrs)
+    Employee.changeset(employee, attrs, hashed_password: false)
   end
 
   @doc """
@@ -561,6 +580,27 @@ defmodule TurnStile.Staff do
       IO.inspect("Error in check_employee_is_in_organization. Inputs are nil")
       nil
     end
+  end
+  # sets the role fields when employee is logged in
+  def set_employee_role(employee, organization_id) do
+    # IO.inspect(employee)
+    # IO.inspect(organization_id)
+    role = get_organization_role(employee, organization_id)
+    change_params =  %{
+    role_value_on_current_organization: role.value, current_organization_login_id: organization_id
+    }
+    changeset =  change_employee(employee, change_params)
+    Repo.update(changeset)
+  end
+  # sets is_logged_in? employee flag to true
+  def set_is_logged_in(employee) do
+    change_employee(employee, %{is_logged_in?: true})
+    |> Repo.update()
+  end
+ # sets is_logged_in? employee flag to false
+  def unset_is_logged_in(employee) do
+    change_employee(employee, %{is_logged_in?: false})
+    |> Repo.update()
   end
 
   alias TurnStile.Staff.Owner

@@ -2,7 +2,6 @@ defmodule TurnStile.Staff.Employee do
   use Ecto.Schema
   import Ecto.Changeset
 
-
   schema "employees" do
     field :first_name, :string
     field :last_name, :string
@@ -11,11 +10,19 @@ defmodule TurnStile.Staff.Employee do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+
+    # set these fields at login
+    field :current_organization_login_id, :integer, default: nil
+    field :role_value_on_current_organization, :integer, default: nil
+    field :is_logged_in?, :boolean, default: false
+
     # org has many employees within the company; employees belongs to many orgs
-    many_to_many :organizations, TurnStile.Company.Organization, join_through: "organization_employees"
+    many_to_many :organizations, TurnStile.Company.Organization,
+      join_through: "organization_employees"
+
     # employee has one role for many orgs;
     has_many :roles, TurnStile.Role
-   # all users created by an employee
+    # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
     has_many :alerts, TurnStile.Alert
@@ -24,14 +31,14 @@ defmodule TurnStile.Staff.Employee do
     timestamps()
   end
 
-  #should be used for changing employee info - no fields reqirments
+  # should be used for changing employee info - NOT during registration
   def changeset(employee, attrs, _opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
+    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password, :current_organization_login_id, :role_value_on_current_organization, :is_logged_in?])
   end
 
-  #should be used for changing employee info - no password input
-  def creation_changeset(employee, attrs, opts \\ []) do
+  # used for building a form when registering/creating
+  def creation_form_changeset(employee, attrs, opts \\ []) do
     employee
     |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
     |> validate_email()
@@ -39,6 +46,14 @@ defmodule TurnStile.Staff.Employee do
     |> hash_password(opts)
   end
 
+  # used for building a form when registering/creating
+  def updating_changeset(employee, attrs, opts \\ []) do
+    employee
+    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
+    |> validate_email()
+    |> validate_password(opts)
+    |> hash_password(opts)
+  end
 
   @doc """
   A employee changeset for registration.
@@ -59,11 +74,21 @@ defmodule TurnStile.Staff.Employee do
   """
   def registration_changeset(employee, attrs, opts \\ []) do
     employee
-    |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name])
+    |> cast(attrs, [
+      :email,
+      :password,
+      :hashed_password,
+      :last_name,
+      :first_name,
+      :role_value_on_current_organization,
+      :is_logged_in?,
+      :current_organization_login_id
+    ])
     |> validate_required([:last_name, :first_name])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
+
     # |> put_change(:role_value,  to_string(RoleValuesEnum.get_permission_value(attrs["role"])))
     # TODO: mayeb add check for this
     # |> valdiate_has_permissions(employee)
@@ -85,6 +110,7 @@ defmodule TurnStile.Staff.Employee do
     |> validate_required([:password])
     # make it 6 in dev - change back later
     |> validate_length(:password, min: 6, max: 72)
+
     # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
     # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
@@ -100,7 +126,6 @@ defmodule TurnStile.Staff.Employee do
       |> validate_length(:password, max: 72, count: :bytes)
       |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
       |> delete_change(:password)
-
     else
       changeset
     end

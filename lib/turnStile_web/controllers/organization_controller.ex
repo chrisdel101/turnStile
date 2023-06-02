@@ -177,7 +177,6 @@ defmodule TurnStileWeb.OrganizationController do
     end
   end
 
-  # takes ID or name
   def show(conn, %{"id" => id}) do
     organization = Company.get_organization(id)
     if !organization do
@@ -186,6 +185,7 @@ defmodule TurnStileWeb.OrganizationController do
       |> redirect(to: Routes.organization_path(conn, :index))
     else
       members? = organization_has_members?(organization.id)
+      # TODO: make a special login changeset
       changeset = Staff.change_employee(%Employee{})
 
       render(conn, "show.html",
