@@ -69,10 +69,12 @@ defmodule TurnStile.Staff do
       IO.puts("get_organization_role: nil input")
       nil
     else
-      q = from r in TurnStile.Role,
-        where: r.organization_id == ^organization_id,
-        where: r.employee_id == ^employee.id,
-        select: r
+      q =
+        from r in TurnStile.Role,
+          where: r.organization_id == ^organization_id,
+          where: r.employee_id == ^employee.id,
+          select: r
+
       Repo.one(q)
     end
   end
@@ -91,26 +93,31 @@ defmodule TurnStile.Staff do
       name: "developer",
       value: to_string(EmployeePermissionGroups.get_persmission_value(role_name))
     }
+
     # assoc role with organization
     role = Ecto.build_assoc(organization, :roles, role)
     # build employee and assoc the role
-    emp_changeset = %Employee{}
-    |> Employee.registration_changeset(attrs)
-    |> Ecto.Changeset.put_assoc(:roles, [role])
+    emp_changeset =
+      %Employee{}
+      |> Employee.registration_changeset(attrs)
+      |> Ecto.Changeset.put_assoc(:roles, [role])
+
     # Repo.transaction(fn ->
-      # insert employee - auto insert role using associations``
-      case Repo.insert(emp_changeset) do
-        {:ok, new_emp} ->
-          emp_preload =
-            Repo.preload(new_emp, :organizations)
-            |> Repo.preload(:roles)
-          {:ok, emp_preload}
-        {:error, error} ->
-          {:error, error}
-      end
+    # insert employee - auto insert role using associations``
+    case Repo.insert(emp_changeset) do
+      {:ok, new_emp} ->
+        emp_preload =
+          Repo.preload(new_emp, :organizations)
+          |> Repo.preload(:roles)
+
+        {:ok, emp_preload}
+
+      {:error, error} ->
+        {:error, error}
+    end
+
     #   Repo.rollback({:rolling})
     # end)
-
   end
 
   @doc """
@@ -581,31 +588,52 @@ defmodule TurnStile.Staff do
       nil
     end
   end
+
   # sets the role fields when employee is logged in
   def set_employee_role(employee, organization_id) do
     # IO.inspect(employee)
     # IO.inspect(organization_id)
     role = get_organization_role(employee, organization_id)
-    change_params =  %{
-    role_value_on_current_organization: role.value, current_organization_login_id: organization_id
+    # enum types need ints as strings
+    change_params = %{
+      role_on_current_organization: role.name,
+      role_value_on_current_organization: to_string(role.value),
+      current_organization_login_id: organization_id
     }
-    changeset =  change_employee(employee, change_params)
-    Repo.update(changeset)
+
+    IO.inspect(change_params)
+    changeset = change_employee(employee, change_params)
+    IO.inspect("PPPPP")
+    IO.inspect(changeset)
+
+    case Repo.update(changeset) do
+      {:ok, update_emp} ->
+        IO.inspect("ADASDSAD")
+        IO.inspect(update_emp)
+        {:ok, update_emp}
+      {:error, error} ->
+        {:error, error}
+    end
   end
+
   # sets the role fields when employee is logged in
   def unset_employee_role(employee) do
-    change_params =  %{
-    role_value_on_current_organization: nil, current_organization_login_id: nil
+    change_params = %{
+      role_value_on_current_organization: nil,
+      current_organization_login_id: nil
     }
-    changeset =  change_employee(employee, change_params)
+
+    changeset = change_employee(employee, change_params)
     Repo.update(changeset)
   end
+
   # sets is_logged_in? employee flag to true
   def set_is_logged_in(employee) do
     change_employee(employee, %{is_logged_in?: true})
     |> Repo.update()
   end
- # sets is_logged_in? employee flag to false
+
+  # sets is_logged_in? employee flag to false
   def unset_is_logged_in(employee) do
     change_employee(employee, %{is_logged_in?: false})
     |> Repo.update()

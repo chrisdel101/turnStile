@@ -1,13 +1,6 @@
 defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
   use Ecto.Migration
   def change do
-    # https://stackoverflow.com/a/37216214/5972531
-    # execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")
-
-    # execute("create type employee_role_value as enum #{TurnStile.Utils.convert_to_parens_string(Enum.map(RoleValuesEnum.get_permission_role_values(), fn {_key, value} -> value end))}")
-
-    execute("create type employee_client_type as enum #{TurnStile.Utils.convert_to_parens_string(ClientTypesEnum.get_client_types())}")
-    execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:employees) do
       add :first_name, :string
@@ -15,7 +8,8 @@ defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
       # role/client_type created above - each needs two diff names
       add :client_type, :employee_client_type, null: false, default: ClientTypesEnum.get_client_type_value("employee")
       add :current_organization_login_id, :integer
-      add :role_value_on_current_organization, :integer
+      add :role_value_on_current_organization, :employee_role_value
+      add :role_on_current_organization, :employee_role
       add :is_logged_in?, :boolean
       add :email, :citext, null: false
       add :hashed_password, :string, null: false

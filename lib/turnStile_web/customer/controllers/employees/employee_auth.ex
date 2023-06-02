@@ -67,16 +67,24 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
-    Staff.set_employee_role(employee, organization_id)
-    Staff.set_is_logged_in(employee)
-    conn
-    |> renew_session()
-    |> put_session(:employee_token, token)
-    |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
-    |> put_session(:current_organization_id_str, organization_id)
-    |> maybe_write_remember_me_cookie(token, params)
-    |> put_flash(:success, "#{params.flash}. You have been automatically logged in.")
-    |> redirect(to: redirect_path || employee_return_to)
+    case Staff.set_employee_role(employee, organization_id) do
+      {:ok, employee} ->
+        IO.puts("employee")
+        IO.inspect(employee)
+        Staff.set_is_logged_in(employee)
+        conn
+        |> renew_session()
+        |> put_session(:employee_token, token)
+        |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
+        |> put_session(:current_organization_id_str, organization_id)
+        |> maybe_write_remember_me_cookie(token, params)
+        |> put_flash(:success, "#{params.flash}. You have been automatically logged in.")
+        |> redirect(to: redirect_path || employee_return_to)
+      {:error, error} ->
+        # TODO - undo all created DB items
+        IO.puts("error")
+        IO.inspect(error)
+    end
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -246,7 +254,6 @@ defmodule TurnStileWeb.EmployeeAuth do
   def is_employee_updatable?(conn, employee_to_update) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
-
     if !current_employee do
       false
     else
