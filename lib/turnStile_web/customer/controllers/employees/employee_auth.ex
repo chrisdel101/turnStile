@@ -52,6 +52,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> redirect(to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to )
   end
 
+  # logs in directly after being created - TODO diff to above
   def log_in_employee_on_create(conn, employee, organization_id, redirect_path, params \\ %{}) do
     # get org id from url
     # organization_id = Map.get(organization, "id") || Map.get(organization, :id)
@@ -64,9 +65,10 @@ defmodule TurnStileWeb.EmployeeAuth do
       |> put_flash(:error, "An auto-login error occured. Please click login to manually login")
       |> redirect(to: Routes.page_path(conn, :index))
     end
-    # IO.puts("log_in_employee_on_create")
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
+    Staff.set_employee_role(employee, organization_id)
+    Staff.set_is_logged_in(employee)
     conn
     |> renew_session()
     |> put_session(:employee_token, token)
@@ -143,8 +145,8 @@ defmodule TurnStileWeb.EmployeeAuth do
     # IO.inspect(current_organization_id_str)
     conn =  assign(conn,:current_organization_id_str,current_organization_id_str)
     IO.inspect("fetch_current_organization")
-    IO.inspect(conn.params)
-    # IO.inspect(conn)
+    IO.inspect(conn)
+    IO.inspect("session")
     IO.inspect(get_session(conn))
     conn
   end
@@ -220,7 +222,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       conn
       |> maybe_store_return_to()
-      |> redirect(to: Routes.organization_employee_path(conn, :index,9))
+      |> redirect(to: Routes.organization_employee_path(conn, :index, conn.assigns[:current_organization_id_str])|| 0)
       |> halt()
     else
       role_value = TurnStile.Utils.convert_to_int(current_employee.role_value)
@@ -276,6 +278,4 @@ defmodule TurnStileWeb.EmployeeAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
-  # plug
-
 end

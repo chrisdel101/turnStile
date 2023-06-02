@@ -592,6 +592,14 @@ defmodule TurnStile.Staff do
     changeset =  change_employee(employee, change_params)
     Repo.update(changeset)
   end
+  # sets the role fields when employee is logged in
+  def unset_employee_role(employee) do
+    change_params =  %{
+    role_value_on_current_organization: nil, current_organization_login_id: nil
+    }
+    changeset =  change_employee(employee, change_params)
+    Repo.update(changeset)
+  end
   # sets is_logged_in? employee flag to true
   def set_is_logged_in(employee) do
     change_employee(employee, %{is_logged_in?: true})
