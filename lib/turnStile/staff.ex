@@ -594,6 +594,8 @@ defmodule TurnStile.Staff do
     # IO.inspect(employee)
     # IO.inspect(organization_id)
     role = get_organization_role(employee, organization_id)
+    # IO.inspect(role)
+    # IO.inspect(role.name)
     # enum types need ints as strings
     change_params = %{
       role_on_current_organization: role.name,
@@ -601,15 +603,16 @@ defmodule TurnStile.Staff do
       current_organization_login_id: organization_id
     }
 
-    IO.inspect(change_params)
+    # IO.inspect("PPPPP")
+    # IO.inspect(change_params)
     changeset = change_employee(employee, change_params)
-    IO.inspect("PPPPP")
-    IO.inspect(changeset)
+    # IO.inspect("QQQQ")
+    # IO.inspect(changeset)
 
     case Repo.update(changeset) do
       {:ok, update_emp} ->
-        IO.inspect("ADASDSAD")
-        IO.inspect(update_emp)
+        # IO.inspect("ADASDSAD")
+        # IO.inspect(update_emp)
         {:ok, update_emp}
       {:error, error} ->
         {:error, error}

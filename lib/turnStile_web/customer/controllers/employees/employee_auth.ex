@@ -81,9 +81,11 @@ defmodule TurnStileWeb.EmployeeAuth do
         |> put_flash(:success, "#{params.flash}. You have been automatically logged in.")
         |> redirect(to: redirect_path || employee_return_to)
       {:error, error} ->
-        # TODO - undo all created DB items
-        IO.puts("error")
+        IO.puts("Error in log_in_employee_on_create")
         IO.inspect(error)
+        conn
+        |> put_flash(:error, "Account created but login failed. Manual login reuqired.")
+        |> redirect(to: "organizations/#{organization_id}" || employee_return_to)
     end
   end
 

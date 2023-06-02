@@ -35,20 +35,11 @@ defmodule TurnStile.Staff.Employee do
   # should be used for changing employee info - NOT during registration
   def changeset(employee, attrs, _opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password, :current_organization_login_id, :role_value_on_current_organization, :is_logged_in?])
+    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password, :current_organization_login_id, :role_value_on_current_organization, :is_logged_in?, :role_on_current_organization])
   end
 
   # used for building a form when registering/creating
   def creation_form_changeset(employee, attrs, opts \\ []) do
-    employee
-    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
-    |> validate_email()
-    |> validate_password(opts)
-    |> hash_password(opts)
-  end
-
-  # used for building a form when registering/creating
-  def updating_changeset(employee, attrs, opts \\ []) do
     employee
     |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
     |> validate_email()
