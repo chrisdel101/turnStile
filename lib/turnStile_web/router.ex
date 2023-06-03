@@ -16,11 +16,11 @@ defmodule TurnStileWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_admin
     plug :fetch_current_employee
-    plug TurnStileWeb.Plugs.RouteType, "non-admin" #used in template
+    # used in template
+    plug TurnStileWeb.Plugs.RouteType, "non-admin"
     plug TurnStileWeb.Plugs.EmptyParams
     plug :first_org_form_submit?, false
     plug :fetch_current_organization
-
   end
 
   pipeline :api do
@@ -62,6 +62,7 @@ defmodule TurnStileWeb.Router do
     get "/", PageController, :index
     get "/clear_sessions", PageController, :clear_sessions
   end
+
   ## Authentication routes
 
   scope "/organizations/:id", TurnStileWeb do
@@ -84,7 +85,7 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations/:id", TurnStileWeb do
-    pipe_through [:browser, :organization_setup?, :req_auth_after_org_setup?]
+    pipe_through [:browser, :organization_setup?, :require_authenticated_employee_post_org_setup]
 
     get "/employees/register", EmployeeRegistrationController, :new
     post "/employees/register", EmployeeRegistrationController, :create
@@ -100,17 +101,19 @@ defmodule TurnStileWeb.Router do
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
 
-
   scope "/", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_employee]
 
-    resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do #OK: edit, delete, update
-      resources "/employees", EmployeeController, except: [:new, :edit, :update]
+    # OK: edit, delete, update
+    resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do
+      resources "/employees", EmployeeController, except: [:new, :edit, :update, :index]
     end
 
     # get "/organizations/:id/employees/:id", EmployeeController, :show
 
-    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert", AlertController, :create
+    post "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",
+         AlertController,
+         :create
 
     live "/organizations/:organization_id/employees/:employee_id/users/", UserLive.Index, :index
 
@@ -127,11 +130,20 @@ defmodule TurnStileWeb.Router do
 
   # employee edit and update req write access
   scope "/organizations/:organization_id/employees/:id", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_employee,
-    :require_write_access_employee]
+    pipe_through [:browser, :require_authenticated_employee, :require_edit_access_employee]
 
     get "/edit", EmployeeController, :edit
     put "/edit", EmployeeController, :update
+  end
+
+  # employee edit and update req write access
+  scope "/organizations/:organization_id/", TurnStileWeb do
+    pipe_through [
+      :browser,
+      :require_authenticated_employee,
+      :require_edit_access_employee
+    ]
+    get "/employees", EmployeeController, :index, as: :organization_employees
   end
 
   # /organizations non_authenciated
@@ -147,9 +159,7 @@ defmodule TurnStileWeb.Router do
 
     # get "/new-organization", OrganizationController, :confirm_organization
     get "/:id", OrganizationController, :show
-
   end
-
 
   scope "/organizations", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
@@ -187,11 +197,10 @@ defmodule TurnStileWeb.Router do
     post "/confirm", AdminConfirmationController, :create
     get "/confirm/:token", AdminConfirmationController, :edit
     post "/confirm/:token", AdminConfirmationController, :update
-
   end
+
   scope "/admin", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_admin
-  ]
+    pipe_through [:browser, :require_authenticated_admin]
 
     get "/settings", AdminSettingsController, :edit
     put "/settings", AdminSettingsController, :update
@@ -199,7 +208,5 @@ defmodule TurnStileWeb.Router do
 
     resources "/admins", AdminController, except: [:new]
     get "/", AdminController, :home
-
   end
-
 end

@@ -36,6 +36,7 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def show(conn, %{"id" => id, "organization_id" => organization_id}) do
+    show_validate_employee_id(conn, id)
     # confirm employee is assoc with this org
     employee = Staff.get_employee(id)
     employee_in_org? = Staff.check_employee_is_in_organization(employee, organization_id)
@@ -46,6 +47,18 @@ defmodule TurnStileWeb.EmployeeController do
       conn
       |> put_flash(:error, "Invalid employee association.")
       |> redirect(to: Routes.organization_path(conn, :show, organization_id))
+    end
+  end
+
+  defp show_validate_employee_id(conn, id) do
+    case TurnStile.Utils.is_digit(id) do
+      true ->
+        conn
+      false ->
+        conn
+        |> put_status(404)
+        |> text("Invalid employee id")
+        |> halt()
     end
   end
 
@@ -70,8 +83,8 @@ defmodule TurnStileWeb.EmployeeController do
   @doc """
   Updates organization-only related fields
   - require_authenticated_employee
-  - require_write_access_employee
-  - is_employee_updatable?
+  - require_edit_access_employee
+  - can_update_employee_permissions??
 
   """
   def update(conn, %{"id" => id, "employee" => employee_params}) do
@@ -80,7 +93,7 @@ defmodule TurnStileWeb.EmployeeController do
     # look up employee that is being edited
     employee_to_update = Staff.get_employee(id)
 
-    if !TurnStileWeb.EmployeeAuth.is_employee_updatable?(conn, employee_to_update) do
+    if !TurnStileWeb.EmployeeAuth.can_update_employee_permissions?(conn, employee_to_update) do
       conn
       |> put_flash(:error, "Error in employee edit. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))

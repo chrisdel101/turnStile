@@ -90,7 +90,7 @@ defmodule TurnStile.Staff do
     role_name = attrs["role"] || attrs.role
     # build a Role
     role = %TurnStile.Role{
-      name: "developer",
+      name: role_name,
       value: to_string(EmployeePermissionGroups.get_persmission_value(role_name))
     }
 

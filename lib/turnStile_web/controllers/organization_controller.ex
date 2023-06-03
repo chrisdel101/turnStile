@@ -178,6 +178,7 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def show(conn, %{"id" => id}) do
+    IO.inspect("SHOW")
     organization = Company.get_organization(id)
     if !organization do
       conn
@@ -238,6 +239,7 @@ defmodule TurnStileWeb.OrganizationController do
     end
   end
 
+  # TODO - is setup route should work, may not need this
   def organization_setup?(conn, _opts) do
     organization_id = conn.params["id"]
     organization? = Company.get_organization(organization_id)
@@ -251,14 +253,14 @@ defmodule TurnStileWeb.OrganizationController do
     conn
   end
 
-  # if org is not setup block request
+  # if org is not setup to block request
   # if org is setup, but as no members, allow first time setup reg
   # else require auth
-  def req_auth_after_org_setup?(conn, _opts) do
+  def require_authenticated_employee_post_org_setup(conn, _opts) do
     # if members exist require auth
     organization_id = conn.params["id"]
-
-    if organization_has_members?(organization_id) do
+    organization_id = TurnStile.Utils.convert_to_int(organization_id)
+    if organization_id && is_integer(organization_id) && organization_has_members?(organization_id) do
       assign(conn, :current_organization_setup, true)
       # this halts if not authenticated
 

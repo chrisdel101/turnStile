@@ -72,9 +72,13 @@ defmodule EmployeePermissionGroups do
     "contributor" => 5,
     "viewer" => 6
   }
+  # all values GE (including) have write permissions
+  @edit_permissions_threshold 3
   def get_persmission_value(key) do
     @permissions[key]
   end
+  def permissions, do: @permissions
+  def edit_permissions_threshold, do: @edit_permissions_threshold
 end
 defmodule EmployeeManagerRolesEnum do
   @roles  [:owner, :developer, :admin]

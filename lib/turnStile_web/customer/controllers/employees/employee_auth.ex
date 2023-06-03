@@ -26,30 +26,37 @@ defmodule TurnStileWeb.EmployeeAuth do
   """
   def log_in_employee(conn, employee, params \\ %{}) do
     # get org id from url
-    organization_id = Map.get(conn.path_params, "id") ||  Map.get(conn.path_params, :id)
+    organization_id = Map.get(conn.path_params, "id") || Map.get(conn.path_params, :id)
+
     if !organization_id do
       conn
       # TODO - error msg here
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
       |> redirect(to: Routes.organization_path(conn, :show))
     end
+
     # confirm this employee is in the correct organization
-    is_in_organization? = Staff.check_employee_is_in_organization(employee,organization_id)
+    is_in_organization? = Staff.check_employee_is_in_organization(employee, organization_id)
+
     if !is_in_organization? do
       conn
       |> put_flash(:error, "Invalid or Non-Existent Organization afflitiation")
       |> redirect(to: "/organizations/#{conn.path_params["id"]}")
       |> halt()
     end
+
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
+
     conn
     |> renew_session()
     |> put_session(:employee_token, token)
     |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
     |> put_session(:current_organization_id_str, organization_id)
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to )
+    |> redirect(
+      to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to
+    )
   end
 
   # logs in directly after being created - TODO diff to above
@@ -65,13 +72,16 @@ defmodule TurnStileWeb.EmployeeAuth do
       |> put_flash(:error, "An auto-login error occured. Please click login to manually login")
       |> redirect(to: Routes.page_path(conn, :index))
     end
+
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
+
     case Staff.set_employee_role(employee, organization_id) do
       {:ok, employee} ->
         IO.puts("employee")
         IO.inspect(employee)
         Staff.set_is_logged_in(employee)
+
         conn
         |> renew_session()
         |> put_session(:employee_token, token)
@@ -80,9 +90,11 @@ defmodule TurnStileWeb.EmployeeAuth do
         |> maybe_write_remember_me_cookie(token, params)
         |> put_flash(:success, "#{params.flash}. You have been automatically logged in.")
         |> redirect(to: redirect_path || employee_return_to)
+
       {:error, error} ->
         IO.puts("Error in log_in_employee_on_create")
         IO.inspect(error)
+
         conn
         |> put_flash(:error, "Account created but login failed. Manual login reuqired.")
         |> redirect(to: "organizations/#{organization_id}" || employee_return_to)
@@ -151,13 +163,16 @@ defmodule TurnStileWeb.EmployeeAuth do
   # gets signed in org from sessions, adds to conn each req
   def fetch_current_organization(conn, _opts) do
     # IO.inspect("fetch_current_organization")
-    current_organization_id_str = get_session(conn, :current_organization_id_str) || get_session(conn, "current_organization_id_str")
+    current_organization_id_str =
+      get_session(conn, :current_organization_id_str) ||
+        get_session(conn, "current_organization_id_str")
+
     # IO.inspect(current_organization_id_str)
-    conn =  assign(conn,:current_organization_id_str,current_organization_id_str)
-    IO.inspect("fetch_current_organization")
-    IO.inspect(conn)
-    IO.inspect("session")
-    IO.inspect(get_session(conn))
+    conn = assign(conn, :current_organization_id_str, current_organization_id_str)
+    # IO.inspect("fetch_current_organization")
+    # IO.inspect(conn)
+    # IO.inspect("session")
+    # IO.inspect(get_session(conn))
     conn
   end
 
@@ -182,15 +197,19 @@ defmodule TurnStileWeb.EmployeeAuth do
     # if logged in
     current_employee = conn.assigns[:current_employee]
     current_organization_id_str = conn.assigns[:current_organization_id_str]
+
     if current_employee do
       # if owner/employee - don't redirect from registartion
       # if (current_employee.role != "owner" or current_employee.role != "employee") and
       #      List.last(conn.path_info) != "register" do
-        conn
-        |> redirect(to: "/organizations/#{current_organization_id_str}/employees/#{current_employee.id}/users")
-        |> halt()
+      conn
+      |> redirect(
+        to: "/organizations/#{current_organization_id_str}/employees/#{current_employee.id}/users"
+      )
+      |> halt()
+
       # else
-        # conn
+      # conn
       # end
     else
       conn
@@ -205,6 +224,7 @@ defmodule TurnStileWeb.EmployeeAuth do
   """
   def require_authenticated_employee(conn, _opts) do
     id = conn.path_params["id"]
+
     if conn.assigns[:current_employee] do
       conn
     else
@@ -225,42 +245,66 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
   end
 
-  # check if employee is owner, admin, or developer
-  def require_write_access_employee(conn, _params) do
+  @doc """
+  Used for routes that require employee to have edit_access
+
+  checks if current_employee role above edit_permissions_threshold; can visit pages that require it
+
+  """
+  def require_edit_access_employee(conn, _params) do
     current_employee = conn.assigns[:current_employee]
+    IO.puts("require_edit_access_employee")
     IO.inspect(current_employee)
+
     if !current_employee do
+      IO.puts("require_edit_access_employee: no current_employee")
       conn
       |> maybe_store_return_to()
-      |> redirect(to: Routes.organization_employee_path(conn, :index, conn.assigns[:current_organization_id_str])|| 0)
+      |> redirect(
+        to:
+          Routes.organization_employee_path(
+            conn,
+            :index,
+            current_employee.current_organization_login_id
+          )
+      )
       |> halt()
     else
-      role_value = TurnStile.Utils.convert_to_int(current_employee.role_value)
-      IO.inspect(conn.assigns)
-      IO.inspect(role_value)
-      IO.inspect(role_value <= 3)
-      if role_value <= 3 do
+      # conver role_value digit to int
+      role_value =
+        TurnStile.Utils.convert_to_int(current_employee.role_value_on_current_organization)
+
+      if role_value && role_value <= EmployeePermissionGroups.edit_permissions_threshold() do
+        IO.puts("require_edit_access_employee: has edit access")
         conn
       else
-        IO.inspect("TTTTTTTT")
+        IO.inspect("require_edit_access_employee: insufficient permissions")
         conn
         |> put_flash(:error, "Insufficient permissions to access this page.")
         |> maybe_store_return_to()
-        |> redirect(to: Routes.organization_employee_path(conn, :index,9))
+        |> redirect(
+          to:
+            Routes.organization_employee_path(
+              conn,
+              :index,
+              current_employee.current_organization_login_id
+            )
+        )
         |> halt()
       end
     end
   end
 
   # check current employee has greater persmissions to edit
-  def is_employee_updatable?(conn, employee_to_update) do
+  def can_update_employee_permissions?(conn, employee_to_update) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
+
     if !current_employee do
       false
     else
-      if current_employee.role_value === to_string(EmployeePermissionGroups.get_persmission_value("owner"))
-      do
+      if current_employee.role_value ===
+           to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
         # owner has full access
         true
       else
@@ -273,7 +317,7 @@ defmodule TurnStileWeb.EmployeeAuth do
 
         # current must be LESS to edit
         if current_user_permission <
-        registrant_permissions do
+             registrant_permissions do
           true
         else
           false
