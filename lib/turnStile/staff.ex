@@ -87,7 +87,7 @@ defmodule TurnStile.Staff do
   """
   def register_and_preload_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
-    role_name = attrs["role"] || attrs.role
+    role_name =  Map.get(attrs, "role_on_current_organization") || Map.get(attrs, :role_on_current_organization)
     # build a Role
     role = %TurnStile.Role{
       name: role_name,

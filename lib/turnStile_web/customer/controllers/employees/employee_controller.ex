@@ -84,7 +84,7 @@ defmodule TurnStileWeb.EmployeeController do
   Updates organization-only related fields
   - require_authenticated_employee
   - require_edit_access_employee
-  - can_update_employee_permissions??
+  - has_sufficient_update_permissions??
 
   """
   def update(conn, %{"id" => id, "employee" => employee_params}) do
@@ -93,7 +93,7 @@ defmodule TurnStileWeb.EmployeeController do
     # look up employee that is being edited
     employee_to_update = Staff.get_employee(id)
 
-    if !TurnStileWeb.EmployeeAuth.can_update_employee_permissions?(conn, employee_to_update) do
+    if !TurnStileWeb.EmployeeAuth.has_sufficient_update_permissions?(conn, employee_to_update) do
       conn
       |> put_flash(:error, "Error in employee edit. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))

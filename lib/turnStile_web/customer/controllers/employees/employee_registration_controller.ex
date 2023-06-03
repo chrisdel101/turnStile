@@ -28,28 +28,20 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         |> redirect(to: Routes.organization_path(conn, :index))
       end
 
-      # check org exist by org_id
-      organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
+      # check org exist
+      organization = TurnStile.Company.get_organization(organization_id)
       # if no org by org_id flash error
-      if length(organizations?) != 1 do
+      if !organization do
         conn
         |> put_flash(:info, "An Organization error ocurred. Make sure it exists.")
         |> redirect(to: Routes.organization_path(conn, :new))
       else
-        # check employee doing the creating permissions
-        current_user_permission =
-          TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
-
-        # check level of user being createdd
-        registrant_permissions =
-          TurnStile.PermissionsUtils.get_employee_permissions_level(Map.get(employee_params, "role"))
-
-        # check perms - only register permissions level >= self -> lower numb is higher perms
-        if registrant_permissions >
-             current_user_permission do
+        x = TurnStileWeb.EmployeeAuth.has_sufficient_register_permissions?(conn, employee_params)
+          IO.inspect("HERE")
+          IO.inspect(x)
           # Invalid persmission - reload page
           changeset = Staff.change_employee_registration(%Employee{}, employee_params)
-
+        if x do
           conn
           # if employee does not have permissions - flash and re-render
           |> put_flash(:error, "Invalid Permssions to create that user")
@@ -58,7 +50,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           # add organization_id to employee_params
           employee_params = Map.put(employee_params, "organization_id", organization_id)
           # if permissions okay
-          case Staff.register_and_preload_employee(employee_params) do
+          case Staff.register_and_preload_employee(employee_params, organization) do
             {:ok, employee} ->
               # IO.inspect("HERE")
               # &1 is a token

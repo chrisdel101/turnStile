@@ -85,7 +85,7 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/organizations/:id", TurnStileWeb do
-    pipe_through [:browser, :organization_setup?, :require_authenticated_employee_post_org_setup]
+    pipe_through [:browser, :organization_setup?, :require_authenticated_employee_post_org_setup,:require_register_access_employee]
 
     get "/employees/register", EmployeeRegistrationController, :new
     post "/employees/register", EmployeeRegistrationController, :create

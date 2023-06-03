@@ -153,7 +153,7 @@ defmodule TurnStile.Company do
         from o in Organization,
           where: o.id == ^id
       #  select:
-      Repo.all(q)
+      Repo.one(q)
     else
       []
     end
