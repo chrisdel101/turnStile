@@ -38,7 +38,8 @@ defmodule TurnStileWeb.EmployeeAuth do
 
     # confirm this employee is in the correct organization
     is_in_organization? = Staff.check_employee_is_in_organization(employee, organization_id)
-
+    IO.inspect("is_in_organization")
+    IO.inspect(is_in_organization?)
     if !is_in_organization? do
       conn
       |> put_flash(:error, "Invalid or Non-Existent Organization afflitiation")
@@ -170,10 +171,10 @@ defmodule TurnStileWeb.EmployeeAuth do
 
     # IO.inspect(current_organization_id_str)
     conn = assign(conn, :current_organization_id_str, current_organization_id_str)
-    IO.inspect("fetch_current_organization")
-    IO.inspect(conn)
-    IO.inspect("session")
-    IO.inspect(get_session(conn))
+    # IO.inspect("fetch_current_organization")
+    # IO.inspect(conn)
+    # IO.inspect("session")
+    # IO.inspect(get_session(conn))
     conn
   end
 
@@ -306,10 +307,11 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      if current_employee.role_value ===
-           to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
-        # owner has full access
-        true
+      # owner has full access
+      if current_employee.role_value_on_current_organization ===
+        to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
+         IO.inspect("owner perms")
+         true
       else
         current_user_permission =
           TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
@@ -332,23 +334,31 @@ defmodule TurnStileWeb.EmployeeAuth do
   def has_sufficient_register_permissions?(conn, employee_params_to_register) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
-
+    IO.inspect(current_employee)
     if !current_employee do
       false
     else
+      IO.inspect(current_employee.role_on_current_organization)
+      IO.inspect(to_string(EmployeePermissionGroups.get_persmission_value("owner")))
       # check if owner; owner has full access
-      if current_employee.role_on_current_organization ===
+      if current_employee.role_value_on_current_organization ===
            to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
+            IO.inspect("owner perms")
             true
       else
+        IO.inspect('CCCCCCCCC')
         current_user_permission =
           current_employee.role_value_on_current_organization
         registrant_role = Map.get(employee_params_to_register, "role_on_current_organization") || Map.get(employee_params_to_register, :role_on_current_organization)
+        IO.inspect(current_user_permission)
 
-         registrant_role_value = EmployeePermissionGroups.get_persmission_value(registrant_role)
-        # current must be LESS to edit
-        if         current_user_permission <
-          registrant_role_value do
+        registrant_role_value = EmployeePermissionGroups.get_persmission_value(registrant_role)
+        IO.inspect(registrant_role_value)
+        IO.inspect(current_user_permission <=
+          registrant_role_value)
+        # current must be equal to register; both are digit strings
+        if         current_user_permission <=
+          to_string(registrant_role_value) do
           true
         else
           false

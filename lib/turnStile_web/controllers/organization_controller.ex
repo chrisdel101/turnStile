@@ -87,94 +87,105 @@ defmodule TurnStileWeb.OrganizationController do
     current_employee = conn.assigns[:current_employee]
     org_params = Map.get(get_session(conn), "org_params")
     # add organization
-    case Company.create_and_preload_organization(org_params) do
-      {:ok, organization} ->
-        IO.inspect("ORG HERE")
-        IO.inspect(organization)
+      case Company.create_and_preload_organization(org_params) do
+        {:ok, organization} ->
+          IO.inspect("ORG HERE")
+          IO.inspect(organization)
 
-        if !current_employee do
-          x = EmployeeRegistrationController.create_initial_owner(
-            conn,
-            organization,
-            employee_params
-          )
-          IO.inspect("X HERE")
-          IO.inspect(x)
-          case x do
-            {:error, error} ->
-              # delete any organization just saved
-              Company.delete_organization(organization)
-              IO.inspect("ERROR in create orgnization_controller")
-              # conn = assign(conn, :org_form_submitted, true)
-              conn
-              |> assign(:org_form_submitted, true)
-              |> put_flash(:error, "Error in Employee creation. Try again.")
-              |> render("new.html", changeset: error)
-        # create_initial_owner returns employee & log_in bool
-            {:ok, employee, log_in} ->
-              # IO.inspect("OK2222")
-              # IO.inspect(employee)
-              # build instance changeset
-              org_changeset = Ecto.Changeset.change(organization)
-              # put_assoc
-              org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
-              IO.inspect(org_with_emps)
+          if !current_employee do
+            x = EmployeeRegistrationController.create_initial_owner(
+              conn,
+              organization,
+              employee_params
+            )
+            IO.inspect("X HERE")
+            IO.inspect(x)
+            case x do
+              # {:error, error} ->
+              #   # delete any organization just saved
+              #   Company.delete_organization(organization)
+              #   # TurnStile.Repo.rollback({:undo_organization_insert})
+              #   IO.inspect("ERROR in create orgnization_controller")
+              #   # conn = assign(conn, :org_form_submitted, true)
+              #   conn
+              #   |> assign(:org_form_submitted, true)
+              #   |> put_flash(:error, "Error in Employee creation. Try again.")
+              #   |> render("new.html", changeset: error)
+          # create_initial_owner returns employee & log_in bool
+              # {:ok, employee, log_in} ->
+              #   # IO.inspect("OK2222")
+              #   # IO.inspect(employee)
+              #   # build instance changeset
+              #   org_changeset = Ecto.Changeset.change(organization)
+              #   # put_assoc
+              #   org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
+              #   IO.inspect(org_with_emps)
 
-              case Company.update_organization_changeset(org_with_emps) do
-                {:ok, _updated_org} ->
-                  IO.inspect("log_in")
-                  IO.inspect(log_in)
-                  if log_in === "true" do
-                    IO.inspect("OK TRUE")
-                    params = %{flash: "Organization Successfully created"}
-                    EmployeeAuth.log_in_employee_on_create(conn, employee, (Map.get(organization, "id") || Map.get(organization, :id)), Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}), params)
-                  else
-                    IO.inspect("OK FALSE")
-                    # IO.inspect(updated_org)
-                    conn
-                    |> put_flash(:info, "An email was sent you your account. Please check your email to confirm your account. ")
-                    |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
-                  end
+              #   case Company.update_organization_changeset(org_with_emps) do
+              #     {:ok, _updated_org} ->
+              #       IO.inspect("log_in")
+              #       IO.inspect(log_in)
+              #       if log_in === "true" do
+              #         IO.inspect("OK TRUE")
+              #         params = %{flash: "Organization Successfully created"}
+              #         EmployeeAuth.log_in_employee_on_create(conn, employee, (Map.get(organization, "id") || Map.get(organization, :id)), Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}), params)
+              #       else
+              #         IO.inspect("OK FALSE")
+              #         # IO.inspect(updated_org)
+              #         conn
+              #         |> put_flash(:info, "An email was sent you your account. Please check your email to confirm your account. ")
+              #         |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
+              #       end
 
-                {:error, error} ->
-                  IO.inspect("ERROR")
+              #     {:error, error} ->
+              #       IO.inspect("ERROR")
 
-                  conn
-                  |> assign(:org_form_submitted, true)
-                  |> put_flash(:error, "Employee not created. Try again.")
+              #       conn
+              #       |> assign(:org_form_submitted, true)
+              #       |> put_flash(:error, "Employee not created. Try again.")
 
-                  render("new.html", changeset: error)
-              end
+              #     render("new.html", changeset: error)
+              _ ->
+                  # delete any organization just saved
+                Company.delete_organization(organization)
+                error_msg = "ERROR in create orgnization_controller default case"
+                IO.inspect(error_msg)
+                # conn = assign(conn, :org_form_submitted, true)
+                conn
+                |> assign(:org_form_submitted, true)
+                |> put_flash(:error, error_msg)
+                |> render("new.html", changeset: Employee.registration_changeset(%Staff.Employee{}, %{}))
+
+            end
+          else
+            # IO.inspect("OK2222")
+            # IO.inspect(employee)
+            # build instance changeset
+            org_changeset = Ecto.Changeset.change(organization)
+            # put_assoc
+            org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [current_employee])
+            IO.inspect(org_with_emps)
+
+            case Company.update_organization_changeset(org_with_emps) do
+              {:ok, _updated_org} ->
+                # IO.inspect("OK")
+                # IO.inspect(updated_org)
+                conn
+                |> put_flash(:info, "Organization Successfully created.")
+                |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
+              {:error, error} ->
+                IO.inspect("ERROR")
+                conn
+                |> assign(:org_form_submitted, true)
+                |> put_flash(:error, "Employee not created. Try again.")
+                render("new.html", changeset: error)
+            end
           end
-        else
-          # IO.inspect("OK2222")
-          # IO.inspect(employee)
-          # build instance changeset
-          org_changeset = Ecto.Changeset.change(organization)
-          # put_assoc
-          org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [current_employee])
-          IO.inspect(org_with_emps)
-
-          case Company.update_organization_changeset(org_with_emps) do
-            {:ok, _updated_org} ->
-              # IO.inspect("OK")
-              # IO.inspect(updated_org)
-              conn
-              |> put_flash(:info, "Organization Successfully created.")
-              |> redirect(to: Routes.organization_path(conn, :show, organization.id, %{"emptyParams" => true, "paramsKey" => "org_params"}))
-            {:error, error} ->
-              IO.inspect("ERROR")
-              conn
-              |> assign(:org_form_submitted, true)
-              |> put_flash(:error, "Employee not created. Try again.")
-              render("new.html", changeset: error)
-          end
-        end
-      {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect("CREATE ERROR")
-        IO.inspect(changeset)
-        render(conn, "new.html", changeset: changeset)
-    end
+        {:error, %Ecto.Changeset{} = changeset} ->
+          IO.inspect("CREATE ERROR")
+          IO.inspect(changeset)
+          render(conn, "new.html", changeset: changeset)
+      end
   end
 
   def show(conn, %{"id" => id}) do
@@ -185,7 +196,7 @@ defmodule TurnStileWeb.OrganizationController do
       |> put_flash(:info, "That Organization doesn't exist. Try again.")
       |> redirect(to: Routes.organization_path(conn, :index))
     else
-      members? = organization_has_members?(organization.id)
+      members? = Company.organization_has_members?(organization.id)
       # TODO: make a special login changeset
       changeset = Staff.change_employee(%Employee{})
 
@@ -227,18 +238,6 @@ defmodule TurnStileWeb.OrganizationController do
     |> redirect(to: Routes.organization_path(conn, :index))
   end
 
-  # check if org has employee members
-  def organization_has_members?(id) do
-    # members? = Company.check_organization_has_employees(id)
-    members? = Staff.list_employee_ids_by_organization(id)
-
-    if !members? or length(members?) === 0 do
-      false
-    else
-      true
-    end
-  end
-
   # TODO - is setup route should work, may not need this
   def organization_setup?(conn, _opts) do
     organization_id = conn.params["id"]
@@ -260,7 +259,7 @@ defmodule TurnStileWeb.OrganizationController do
     # if members exist require auth
     organization_id = conn.params["id"]
     organization_id = TurnStile.Utils.convert_to_int(organization_id)
-    if organization_id && is_integer(organization_id) && organization_has_members?(organization_id) do
+    if organization_id && is_integer(organization_id) && Company.organization_has_members?(organization_id) do
       assign(conn, :current_organization_setup, true)
       # this halts if not authenticated
 

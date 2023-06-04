@@ -3,8 +3,8 @@ defmodule TurnStile.Repo.Migrations.OrganizationEmployees do
 
   def change do
     create table(:organization_employees) do
-      add :organization_id, references(:organizations)
-      add :employee_id, references(:employees)
+      add :organization_id, references(:organizations, on_delete: :delete_all)
+      add :employee_id, references(:employees, on_delete: :delete_all)
       add :inserted_at, :naive_datetime, default: fragment("CURRENT_TIMESTAMP"), null: false
     end
     create unique_index(:organization_employees, [:organization_id, :employee_id])

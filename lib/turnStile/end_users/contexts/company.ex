@@ -170,4 +170,14 @@ defmodule TurnStile.Company do
       []
     end
   end
+  # check if org has employee members
+  def organization_has_members?(id) do
+    # members? = Company.check_organization_has_employees(id)
+    members? = TurnStile.Staff.list_employee_ids_by_organization(id)
+    if !members? or length(members?) === 0 do
+      false
+    else
+      true
+    end
+  end
 end

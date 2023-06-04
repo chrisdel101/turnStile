@@ -7,8 +7,8 @@ defmodule TurnStile.Repo.Migrations.CreateRoles do
     create table(:roles) do
       add :name, :employee_role, null: false
       add :value, :employee_role_value, null: false
-      add :employee_id, references(:employees), null: false
-      add :organization_id, references(:organizations), null: false
+      add :employee_id, references(:employees), null: false, on_delete: :delete_all
+      add :organization_id, references(:organizations), null: false, on_delete: :delete_all
 
 
       timestamps()

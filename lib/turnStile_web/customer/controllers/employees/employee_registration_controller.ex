@@ -3,8 +3,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
   alias TurnStile.Staff
   alias TurnStile.Staff.Employee
-  alias TurnStileWeb.EmployeeAuth
-  alias TurnStileWeb.OrganizationController
 
   def new(conn, _params) do
     changeset = Staff.change_employee_registration(%Employee{})
@@ -17,148 +15,154 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     # if no logged in employee
     if !current_employee do
       conn
-      |> put_flash(:error, "You must be log in to your Organization.")
+      |> put_flash(:error, "You must be logged in to your Organization.")
       |> redirect(to: Routes.organization_path(conn, :search_get))
     else
       organization_id = conn.path_params["id"]
       # if no org_id found flash error
       if !organization_id do
         conn
-        |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
+        |> put_flash(:error, "An Organization ID error occurred. Make sure it exists.")
         |> redirect(to: Routes.organization_path(conn, :index))
       end
 
-      # check org exist
-      organization = TurnStile.Company.get_organization(organization_id)
+      # check org exists
+      organization =
+        TurnStile.Company.get_organization(organization_id)
+        |> TurnStile.Repo.preload(:employees)
+
+      IO.inspect("ZZZZZ")
+      IO.inspect(organization)
       # if no org by org_id flash error
       if !organization do
         conn
-        |> put_flash(:info, "An Organization error ocurred. Make sure it exists.")
+        |> put_flash(:info, "An Organization error occurred. Make sure it exists.")
         |> redirect(to: Routes.organization_path(conn, :new))
       else
-        x = TurnStileWeb.EmployeeAuth.has_sufficient_register_permissions?(conn, employee_params)
+        # make sure there are some members
+        members? = TurnStile.Company.organization_has_members?(organization_id)
+
+        # if no members, send error
+        if !members? do
+          error =
+            "No members already exist. The first member should be created with the organization."
+
+          IO.puts("Error: registration create error: organization exists w/o founding member.")
+          {:error, error}
+        else
+          employee_params =
+            employee_params
+            |> Map.put("organization_id", organization_id)
+            |> Map.put("role", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
+
+          IO.inspect("ZZZZZ")
+          IO.inspect(employee_params)
+
+          x =
+            TurnStileWeb.EmployeeAuth.has_sufficient_register_permissions?(conn, employee_params)
+
           IO.inspect("HERE")
           IO.inspect(x)
-          # Invalid persmission - reload page
-          changeset = Staff.change_employee_registration(%Employee{}, employee_params)
-        if x do
-          conn
-          # if employee does not have permissions - flash and re-render
-          |> put_flash(:error, "Invalid Permssions to create that user")
-          |> render("new.html", changeset: changeset, organization_id: organization_id)
-        else
-          # add organization_id to employee_params
-          employee_params = Map.put(employee_params, "organization_id", organization_id)
-          # if permissions okay
-          case Staff.register_and_preload_employee(employee_params, organization) do
-            {:ok, employee} ->
-              # IO.inspect("HERE")
-              # &1 is a token
-              {:ok, _} =
-                Staff.deliver_employee_confirmation_instructions(
-                  employee,
-                  &Routes.employee_confirmation_url(
-                    conn,
-                    :edit,
-                    employee_params["organization_id"],
-                    &1
-                  )
-                )
+          # Invalid permission - reload page
+          error_changeset = Staff.change_employee_registration(%Employee{}, employee_params)
 
-              conn
-              |> put_flash(:info, "Employee created successfully.")
-              |> EmployeeAuth.log_in_employee(employee)
+          if !x do
+            conn
+            # if employee does not have permissions - flash and re-render
+            |> put_flash(:error, "Invalid Permissions to create that user level")
+            |> render("new.html", changeset: error_changeset, organization_id: organization_id)
+          else
+            TurnStile.Repo.transaction(fn ->
+              case Staff.register_and_preload_employee(employee_params, organization) do
+                {:ok, employee} ->
+                  IO.inspect("EEEEE")
+                  IO.inspect(employee)
+                  # load employee on organization
+                  org_changeset = Ecto.Changeset.change(organization)
+                  # put_assoc employee/organization
+                  org_with_emps =
+                    Ecto.Changeset.put_assoc(org_changeset, :employees, [
+                      employee | organization.employees
+                    ])
 
-            {:error, %Ecto.Changeset{} = changeset} ->
-              render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+                  IO.inspect("org_with_emps")
+                  IO.inspect(org_with_emps)
+
+                  case TurnStile.Company.update_organization_changeset(org_with_emps) do
+                    {:ok, _updated_org} ->
+                      IO.inspect("YYYYYY")
+                      IO.inspect(employee)
+                      # require email account confirmation
+                      if System.get_env("EMPLOYEE_CREATE_CONFIRM_IS_REQUIRED") === "true" do
+                        zz =
+                          Staff.deliver_employee_confirmation_instructions(
+                            employee,
+                            &Routes.employee_confirmation_url(conn, :edit, organization_id, &1)
+                          )
+
+                        IO.inspect('zzzzzzzzz')
+                        IO.inspect(zz)
+
+                        case zz do
+                          {:ok, _email_body} ->
+                            conn
+                            |> put_flash(
+                              :info,
+                              "Employee created successfully. A confirmation email was sent to the new employee."
+                            )
+                            |> redirect(
+                              to: Routes.employee_registration_path(conn, :new, organization_id)
+                            )
+
+                          {:error, error} ->
+                            {:error, error}
+                        end
+                      else
+                        vv = Staff.deliver_employee_welcome_email(employee)
+                        IO.inspect('vvvvvvvvv')
+                        IO.inspect(vv)
+
+                        case vv do
+                          {:ok, _email_body} ->
+                            conn
+                            |> put_flash(:info, "Employee created successfully.")
+                            |> redirect(
+                              to: Routes.employee_registration_path(conn, :new, organization_id)
+                            )
+
+                          {:error, error} ->
+                            {:error, error}
+                        end
+                      end
+                  end
+
+                {:error, %Ecto.Changeset{} = changeset} ->
+                  render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+                end
+                x = TurnStile.Repo.rollback(:Rolling_back)
+                IO.inspect("ROLLBACK")
+                IO.inspect(x)
+            end)
           end
         end
       end
     end
   end
 
-  def create_owner_employee(conn, %{"owner_employee" => employee_params}) do
-    current_employee = conn.assigns[:current_employee]
-    # setup organization process
-    if !current_employee do
-      # create_initial_owner(conn, %{"employee" => employee_params})
-    else
-      organization_id = conn.path_params["id"]
-      # if no org_id found flash error
-      if !organization_id do
-        conn
-        |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
-        |> redirect(to: Routes.organization_path(conn, :index))
-      end
-
-      # check org exist by org_id
-      organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
-      # if no org by org_id flash error
-      if length(organizations?) != 1 do
-        conn
-        |> put_flash(:info, "An Organization error ocurred. Make sure it exists.")
-        |> redirect(to: Routes.organization_path(conn, :new))
-      else
-        # check employee doing the creating permissions
-        current_user_permission =
-          TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
-
-        # check level of user being createdd
-        registrant_permissions =
-          TurnStile.PermissionsUtils.get_employee_permissions_level(Map.get(employee_params, "role"))
-
-        # check perms - only register permissions level >= self -> lower numb is higher perms
-        if registrant_permissions >
-             current_user_permission do
-          # Invalid persmission - reload page
-          changeset = Staff.change_employee_registration(%Employee{}, employee_params)
-
-          conn
-          # if employee does not have permissions - flash and re-render
-          |> put_flash(:error, "Invalid Permssions to create that user")
-          |> render("new.html", changeset: changeset, organization_id: organization_id)
-        else
-          # add organization_id to employee_params
-          employee_params = Map.put(employee_params, "organization_id", organization_id)
-          # if permissions okay
-          case Staff.register_and_preload_employee(employee_params) do
-            {:ok, employee} ->
-              # IO.inspect("HERE")
-              # &1 is a token
-              {:ok, _} =
-                Staff.deliver_employee_confirmation_instructions(
-                  employee,
-                  &Routes.employee_confirmation_url(
-                    conn,
-                    :edit,
-                    employee_params["organization_id"],
-                    &1
-                  )
-                )
-
-              conn
-              |> put_flash(:info, "Employee created successfully.")
-              |> EmployeeAuth.log_in_employee(employee)
-
-            {:error, %Ecto.Changeset{} = changeset} ->
-              render(conn, "new.html", changeset: changeset, organization_id: organization_id)
-          end
-        end
-      end
-    end
-  end
-
-  # create first user as owner
+  @doc """
+  create_initial_owner - creates the first employee of an organization
+  - is automatically assigned the owner role
+  """
   def create_initial_owner(conn, organization, %{"employee" => employee_params}) do
     # extract org id
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     IO.inspect(organization)
     # check if org already exist - it was just created
-    organizations? = TurnStile.Company.check_organization_exists_by_id(organization_id)
+    organizations = TurnStile.Company.get_organization(organization_id)
     # check if org already exist
-    if length(organizations?) === 1 do
+    if organizations do
       # confirm exists but has no members yet
-      members? = OrganizationController.organization_has_members?(organization_id)
+      members? = TurnStile.Company.organization_has_members?(organization_id)
       # if member, send error
       if members? do
         error = "Organization setup error. Members already exist."
@@ -168,16 +172,17 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         employee_params =
           employee_params
           |> Map.put("organization_id", organization_id)
-          |> Map.put("role", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
-          IO.inspect("ZZZZZ")
-          IO.inspect(employee_params)
+          |> Map.put("role_on_current_organization", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
 
-        case Staff.register_and_preload_employee(employee_params,organization) do
+        IO.inspect("ZZZZZ")
+        IO.inspect(employee_params)
+
+        case Staff.register_and_preload_employee(employee_params, organization) do
           {:ok, employee} ->
             IO.inspect("YYYYYY")
             IO.inspect(employee)
             # require email account confirmation
-            if System.get_env("EMPLOYEE_CREATE_CONFIRM_IS_REQUIRED") === "true" do
+            if System.get_env("EMPLOYEE_CREATE_CONFIRM_INIT_EMPLOYEE_REQUIRED") === "true" do
               zz =
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
@@ -191,6 +196,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                 {:ok, _email_body} ->
                   log_in = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
                   {:ok, employee, log_in}
+
                 {:error, error} ->
                   {:error, error}
               end
