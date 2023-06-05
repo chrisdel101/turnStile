@@ -20,6 +20,9 @@
 </ul>
 <%= if @members? do %>
   <%= if !@current_employee do %>
+
+    <%!-- 
+    
       <!--if members Show sign in form -->
       <%= if @changeset.action do %>
         <div class="alert alert-danger">
@@ -41,7 +44,8 @@
           <%= submit "Login" %>
         </div>
       </.form>
-
+    --%>
+    <%= render TurnStileWeb.EmployeeSessionView, "new.html", Map.put(assigns, :action, {Routes.employee_session_path(@conn, :create, @organization_id)}) %>
   <% end %>
 
 <% else %>

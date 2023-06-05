@@ -87,7 +87,7 @@ defmodule TurnStile.Staff do
   """
   def register_and_preload_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
-    role_name = attrs["role"] || attrs.role
+    role_name =  Map.get(attrs, "role_on_current_organization") || Map.get(attrs, :role_on_current_organization)
     # build a Role
     role = %TurnStile.Role{
       name: role_name,
@@ -101,7 +101,9 @@ defmodule TurnStile.Staff do
       %Employee{}
       |> Employee.registration_changeset(attrs)
       |> Ecto.Changeset.put_assoc(:roles, [role])
-
+    # IO.inspect("emp_changeset")
+    # IO.inspect(emp_changeset)
+    # IO.inspect(role)
     # Repo.transaction(fn ->
     # insert employee - auto insert role using associations``
     case Repo.insert(emp_changeset) do
@@ -453,6 +455,7 @@ defmodule TurnStile.Staff do
   """
   def list_employee_ids_by_organization(organization_id) do
     if not is_nil(organization_id) do
+      organization_id = TurnStile.Utils.convert_to_int(organization_id)
       q =
         from o in "organization_employees",
           join: o1 in "organizations",
@@ -463,8 +466,6 @@ defmodule TurnStile.Staff do
           select: e.id
 
       Repo.all(q)
-    else
-      []
     end
   end
 

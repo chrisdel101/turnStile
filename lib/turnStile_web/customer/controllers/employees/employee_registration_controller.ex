@@ -182,7 +182,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             IO.inspect("YYYYYY")
             IO.inspect(employee)
             # require email account confirmation
-            if System.get_env("EMPLOYEE_CREATE_CONFIRM_INIT_EMPLOYEE_REQUIRED") === "true" do
+            if System.get_env("EMPLOYEE_CREATE_INIT_CONFIRM_EMPLOYEE_REQUIRED") === "true" do
               zz =
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
@@ -207,7 +207,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
               case vv do
                 {:ok, _email_body} ->
-                  log_in = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
+                  log_in = System.get_env("EMPLOYEE_CREATE_INIT_AUTO_LOGIN")
                   {:ok, employee, log_in}
 
                 {:error, error} ->
