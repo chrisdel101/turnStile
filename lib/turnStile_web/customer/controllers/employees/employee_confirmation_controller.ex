@@ -35,11 +35,30 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   # Do not log in the employee after confirmation to avoid a
   # leaked token giving the employee access to the account.
   def update(conn, %{"token" => token, "id"=> organization_id}) do
+    current_employee = conn.assigns[:current_employee]
+
+    if current_employee do
+      IO.puts("HERE update current_employee")
+      # check confirm token is same as logged in to
+      current_token = EmployeeAuth.get_employee_token(conn)
+      # IO.inspect(current_token)
+      # IO.inspect(token)
+      # IO.inspect(current_token === token)
+      # IO.inspect(current_token == token)
+      if current_token !== token do
+        IO.puts("Invalid employee confirmation action. Current session does not match confirmation token")
+        conn
+        |> put_flash(:error, "Employee confirmation link is invalid, expired, or does not match current user.")
+        |> redirect(to: "/")
+        |> halt()
+      end
+    end
+    # IO.puts("HEREHEREHREREREHREH update")
     case Staff.confirm_employee(token) do
       {:ok, employee} ->
         if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
           IO.inspect("YYYYYY")
-          params = %{flash: "Organization Successfully created"}
+          params = %{flash: "Account confirmed."}
           conn
           |> EmployeeAuth.log_in_employee_on_create(employee, organization_id, Routes.organization_path(conn, :show, organization_id, %{"emptyParams" => true, "paramsKey" => "org_params"}), params)
         # require manual login

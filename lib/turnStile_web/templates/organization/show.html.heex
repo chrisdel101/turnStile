@@ -18,42 +18,22 @@
   </li>
 
 </ul>
-<%= if @members? do %>
   <%= if !@current_employee do %>
-
-    <%!-- 
-    
-      <!--if members Show sign in form -->
-      <%= if @changeset.action do %>
-        <div class="alert alert-danger">
-          <p>Oops, something went wrong! Please check the errors below.</p>
-        </div>
-      <% end %>
-
-      <.form let={f} for={@changeset} action={Routes.employee_session_path(@conn, :create, @organization_id)}>
-
-        <%= label f, :email %>
-        <%= email_input f, :email, required: true %>
-        <%= error_tag f, :email %>
-
-        <%= label f, :password %>
-        <%= password_input f, :password, required: true %>
-        <%= error_tag f, :password %>
-
-        <div>
-          <%= submit "Login" %>
-        </div>
-      </.form>
-    --%>
     <%= render TurnStileWeb.EmployeeSessionView, "new.html", Map.put(assigns, :action, {Routes.employee_session_path(@conn, :create, @organization_id)}) %>
-  <% end %>
 
 <% else %>
-  <div>No Organization Members exist</div>
-  <span><%= link "Add _Members", to: Routes.employee_registration_path(@conn, :new, @organization.id) %></span>
+ 
+  <%= if (TurnStile.Utils.convert_to_int(@current_employee.role_value_on_current_organization)) <= (EmployeePermissionGroups.register_permissions_threshold()) do %>
+
+    <span><%= link "Register_New_Employee", to: Routes.employee_registration_path(@conn, :new, @organization_id) %></span> |
+
+    <% end %>
+
+  <%= if (TurnStile.Utils.convert_to_int(@current_employee.role_value_on_current_organization)) <= (EmployeePermissionGroups.edit_permissions_threshold()) do %>
+
+    <span><%= link "Edit", to: Routes.organization_path(@conn, :edit, @organization_id) %></span> |
+    
+    <% end %>
 <% end %>
 
-<%= if @current_employee do %>
-  <span><%= link "Edit", to: Routes.organization_path(@conn, :edit, @organization) %></span> |
-<% end%>
 <span><%= link "Back", to: Routes.organization_path(@conn, :index) %></span>

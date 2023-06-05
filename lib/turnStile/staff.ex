@@ -319,8 +319,13 @@ defmodule TurnStile.Staff do
       {:error, :already_confirmed}
     else
       {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "confirm")
+      # IO.puts("CREATING TOKEN")
+      # IO.inspect(encoded_token)
+      # IO.inspect(employee_token)
       Repo.insert!(employee_token)
 
+      # IO.inspect("EMAILED")
+      # IO.inspect(confirmation_url_fun.(encoded_token))
       EmployeeNotifier.deliver_confirmation_instructions(
         employee,
         confirmation_url_fun.(encoded_token)
@@ -343,6 +348,9 @@ defmodule TurnStile.Staff do
   and the token is deleted.
   """
   def confirm_employee(token) do
+    IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
+    IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
+
     with {:ok, query} <- EmployeeToken.verify_email_token_query(token, "confirm"),
          %Employee{} = employee <- Repo.one(query),
          {:ok, %{employee: employee}} <- Repo.transaction(confirm_employee_multi(employee)) do

@@ -50,12 +50,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           IO.puts("Error: registration create error: organization exists w/o founding member.")
           {:error, error}
         else
-          employee_params =
-            employee_params
-            |> Map.put("organization_id", organization_id)
-            |> Map.put("role", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
 
-          IO.inspect("ZZZZZ")
+          IO.inspect("ZZZZZ employee_params")
           IO.inspect(employee_params)
 
           x =
@@ -72,7 +68,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             |> put_flash(:error, "Invalid Permissions to create that user level")
             |> render("new.html", changeset: error_changeset, organization_id: organization_id)
           else
-            TurnStile.Repo.transaction(fn ->
               case Staff.register_and_preload_employee(employee_params, organization) do
                 {:ok, employee} ->
                   IO.inspect("EEEEE")
@@ -134,15 +129,14 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                             {:error, error}
                         end
                       end
+                    {:error, error} ->
+                      {:error, error}
                   end
 
                 {:error, %Ecto.Changeset{} = changeset} ->
                   render(conn, "new.html", changeset: changeset, organization_id: organization_id)
                 end
-                x = TurnStile.Repo.rollback(:Rolling_back)
-                IO.inspect("ROLLBACK")
-                IO.inspect(x)
-            end)
+
           end
         end
       end

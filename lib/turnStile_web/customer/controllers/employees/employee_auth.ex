@@ -162,6 +162,11 @@ defmodule TurnStileWeb.EmployeeAuth do
     assign(conn, :current_employee, employee)
   end
 
+  def get_employee_token(conn) do
+    {employee_token, _conn} = ensure_employee_token(conn)
+    employee_token
+  end
+
   # gets signed in org from sessions, adds to conn each req
   def fetch_current_organization(conn, _opts) do
     # IO.inspect("fetch_current_organization")
@@ -274,6 +279,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
   end
   @doc """
+  PLUG used in router
   Used for routes that require employee to have edit_access
 
   checks if current_employee role above edit_permissions_threshold; can visit pages that require it
@@ -334,28 +340,28 @@ defmodule TurnStileWeb.EmployeeAuth do
   def has_sufficient_register_permissions?(conn, employee_params_to_register) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
-    IO.inspect(current_employee)
+    # IO.inspect(current_employee)
     if !current_employee do
       false
     else
-      IO.inspect(current_employee.role_on_current_organization)
-      IO.inspect(to_string(EmployeePermissionGroups.get_persmission_value("owner")))
+      # IO.inspect(current_employee.role_on_current_organization)
+      # IO.inspect(to_string(EmployeePermissionGroups.get_persmission_value("owner")))
       # check if owner; owner has full access
       if current_employee.role_value_on_current_organization ===
            to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
-            IO.inspect("owner perms")
+            # IO.inspect("owner perms")
             true
       else
-        IO.inspect('CCCCCCCCC')
+        # IO.inspect('CCCCCCCCC')
         current_user_permission =
           current_employee.role_value_on_current_organization
         registrant_role = Map.get(employee_params_to_register, "role_on_current_organization") || Map.get(employee_params_to_register, :role_on_current_organization)
-        IO.inspect(current_user_permission)
+        # IO.inspect(current_user_permission)
 
         registrant_role_value = EmployeePermissionGroups.get_persmission_value(registrant_role)
-        IO.inspect(registrant_role_value)
-        IO.inspect(current_user_permission <=
-          registrant_role_value)
+        # IO.inspect(registrant_role_value)
+        # IO.inspect(current_user_permission <=
+          # registrant_role_value)
         # current must be equal to register; both are digit strings
         if         current_user_permission <=
           to_string(registrant_role_value) do
@@ -385,7 +391,6 @@ defmodule TurnStileWeb.EmployeeAuth do
     conn
     |> put_flash(:error, "Insufficient permissions to access this page.")
     |> maybe_store_return_to()
-    |> redirect(to: Routes.organization_employee_path(conn, :index, nil))
-    |> halt()
+    |> redirect(to: Routes.organization_path(conn, :show, conn.assigns[:current_employee][:current_organization_login_id]))
   end
 end

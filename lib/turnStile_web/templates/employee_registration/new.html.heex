@@ -1,68 +1,60 @@
 <%= if @current_employee do%>
   <h1>Register A New Employee</h1>
   <h3>Owners and Managers can register new Managers</h3>
-  <p>Add a new managers to the organization. TODO: set a tempPW. Managers will get conf email to setup theor own.</p>
-<% else %>
-  <h1>Setup A New Organization</h1>
-  <h3>Add An Organization Owner</h3>
-  <p>The owner is the top-level manager. The owner can create all other user types.</p>
-<% end %>
- <!-- setup procedure -->
-<.form let={f} for={@changeset} action={Routes.employee_registration_path(@conn, :create, @organization_id)}>
-  <%= if @changeset.action do %>
-    <div class="alert alert-danger">
-      <p>Oops, something went wrong! Please check the errors below.</p>
-    </div>
-  <% end %>
 
-  <%= label f, :first_name %>
-  <%= text_input f, :first_name %>
-  <%= error_tag f, :first_name %>
+  <.form let={f} for={@changeset} action={Routes.employee_registration_path(@conn, :create, @organization_id)}>
+    <%= if @changeset.action do %>
+      <div class="alert alert-danger">
+        <p>Oops, something went wrong! Please check the errors below.</p>
+      </div>
+    <% end %>
 
-  <%= label f, :last_name %>
-  <%= text_input f, :last_name %>
-  <%= error_tag f, :last_name %>
+    <%= label f, :first_name %>
+    <%= text_input f, :first_name %>
+    <%= error_tag f, :first_name %>
 
-  <%= label f, :role %>
+    <%= label f, :last_name %>
+    <%= text_input f, :last_name %>
+    <%= error_tag f, :last_name %>
 
-  <!-- Non-setup procedue -->
-  <%= if @current_employee do%>
-  <!-- display only roles allowed by permissions -->
-    <%= select f, :role_on_current_organization, Enum.map(TurnStile.Utils.display_forward_list_values(EmployeePermissionRoles.get_employee_all_roles(),  @current_employee.role_on_current_organization), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
-  <% end %>
+    <%= label f, :role %>
 
-  <%= label f, :email %>
-  <%= text_input f, :email %>
-  <%= error_tag f, :email %>
 
-  <%= label f, "Confirm Email" %>
-  <%= text_input f, :email_confirmation %>
-  <%= error_tag f, :email_confirmation %>
-  <%= if @current_employee do%>
+    <!-- display only roles allowed by permissions -->
+      <%= select f, :role_on_current_organization, Enum.map(TurnStile.Utils.display_forward_list_values(EmployeePermissionRoles.get_employee_all_roles(),  @current_employee.role_on_current_organization), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+
+    <%= label f, :email %>
+    <%= text_input f, :email %>
+    <%= error_tag f, :email %>
+
+    <%= label f, "Confirm Email" %>
+    <%= text_input f, :email_confirmation %>
+    <%= error_tag f, :email_confirmation %>
+    <%= if @current_employee do%>
+      <!-- set temorary password, new user will change via email conf -->
+      <%= label f, "Create Temp Password" %>
+      <%= password_input f, :password %>
+      <%= error_tag f, :password %>
+
+      <%= label f, "Confirm Temp Password" %>
+      <%= password_input f, :password_confirmation %>
+      <%= error_tag f, :password_confirmation %>
+    <% else %>
+      <!-- owner set up, so use real PW -->
     <!-- set temorary password, new user will change via email conf -->
-    <%= label f, "Create Temp Password" %>
-    <%= password_input f, :password %>
-    <%= error_tag f, :password %>
+      <%= label f, "Create Password" %>
+      <%= password_input f, :password %>
+      <%= error_tag f, :password %>
 
-    <%= label f, "Confirm Temp Password" %>
-    <%= password_input f, :password_confirmation %>
-    <%= error_tag f, :password_confirmation %>
-  <% else %>
-    <!-- owner set up, so use real PW -->
-  <!-- set temorary password, new user will change via email conf -->
-    <%= label f, "Create Password" %>
-    <%= password_input f, :password %>
-    <%= error_tag f, :password %>
-
-    <%= label f, "Confirm Password" %>
-    <%= password_input f, :password_confirmation %>
-    <%= error_tag f, :password_confirmation %>
-  <% end %>
-  <div>
-    <%= submit "Register" %>
-  </div>
-</.form>
-
+      <%= label f, "Confirm Password" %>
+      <%= password_input f, :password_confirmation %>
+      <%= error_tag f, :password_confirmation %>
+    <% end %>
+    <div>
+      <%= submit "Register" %>
+    </div>
+  </.form>
+<% end %>
 <p>
   <%= if !@current_employee do%>
   <%= link "Log in", to: "/organizations/#{@organization_id}" %> |

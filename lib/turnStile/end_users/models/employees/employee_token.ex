@@ -112,7 +112,8 @@ defmodule TurnStile.Staff.EmployeeToken do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
         days = days_for_context(context)
-
+        # IO.inspect(token)
+        # IO.inspect(decoded_token)
         query =
           from token in token_and_context_query(hashed_token, context),
             join: employee in assoc(token, :employee),
@@ -120,7 +121,6 @@ defmodule TurnStile.Staff.EmployeeToken do
             select: employee
 
         {:ok, query}
-
       :error ->
         :error
     end

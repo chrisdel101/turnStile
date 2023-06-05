@@ -143,7 +143,7 @@ defmodule TurnStileWeb.Router do
       :require_authenticated_employee,
       :require_edit_access_employee
     ]
-    get "/employees", EmployeeController, :index, as: :organization_employees
+    get "/employees", EmployeeController, :index, as: :organization_employee
   end
 
   # /organizations non_authenciated
