@@ -7,7 +7,14 @@ defmodule TurnStileWeb.EmployeeSettingsController do
   plug :assign_email_and_password_changesets
 
   def edit(conn, _params) do
-    render(conn, "edit.html")
+    current_employee = conn.assigns.current_employee
+    if !current_employee do
+      conn
+      |> put_flash(:error, "You must be logged in to access this page")
+      |> redirect(to: "/")
+    end
+    changeset = Staff.change_employee(current_employee)
+    render(conn, "edit.html", changeset: changeset)
   end
 
   def update(conn, %{"action" => "update_email"} = params) do
