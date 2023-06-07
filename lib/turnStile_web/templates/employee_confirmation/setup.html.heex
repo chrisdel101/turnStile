@@ -1,0 +1,20 @@
+<h1>Setup account</h1>
+ 
+<.form let={f} for={:employee} action={Routes.employee_confirmation_path(@conn, :update, @organization_id, @token)}>
+
+  <%= label f, :password, "New password" %>
+  <%= password_input f, :password, required: true %>
+  <%= error_tag f, :password %>
+
+  <%= label f, :password_confirmation, "Confirm new password" %>
+  <%= password_input f, :password_confirmation, required: true %>
+  <%= error_tag f, :password_confirmation %>
+
+  <div>
+    <%= submit "Reset password" %>
+  </div>
+</.form>
+<p>
+  <%= link "Register", to: Routes.employee_registration_path(@conn, :new, @organization_id) %> |
+  <%= link "Log in", to: Routes.employee_session_path(@conn, :new, @organization_id) %>
+</p>

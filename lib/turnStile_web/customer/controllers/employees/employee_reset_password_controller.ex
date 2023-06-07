@@ -6,7 +6,8 @@ defmodule TurnStileWeb.EmployeeResetPasswordController do
   plug :get_employee_by_reset_password_token when action in [:edit, :update]
 
   def new(conn, _params) do
-    render(conn, "new.html")
+    organization_id = Map.get(conn.params,"id")
+    render(conn, "new.html", organization_id: organization_id)
   end
 
   def create(conn, %{"employee" => %{"email" => email}}) do

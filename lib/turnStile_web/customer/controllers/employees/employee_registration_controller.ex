@@ -31,8 +31,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         TurnStile.Company.get_organization(organization_id)
         |> TurnStile.Repo.preload(:employees)
 
-      IO.inspect("ZZZZZ")
-      IO.inspect(organization)
+      # IO.inspect("ZZZZZ")
+      # IO.inspect(organization)
       # if no org by org_id flash error
       if !organization do
         conn
@@ -88,16 +88,31 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                       IO.inspect("YYYYYY")
                       IO.inspect(employee)
                       # require email account confirmation
-                      if System.get_env("EMPLOYEE_CREATE_CONFIRM_IS_REQUIRED") === "true" do
+                      cond do
+                         System.get_env("EMPLOYEE_CREATE_SETUP_IS_REQUIRED") === "false" ->
+                          # just send welcomemail; no setup required
+                          vv = Staff.deliver_employee_welcome_email(employee)
+                          IO.inspect('vvvvvvvvv')
+                          IO.inspect(vv)
+
+                          case vv do
+                            {:ok, _email_body} ->
+                              conn
+                              |> put_flash(:info, "Employee created successfully.")
+                              |> redirect(
+                                to: Routes.employee_registration_path(conn, :new, organization_id)
+                              )
+
+                            {:error, error} ->
+                              {:error, error}
+                          end
+
+                      true ->
                         zz =
-                          Staff.deliver_employee_confirmation_instructions(
+                          Staff.deliver_employee_setup_email(
                             employee,
-                            &Routes.employee_confirmation_url(conn, :edit, organization_id, &1)
+                           &Routes.employee_confirmation_url(conn, :setup, organization_id, &1)
                           )
-
-                        IO.inspect('zzzzzzzzz')
-                        IO.inspect(zz)
-
                         case zz do
                           {:ok, _email_body} ->
                             conn
@@ -112,25 +127,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                           {:error, error} ->
                             {:error, error}
                         end
-                      else
-                        vv = Staff.deliver_employee_welcome_email(employee)
-                        IO.inspect('vvvvvvvvv')
-                        IO.inspect(vv)
-
-                        case vv do
-                          {:ok, _email_body} ->
-                            conn
-                            |> put_flash(:info, "Employee created successfully.")
-                            |> redirect(
-                              to: Routes.employee_registration_path(conn, :new, organization_id)
-                            )
-
-                          {:error, error} ->
-                            {:error, error}
-                        end
                       end
-                    {:error, error} ->
-                      {:error, error}
+
                   end
 
                 {:error, %Ecto.Changeset{} = changeset} ->
@@ -168,8 +166,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           |> Map.put("organization_id", organization_id)
           |> Map.put("role_on_current_organization", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
 
-        IO.inspect("ZZZZZ")
-        IO.inspect(employee_params)
+        # IO.inspect("ZZZZZ")
+        # IO.inspect(employee_params)
 
         case Staff.register_and_preload_employee(employee_params, organization) do
           {:ok, employee} ->
@@ -195,7 +193,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                   {:error, error}
               end
             else
-              vv = Staff.deliver_employee_welcome_email(employee)
+              vv = Staff.deliver_init_employee_welcome_email(employee)
               IO.inspect('vvvvvvvvv')
               IO.inspect(vv)
 

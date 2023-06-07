@@ -1,6 +1,6 @@
 <h1>Forgot your password?</h1>
 
-<.form let={f} for={:employee} action={Routes.employee_reset_password_path(@conn, :create)}>
+<.form let={f} for={:employee} action={Routes.employee_reset_password_path(@conn, :create, @organization_id)}>
   <%= label f, :email %>
   <%= email_input f, :email, required: true %>
 
@@ -10,6 +10,6 @@
 </.form>
 
 <p>
-  <%= link "Register", to: Routes.employee_registration_path(@conn, :new) %> |
-  <%= link "Log in", to: Routes.employee_session_path(@conn, :new) %>
+  <%= link "Register", to: Routes.employee_registration_path(@conn, :new, @organization_id) %> |
+  <%= link "Log in", to: Routes.employee_session_path(@conn, :new, @organization_id) %>
 </p>

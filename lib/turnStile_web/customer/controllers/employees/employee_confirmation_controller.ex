@@ -26,10 +26,17 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   end
 
   # comes from email tokenized URL
-  def edit(conn, %{"token" => token}) do
+  def confirm(conn, %{"token" => token}) do
     # get org id from tokenized URL
     organization_id = Map.get(conn.params,"id")
-    render(conn, "edit.html", id: organization_id, token: token)
+    render(conn, "confirm.html", organization_id: organization_id, token: token)
+  end
+
+  # comes from email tokenized URL
+  def setup(conn, %{"token" => token}) do
+    # get org id from tokenized URL
+    organization_id = Map.get(conn.params,"id")
+    render(conn, "setup.html", organization_id: organization_id, token: token)
   end
 
   # Do not log in the employee after confirmation to avoid a
@@ -56,6 +63,8 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     # IO.puts("HEREHEREHREREREHREH update")
     case Staff.confirm_employee(token) do
       {:ok, employee} ->
+        IO.puts("YEAHYEAH")
+
         if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
           IO.inspect("YYYYYY")
           params = %{flash: "Account confirmed."}

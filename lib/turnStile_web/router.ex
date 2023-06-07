@@ -97,7 +97,8 @@ defmodule TurnStileWeb.Router do
     delete "/employees/log_out", EmployeeSessionController, :delete
     get "/employees/confirm", EmployeeConfirmationController, :new
     post "/employees/confirm", EmployeeConfirmationController, :create
-    get "/employees/confirm/:token", EmployeeConfirmationController, :edit
+    get "/employees/setup/:token", EmployeeConfirmationController, :setup
+    get "/employees/confirm/:token", EmployeeConfirmationController, :confirm
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
 

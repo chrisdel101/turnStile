@@ -8,7 +8,6 @@ defmodule TurnStile.Staff.EmployeeNotifier do
   defp deliver(recipient, subject, body) do
     # systax here requires this for domain in sender - for mailgun
     recipient = if Mix.env == :prod, do: recipient, else: System.get_env("DEV_EMAIL")
-    IO.inspect(recipient)
     email =
       new()
       |> to(recipient)
@@ -83,14 +82,38 @@ defmodule TurnStile.Staff.EmployeeNotifier do
   @doc """
   Deliver instructions to update a employee email.
   """
-  def deliver_welcome_email_instructions(employee) do
+  def deliver_employee_account_setup_instructions(employee, url) do
+    deliver(employee.email, "Update email instructions", """
+
+    ==============================
+
+    Hi #{employee.email},
+
+    An account has been created for you. Visit the URL below to continue the your account setup:
+
+    #{url}
+
+    If you didn't request this change, please ignore this.
+
+    ==============================
+    """)
+  end
+  @doc """
+  Deliver instructions to update a employee email.
+  """
+  def deliver_welcome_email_init_employee_instructions(employee) do
     deliver(employee.email, "Welcome Email", """
 
     ==============================
 
     Hi #{employee.email},
 
-    Weclome to TurnStile! Your login email is #{employee.email}.
+    Weclome to TurnStile!
+
+    Your login email is #{employee.email}.
+    Your password is #{employee.password}.
+
+    This method of authenitcation is very insecure and should not be used in production. Please change your password immediately.
 
     If you didn't request this account, please ignore this email.
 

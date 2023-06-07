@@ -87,7 +87,10 @@ defmodule TurnStile.Staff do
   """
   def register_and_preload_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
-    role_name =  Map.get(attrs, "role_on_current_organization") || Map.get(attrs, :role_on_current_organization)
+    role_name =
+      Map.get(attrs, "role_on_current_organization") ||
+        Map.get(attrs, :role_on_current_organization)
+
     # build a Role
     role = %TurnStile.Role{
       name: role_name,
@@ -101,6 +104,7 @@ defmodule TurnStile.Staff do
       %Employee{}
       |> Employee.registration_changeset(attrs)
       |> Ecto.Changeset.put_assoc(:roles, [role])
+
     # IO.inspect("emp_changeset")
     # IO.inspect(emp_changeset)
     # IO.inspect(role)
@@ -333,12 +337,30 @@ defmodule TurnStile.Staff do
     end
   end
 
+  def deliver_employee_setup_email(%Employee{} = employee, confirmation_url_fun)
+      when is_function(confirmation_url_fun, 1) do
+    if employee.confirmed_at do
+      {:error, :already_confirmed}
+    else
+      {encoded_token, employee_token} = EmployeeToken.build_email_token(employee, "confirm")
+      # IO.puts("CREATING TOKEN")
+      # IO.inspect(encoded_token)
+      # IO.inspect(employee_token)
+      Repo.insert(employee_token)
+
+      EmployeeNotifier.deliver_employee_account_setup_instructions(
+        employee,
+        confirmation_url_fun.(encoded_token)
+      )
+    end
+  end
+
   @doc """
-  Delivers the welcome email. Use when EMPLOYEE_CREATE_CONFIRM_IS_REQUIRED != "true"
+  Delivers the welcome email. Use when EMPLOYEE_CREATE_SETUP_IS_REQUIRED != "true"
 
   """
-  def deliver_employee_welcome_email(%Employee{} = employee) do
-    EmployeeNotifier.deliver_welcome_email_instructions(employee)
+  def deliver_init_employee_welcome_email(%Employee{} = employee) do
+    EmployeeNotifier.deliver_welcome_email_init_employee(employee)
   end
 
   @doc """
@@ -464,6 +486,7 @@ defmodule TurnStile.Staff do
   def list_employee_ids_by_organization(organization_id) do
     if not is_nil(organization_id) do
       organization_id = TurnStile.Utils.convert_to_int(organization_id)
+
       q =
         from o in "organization_employees",
           join: o1 in "organizations",
@@ -623,6 +646,7 @@ defmodule TurnStile.Staff do
         # IO.inspect("ADASDSAD")
         # IO.inspect(update_emp)
         {:ok, update_emp}
+
       {:error, error} ->
         {:error, error}
     end
