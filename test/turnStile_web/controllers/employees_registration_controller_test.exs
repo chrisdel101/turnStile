@@ -25,7 +25,7 @@ defmodule TurnStileEmployeeRegistrationControllerTest do
 
       conn =
         post(conn, Routes.employee_registration_path(conn, :create), %{
-          "employee" => valid_employee_attributes(email: email)
+          "employee" => merge_employee_attributes(email: email)
         })
 
       assert get_session(conn, :employee_token)

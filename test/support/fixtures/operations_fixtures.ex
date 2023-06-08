@@ -32,14 +32,14 @@ defmodule TurnStile.OperationsFixtures do
   @doc """
   Generate a admin.
   """
-  def admin_fixture(attrs \\ %{}) do
-    {:ok, admin} =
-      attrs
-      |> Enum.into(%{
+  # def admin_fixture(attrs \\ %{}) do
+  #   {:ok, admin} =
+  #     attrs
+  #     |> Enum.into(%{
 
-      })
-      |> TurnStile.Operations.create_admin()
+  #     })
+  #     |> TurnStile.Operations.create_admin()
 
-    admin
-  end
+  #   admin
+  # end
 end

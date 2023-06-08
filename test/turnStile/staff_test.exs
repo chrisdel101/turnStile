@@ -86,7 +86,7 @@ defmodule TurnStile.StaffTest do
 
     test "registers employees with a hashed password" do
       email = unique_employee_email()
-      {:ok, employee} = Staff.register_and_preload_employee(valid_employee_attributes(email: email))
+      {:ok, employee} = Staff.register_and_preload_employee(merge_employee_attributes(email: email))
       assert employee.email == email
       assert is_binary(employee.hashed_password)
       assert is_nil(employee.confirmed_at)
@@ -107,7 +107,7 @@ defmodule TurnStile.StaffTest do
       changeset =
         Staff.change_employee_registration(
           %Employee{},
-          valid_employee_attributes(email: email, password: password)
+          merge_employee_attributes(email: email, password: password)
         )
 
       assert changeset.valid?
@@ -259,7 +259,9 @@ defmodule TurnStile.StaffTest do
       %{employee: employee_fixture()}
     end
 
+    @tag individual_test: "yup"
     test "validates password", %{employee: employee} do
+
       {:error, changeset} =
         Staff.update_employee_password(employee, valid_employee_password(), %{
           password: "not valid",
@@ -271,7 +273,6 @@ defmodule TurnStile.StaffTest do
                password_confirmation: ["does not match password"]
              } = errors_on(changeset)
     end
-
     test "validates maximum values for password for security", %{employee: employee} do
       too_long = String.duplicate("db", 100)
 
