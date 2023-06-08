@@ -35,13 +35,13 @@ defmodule TurnStile.Operations.Admin do
   """
   def registration_changeset(admin, attrs, opts \\ []) do
     IO.inspect(attrs)
-    IO.inspect(to_string(RoleValuesEnum.get_permission_value(attrs["role"])))
+    IO.inspect(to_string(RoleValuesMap.get_permission_role_value(attrs["role"])))
     admin
     |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role, :client_type])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
-    |> put_change(:role_value,  to_string(RoleValuesEnum.get_permission_value(attrs["role"])))
+    |> put_change(:role_value,  to_string(RoleValuesMap.get_permission_role_value(attrs["role"])))
   end
 
   defp validate_email(changeset) do

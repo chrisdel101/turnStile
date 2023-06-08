@@ -164,7 +164,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         employee_params =
           employee_params
           |> Map.put("organization_id", organization_id)
-          |> Map.put("role_on_current_organization", to_string(hd(EmployeeManagerRolesEnum.get_roles())))
+          |> Map.put("role_on_current_organization",  RoleValuesMap.get_permission_role("owner"))
 
         # IO.inspect("ZZZZZ")
         # IO.inspect(employee_params)
