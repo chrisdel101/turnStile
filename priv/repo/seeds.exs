@@ -21,7 +21,7 @@ TurnStile.Repo.transaction(fn ->
   emp1_params = %{
     email: "employee1@test.com",
     email_confirmation: "employee1@test.com",
-    last_name: "Employee1",
+    last_name: "Current Employee",
     first_name: "Test1",
     password: "password",
     hashed_password: "password",

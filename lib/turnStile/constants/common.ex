@@ -9,7 +9,8 @@ defmodule RouteTypesEnum do
   """
   @route_types %{
     "ADMIN" => "admin",
-    "NON-ADMIN" => "non-admin"
+    "NON-ADMIN" => "non-admin",
+    "TEST" => "test"
   }
   def get_route_types do
     @route_types

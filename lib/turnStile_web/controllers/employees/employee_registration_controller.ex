@@ -3,6 +3,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
   alias TurnStile.Staff
   alias TurnStile.Staff.Employee
+  alias TurnStile.Company
 
   def new(conn, _params) do
     changeset = Staff.change_employee_registration(%Employee{})
@@ -11,6 +12,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   end
 
   def create(conn, %{"employee" => employee_params}) do
+    IO.inspect(conn)
     current_employee = conn.assigns[:current_employee]
     # if no logged in employee
     if !current_employee do
@@ -28,7 +30,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
       # check org exists
       organization =
-        TurnStile.Company.get_organization(organization_id)
+        Company.get_organization(organization_id)
         |> TurnStile.Repo.preload(:employees)
 
       # IO.inspect("ZZZZZ")
@@ -40,7 +42,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         |> redirect(to: Routes.organization_path(conn, :new))
       else
         # make sure there are some members
-        members? = TurnStile.Company.organization_has_members?(organization_id)
+        members? = Company.organization_has_members?(organization_id)
 
         # if no members, send error
         if !members? do
@@ -50,7 +52,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           IO.puts("Error: registration create error: organization exists w/o founding member.")
           {:error, error}
         else
-
           IO.inspect("ZZZZZ employee_params")
           IO.inspect(employee_params)
 
@@ -68,53 +69,43 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             |> put_flash(:error, "Invalid Permissions to create that user level")
             |> render("new.html", changeset: error_changeset, organization_id: organization_id)
           else
-              case Staff.register_and_preload_employee(employee_params, organization) do
-                {:ok, employee} ->
-                  IO.inspect("EEEEE")
-                  IO.inspect(employee)
-                  # load employee on organization
-                  org_changeset = Ecto.Changeset.change(organization)
-                  # put_assoc employee/organization
-                  org_with_emps =
-                    Ecto.Changeset.put_assoc(org_changeset, :employees, [
-                      employee | organization.employees
-                    ])
+            case Staff.register_and_preload_employee(employee_params, organization) do
+              {:ok, employee} ->
+                IO.inspect("EEEEE")
+                IO.inspect(employee)
 
-                  IO.inspect("org_with_emps")
-                  IO.inspect(org_with_emps)
+                case Company.handle_new_employee_association(organization, employee) do
+                  {:ok, _updated_org} ->
+                    IO.inspect("YYYYYY")
+                    IO.inspect(employee)
+                    # require email account confirmation
+                    cond do
+                      System.get_env("EMPLOYEE_CREATE_SETUP_IS_REQUIRED") === "false" ->
+                        # just send welcomemail; no setup required
+                        case Staff.deliver_init_employee_welcome_email(employee) do
+                          {:ok, _email_body} ->
+                            conn
+                            |> put_flash(:info, "Employee created successfully.")
+                            |> redirect(
+                              to: Routes.employee_registration_path(conn, :new, organization_id)
+                            )
+                          {:error, error} ->
+                            {:error, error}
+                        end
 
-                  case TurnStile.Company.update_organization_changeset(org_with_emps) do
-                    {:ok, _updated_org} ->
-                      IO.inspect("YYYYYY")
-                      IO.inspect(employee)
-                      # require email account confirmation
-                      cond do
-                         System.get_env("EMPLOYEE_CREATE_SETUP_IS_REQUIRED") === "false" ->
-                          # just send welcomemail; no setup required
-                          vv = Staff.deliver_employee_welcome_email(employee)
-                          IO.inspect('vvvvvvvvv')
-                          IO.inspect(vv)
-
-                          case vv do
-                            {:ok, _email_body} ->
-                              conn
-                              |> put_flash(:info, "Employee created successfully.")
-                              |> redirect(
-                                to: Routes.employee_registration_path(conn, :new, organization_id)
-                              )
-
-                            {:error, error} ->
-                              {:error, error}
-                          end
-
+                      # default case - send setup email
                       true ->
                         zz =
                           Staff.deliver_employee_setup_email(
                             employee,
-                           &Routes.employee_confirmation_url(conn, :setup, organization_id, &1)
+                            &Routes.employee_confirmation_url(conn, :setup, organization_id, &1)
                           )
-                        case zz do
-                          {:ok, _email_body} ->
+                          IO.inspect(zz)
+                          case zz do
+                            {:ok, email_body} ->
+                              IO.inspect("ZZZZZ")
+                              IO.inspect(email_body)
+
                             conn
                             |> put_flash(
                               :info,
@@ -127,14 +118,18 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                           {:error, error} ->
                             {:error, error}
                         end
-                      end
+                    end
 
-                  end
-
-                {:error, %Ecto.Changeset{} = changeset} ->
-                  render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+                  {:error, %Ecto.Changeset{} = changeset} ->
+                    render(conn, "new.html",
+                      changeset: changeset,
+                      organization_id: organization_id
+                    )
                 end
 
+              {:error, %Ecto.Changeset{} = changeset} ->
+                render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+            end
           end
         end
       end
@@ -150,11 +145,11 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     IO.inspect(organization)
     # check if org already exist - it was just created
-    organizations = TurnStile.Company.get_organization(organization_id)
+    organizations = Company.get_organization(organization_id)
     # check if org already exist
     if organizations do
       # confirm exists but has no members yet
-      members? = TurnStile.Company.organization_has_members?(organization_id)
+      members? = Company.organization_has_members?(organization_id)
       # if member, send error
       if members? do
         error = "Organization setup error. Members already exist."
@@ -164,7 +159,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         employee_params =
           employee_params
           |> Map.put("organization_id", organization_id)
-          |> Map.put("role_on_current_organization",  RoleValuesMap.get_permission_role("owner"))
+          |> Map.put("role_on_current_organization", RoleValuesMap.get_permission_role("owner"))
 
         # IO.inspect("ZZZZZ")
         # IO.inspect(employee_params)
@@ -174,7 +169,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             IO.inspect("YYYYYY")
             IO.inspect(employee)
             # require email account confirmation
-            if System.get_env("EMPLOYEE_CREATE_INIT_CONFIRM_EMPLOYEE_REQUIRED") === "true" do
+            if System.get_env("REQUIRE_INIT_EMPLOYEE_CONFIRMATION") === "true" do
               zz =
                 Staff.deliver_employee_confirmation_instructions(
                   employee,

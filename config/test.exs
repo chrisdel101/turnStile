@@ -21,7 +21,7 @@ config :turnStile, TurnStile.Repo,
 config :turnStile, TurnStileWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "Gj8DI+a500SNr+SCEMcRQoXEFsMZA5q/f1aOHabtLVPpIErBf6UNZPemc2ZAdfp1",
-  server: false
+  server: true
 
 # In test we don't send emails.
 config :turnStile, TurnStile.Mailer, adapter: Swoosh.Adapters.Test

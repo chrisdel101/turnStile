@@ -62,9 +62,9 @@ defmodule TurnStile.Company do
 
   """
   def create_and_preload_organization(attrs \\ %{}) do
-    org_changeset = Organization.changeset(%Organization{},attrs)
-      # IO.inspect("create_and_preload_organization")
-      # IO.inspect(org_changeset)
+    org_changeset = Organization.changeset(%Organization{}, attrs)
+    # IO.inspect("create_and_preload_organization")
+    # IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
         org_preload = Repo.preload(new_org, :employees) |> Repo.preload(:roles)
@@ -75,7 +75,28 @@ defmodule TurnStile.Company do
         # IO.inspect("ERROR create_and_preload_organization")
         # IO.inspect(error)
         {:error, error}
+    end
+  end
 
+  # handle the many-many for new employee
+  def handle_new_employee_association(organization_struct, employee) do
+    # load employee on organization
+    org_changeset = Ecto.Changeset.change(organization_struct)
+    # put_assoc employee/organization
+    org_with_emps =
+      Ecto.Changeset.put_assoc(org_changeset, :employees, [
+        employee | organization_struct.employees
+      ])
+
+    IO.inspect("org_with_emps")
+    IO.inspect(org_with_emps)
+
+    case TurnStile.Company.update_organization_changeset(org_with_emps) do
+      {:ok, updated_org} ->
+        {:ok, updated_org}
+
+      {:error, error} ->
+        {:error, error}
     end
   end
 
@@ -96,7 +117,8 @@ defmodule TurnStile.Company do
     |> Organization.changeset(attrs)
     |> Repo.update()
   end
-# same as above but takes a formed struct
+
+  # same as above but takes a formed struct
   def update_organization(organization) do
     u_organization = Ecto.Changeset.change(organization)
     u = Repo.update(u_organization)
@@ -152,6 +174,7 @@ defmodule TurnStile.Company do
       q =
         from o in Organization,
           where: o.id == ^id
+
       #  select:
       Repo.one(q)
     else
@@ -164,16 +187,19 @@ defmodule TurnStile.Company do
       q =
         from o in Organization,
           where: o.slug == ^slug
+
       #  select:
       Repo.all(q)
     else
       []
     end
   end
+
   # check if org has employee members
   def organization_has_members?(id) do
     # members? = Company.check_organization_has_employees(id)
     members? = TurnStile.Staff.list_employee_ids_by_organization(id)
+
     if !members? or length(members?) === 0 do
       false
     else

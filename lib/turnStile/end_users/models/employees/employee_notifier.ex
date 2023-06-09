@@ -101,7 +101,7 @@ defmodule TurnStile.Staff.EmployeeNotifier do
   @doc """
   Deliver instructions to update a employee email.
   """
-  def deliver_welcome_email_init_employee_instructions(employee) do
+  def deliver_welcome_email_employee_instructions(employee) do
     deliver(employee.email, "Welcome Email", """
 
     ==============================
@@ -114,6 +114,25 @@ defmodule TurnStile.Staff.EmployeeNotifier do
     Your password is #{employee.password}.
 
     This method of authenitcation is very insecure and should not be used in production. Please change your password immediately.
+
+    If you didn't request this account, please ignore this email.
+
+    ==============================
+    """)
+  end
+
+  def deliver_welcome_email_initial_employee(employee) do
+    deliver(employee.email, "Welcome Email", """
+
+    ==============================
+
+    Hi #{employee.email},
+
+    Weclome to TurnStile!
+
+    Your login email is #{employee.email}.
+
+    This email confirms your registration. No action is required.
 
     If you didn't request this account, please ignore this email.
 

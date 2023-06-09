@@ -87,6 +87,9 @@ defmodule TurnStile.Staff do
   """
   def register_and_preload_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
+    IO.inspect("attrs")
+    IO.inspect(attrs)
+
     role_name =
       Map.get(attrs, "role_on_current_organization") ||
         Map.get(attrs, :role_on_current_organization)
@@ -96,6 +99,9 @@ defmodule TurnStile.Staff do
       name: role_name,
       value: to_string(EmployeePermissionGroups.get_persmission_value(role_name))
     }
+
+    IO.inspect("role")
+    IO.inspect(role)
 
     # assoc role with organization
     role = Ecto.build_assoc(organization, :roles, role)
@@ -247,6 +253,10 @@ defmodule TurnStile.Staff do
   def change_employee_password(employee, attrs \\ %{}) do
     Employee.password_changeset(employee, attrs, hash_password: false)
   end
+  # same as above but with hash_password: true
+  def change_employee_password(employee, attrs, hash_password) do
+    Employee.password_changeset(employee, attrs, hash_password: hash_password)
+  end
 
   @doc """
   Updates the employee password.
@@ -264,35 +274,34 @@ defmodule TurnStile.Staff do
 
   """
   def update_employee_password(employee, current_password, attrs) do
+    IO.inspect('EMP')
+    IO.inspect(employee)
+    IO.inspect(current_password)
+    IO.inspect(attrs)
 
-      IO.inspect('EMP')
-      IO.inspect(employee)
-      IO.inspect(current_password)
-      IO.inspect(attrs)
-      changeset =
-        employee
-        |> Employee.password_changeset(attrs)
-        |> Employee.validate_current_password(current_password)
-        IO.inspect('EMP2')
-        IO.inspect(employee)
-        IO.inspect(changeset)
-      if changeset.valid? do
+    changeset =
+      employee
+      |> Employee.password_changeset(attrs)
+      |> Employee.validate_current_password(current_password)
 
-        Ecto.Multi.new()
-        |> Ecto.Multi.update(:employee, changeset)
-        |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
-        |> Repo.transaction()
-        |> case do
-          {:ok, %{employee: updated_employee}} -> {:ok, updated_employee}
+    IO.inspect('EMP2')
+    IO.inspect(employee)
+    IO.inspect(changeset)
 
-          {:error, :employee, changeset, _} -> {:error, changeset}
-        end
-      else
-        IO.inspect('Invalid PW changeset')
-        IO.inspect(changeset.errors)
-        {:error, changeset}
+    if changeset.valid? do
+      Ecto.Multi.new()
+      |> Ecto.Multi.update(:employee, changeset)
+      |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{employee: updated_employee}} -> {:ok, updated_employee}
+        {:error, :employee, changeset, _} -> {:error, changeset}
       end
-
+    else
+      IO.inspect('Invalid PW changeset')
+      IO.inspect(changeset.errors)
+      {:error, changeset}
+    end
   end
 
   ## Session
@@ -375,11 +384,10 @@ defmodule TurnStile.Staff do
   end
 
   @doc """
-  Delivers the welcome email. Use when EMPLOYEE_CREATE_SETUP_IS_REQUIRED != "true"
-
+  Delivers the welcome email to initial employee. Use when EMPLOYEE_CREATE_SETUP_IS_REQUIRED != "true"
   """
   def deliver_init_employee_welcome_email(%Employee{} = employee) do
-    EmployeeNotifier.deliver_welcome_email_init_employee(employee)
+    EmployeeNotifier.deliver_welcome_email_initial_employee(employee)
   end
 
   @doc """
@@ -404,6 +412,7 @@ defmodule TurnStile.Staff do
   defp confirm_employee_multi(employee) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:employee, Employee.confirm_changeset(employee))
+
     # |> Ecto.Multi.delete_all(
     #   :tokens,
     #   EmployeeToken.employee_and_contexts_query(employee, ["confirm"])

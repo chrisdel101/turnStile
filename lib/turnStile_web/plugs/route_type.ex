@@ -9,11 +9,23 @@ defmodule TurnStileWeb.Plugs.RouteType do
 
   # admin or non-admin route
   defp set_route_type(conn, default) do
-    # check if 1st path is /admin
-    if length(conn.path_info) > 0 && hd(conn.path_info) === RouteTypesEnum.get_route_type_value("ADMIN") do
-      assign(conn, :route_type, hd(conn.path_info))
-    else
-      assign(conn, :route_type, default)
+    if length(conn.path_info) > 0 do
+      path_info_head = hd(conn.path_info)
+      admin = RouteTypesEnum.get_route_type_value("ADMIN")
+      test = RouteTypesEnum.get_route_type_value("TEST")
+
+      route_type =
+        case path_info_head do
+          ^admin ->
+            path_info_head
+
+          ^test ->
+            path_info_head
+
+          _ ->
+            default
+        end
+      assign(conn, :route_type, route_type)
     end
   end
 end

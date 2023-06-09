@@ -156,6 +156,7 @@ defmodule TurnStile.Staff.Employee do
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
+    |> validate_confirmation(:password, message: "Passwords do not match")
     |> hash_password(opts)
   end
 

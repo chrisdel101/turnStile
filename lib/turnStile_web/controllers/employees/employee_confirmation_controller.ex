@@ -2,6 +2,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Staff
+  alias TurnStile.Staff.Employee
   alias TurnStileWeb.EmployeeAuth
 
   def new(conn, _params) do
@@ -35,8 +36,9 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   # comes from email tokenized URL
   def setup(conn, %{"token" => token}) do
     # get org id from tokenized URL
+    changeset = Staff.change_employee_password(%Employee{}, %{}, true)
     organization_id = Map.get(conn.params, "id")
-    render(conn, "setup.html", organization_id: organization_id, token: token)
+    render(conn, "setup.html", organization_id: organization_id, token: token, changeset: changeset)
   end
 
   # Do not log in the employee after confirmation to avoid a
@@ -106,10 +108,13 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
               |> redirect(to: "/")
             end
 
-          {:error, changeset} ->
-            IO.puts("ERRORERRORERROR")
-            IO.inspect(changeset)
-            render(conn, "setup.html", changeset: changeset, organization_id: organization_id, token: token)
+          {:error, %Ecto.Changeset{} = changeset} ->
+            changeset = %{changeset | action: :insert}
+            conn
+            # IO.puts("ERRORERRORERROR")
+            # IO.inspect(changeset)
+            |>
+            render("setup.html", changeset: changeset, organization_id: organization_id, token: token)
             # IO.puts("ERRORERRORERROR")
         end
 
