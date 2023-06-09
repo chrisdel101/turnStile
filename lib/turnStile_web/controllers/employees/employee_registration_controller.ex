@@ -12,7 +12,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   end
 
   def create(conn, %{"employee" => employee_params}) do
-    IO.inspect(conn)
     current_employee = conn.assigns[:current_employee]
     # if no logged in employee
     if !current_employee do
@@ -100,12 +99,12 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                             employee,
                             &Routes.employee_confirmation_url(conn, :setup, organization_id, &1)
                           )
-                          IO.inspect(zz)
+                          # IO.inspect(zz)
                           case zz do
                             {:ok, email_body} ->
-                              IO.inspect("ZZZZZ")
-                              IO.inspect(email_body)
-
+                              if Mix.env() == :test do
+                                IO.inspect(email_body)
+                              end
                             conn
                             |> put_flash(
                               :info,
@@ -116,6 +115,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                             )
 
                           {:error, error} ->
+                            IO.inspect("error")
+                            IO.inspect(error)
                             {:error, error}
                         end
                     end

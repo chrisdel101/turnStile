@@ -57,7 +57,8 @@ defmodule TurnStileWeb.TestController do
   def set_test_current_employee(conn, _params) do
     current_employee = TurnStile.Staff.get_employee(1)
 
-    if conn.assigns[:route_type] === RouteTypesEnum.get_route_type_value("TEST") do
+    if Mix.env() == :test &&
+         conn.assigns[:route_type] === RouteTypesEnum.get_route_type_value("TEST") do
       conn = assign(conn, :current_employee, current_employee)
       conn = assign(conn, :current_organization_id_str, "1")
       # IO.inspect(conn)
