@@ -4,6 +4,7 @@ defmodule TurnStileWeb.Plugs.RouteType do
   def init(default), do: default
 
   def call(conn, default) do
+
     set_route_type(conn, default)
   end
 
@@ -25,7 +26,10 @@ defmodule TurnStileWeb.Plugs.RouteType do
           _ ->
             default
         end
+
       assign(conn, :route_type, route_type)
+    else
+      assign(conn, :route_type, default)
     end
   end
 end

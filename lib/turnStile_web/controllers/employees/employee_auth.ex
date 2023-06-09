@@ -33,7 +33,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       conn
       # TODO - error msg here
       |> put_flash(:error, "An Organization ID error ocurred. Make sure it exists.")
-      |> redirect(to: Routes.organization_path(conn, :show))
+      |> redirect(to: "/")
     end
 
     # confirm this employee is in the correct organization
@@ -57,7 +57,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> put_session(:current_organization_id_str, organization_id)
     |> maybe_write_remember_me_cookie(token, params)
     |> redirect(
-      to: "/organizations/#{organization_id}/employees/#{employee.id}/users" || employee_return_to
+      to: "/organizations/#{organization_id}" || employee_return_to
     )
   end
 
