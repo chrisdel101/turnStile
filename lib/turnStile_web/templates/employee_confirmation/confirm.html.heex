@@ -1,11 +1,11 @@
 <h1>Confirm account</h1>
  
-    <.form let={_f} for={:employee} action={Routes.employee_confirmation_path(@conn, :update, @organization_id, @token)}>
+    <.form let={_f} for={:employee} action={Routes.employee_confirmation_path(@conn, :update, @organization_id  , @token)}>
       <div>
         <%= submit "Confirm my account" %>
       </div>
     </.form>
 <p>
-  <%= link "Register", to: Routes.employee_registration_path(@conn, :new, @organization_id) %> |
-  <%= link "Log in", to: Routes.employee_session_path(@conn, :new, @organization_id) %>
+  <%= link "Register", to: Routes.employee_registration_path(@conn, :new, @organization_id  ) %> |
+  <%= link "Log in", to: Routes.employee_session_path(@conn, :new, @organization_id ) %>
 </p>

@@ -105,9 +105,9 @@ defmodule TurnStile.Staff do
       |> Employee.registration_changeset(attrs)
       |> Ecto.Changeset.put_assoc(:roles, [role])
 
-    # IO.inspect("emp_changeset")
-    # IO.inspect(emp_changeset)
-    # IO.inspect(role)
+    IO.inspect("emp_changeset")
+    IO.inspect(emp_changeset)
+    IO.inspect(role)
     # Repo.transaction(fn ->
     # insert employee - auto insert role using associations``
     case Repo.insert(emp_changeset) do
@@ -251,6 +251,9 @@ defmodule TurnStile.Staff do
   @doc """
   Updates the employee password.
 
+  - takes employee struct with ID
+  - current valid password
+  - new password in a map %{password: "new_password}"
   ## Examples
 
       iex> update_employee_password(employee, "valid password", %{password: ...})
@@ -260,20 +263,36 @@ defmodule TurnStile.Staff do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_employee_password(employee, password, attrs) do
-    changeset =
-      employee
-      |> Employee.password_changeset(attrs)
-      |> Employee.validate_current_password(password)
+  def update_employee_password(employee, current_password, attrs) do
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:employee, changeset)
-    |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{employee: employee}} -> {:ok, employee}
-      {:error, :employee, changeset, _} -> {:error, changeset}
-    end
+      IO.inspect('EMP')
+      IO.inspect(employee)
+      IO.inspect(current_password)
+      IO.inspect(attrs)
+      changeset =
+        employee
+        |> Employee.password_changeset(attrs)
+        |> Employee.validate_current_password(current_password)
+        IO.inspect('EMP2')
+        IO.inspect(employee)
+        IO.inspect(changeset)
+      if changeset.valid? do
+
+        Ecto.Multi.new()
+        |> Ecto.Multi.update(:employee, changeset)
+        |> Ecto.Multi.delete_all(:tokens, EmployeeToken.employee_and_contexts_query(employee, :all))
+        |> Repo.transaction()
+        |> case do
+          {:ok, %{employee: updated_employee}} -> {:ok, updated_employee}
+
+          {:error, :employee, changeset, _} -> {:error, changeset}
+        end
+      else
+        IO.inspect('Invalid PW changeset')
+        IO.inspect(changeset.errors)
+        {:error, changeset}
+      end
+
   end
 
   ## Session
@@ -385,10 +404,10 @@ defmodule TurnStile.Staff do
   defp confirm_employee_multi(employee) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:employee, Employee.confirm_changeset(employee))
-    |> Ecto.Multi.delete_all(
-      :tokens,
-      EmployeeToken.employee_and_contexts_query(employee, ["confirm"])
-    )
+    # |> Ecto.Multi.delete_all(
+    #   :tokens,
+    #   EmployeeToken.employee_and_contexts_query(employee, ["confirm"])
+    # )
   end
 
   ## Reset password

@@ -73,6 +73,7 @@ defmodule TurnStile.Staff.Employee do
       :last_name,
       :first_name,
       :role_value_on_current_organization,
+      :role_on_current_organization,
       :is_logged_in?,
       :current_organization_login_id
     ])
@@ -155,6 +156,7 @@ defmodule TurnStile.Staff.Employee do
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
+    |> hash_password(opts)
   end
 
   @doc """
