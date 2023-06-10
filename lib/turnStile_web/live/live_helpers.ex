@@ -24,8 +24,6 @@ defmodule TurnStileWeb.LiveHelpers do
       </.modal>
   """
   def modal(assigns) do
-    assigns = assign_new(assigns, :return_to, fn -> nil end)
-
     ~H"""
     <div id="modal" class="phx-modal fade-in" phx-remove={hide_modal()}>
       <div
@@ -52,7 +50,7 @@ defmodule TurnStileWeb.LiveHelpers do
     """
   end
 
-  defp hide_modal(js \\ %JS{}) do
+  def hide_modal(js \\ %JS{}) do
     js
     |> JS.hide(to: "#modal", transition: "fade-out")
     |> JS.hide(to: "#modal-content", transition: "fade-out-scale")

@@ -1,15 +1,14 @@
-<div>
+defmodule AddUserPartialComponet do
+  use Phoenix.LiveComponent
+  import Phoenix.HTML.Form, only: [label: 2, text_input: 2, number_input: 2]
+  import TurnStileWeb.ErrorHelpers, only: [error_tag: 2]
 
-  <.form
-    let={f}
-    for={@changeset}
-    id="user-form"
-    phx-target={@myself}
-    phx-change="validate"
-    phx-submit="save">
-    
-   <%!-- <%= live_component AddUserPartialComponet, f: f  %>   --%>
-   <%= label f, :first_name %>
+  def render(assigns) do
+    f = assigns.f
+    IO.inspect(assigns, label: "flash")
+    ~H"""
+    <h2>Add New User</h2>
+    <%= label f, :first_name %>
     <%= text_input f, :first_name %>
     <%= error_tag f, :first_name %>
 
@@ -28,11 +27,6 @@
     <%= label f, :health_card_num %>
     <%= number_input f, :health_card_num %>
     <%= error_tag f, :health_card_num %>
-  
-    <div>
-      <%= submit "Save", phx_disable_with: "Saving..."
-      %>
-      <%!-- ,phx_click: TurnStileWeb.LiveHelpers.hide_modal() --%>
-    </div>
-  </.form>
-</div>
+    """
+  end
+end
