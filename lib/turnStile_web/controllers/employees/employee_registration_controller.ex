@@ -73,7 +73,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                 IO.inspect("EEEEE")
                 IO.inspect(employee)
 
-                case Company.handle_new_employee_association(organization, employee) do
+                case Company.handle_new_employee_association_create(organization, employee) do
                   {:ok, _updated_org} ->
                     IO.inspect("YYYYYY")
                     IO.inspect(employee)

@@ -78,14 +78,14 @@ defmodule TurnStile.Company do
     end
   end
 
-  # handle the many-many for new employee
-  def handle_new_employee_association(organization_struct, employee) do
+  # handle the many-many for new employee- on create
+  def handle_new_employee_association_create(organization_struct, employee_params) do
     # load employee on organization
     org_changeset = Ecto.Changeset.change(organization_struct)
     # put_assoc employee/organization
     org_with_emps =
       Ecto.Changeset.put_assoc(org_changeset, :employees, [
-        employee | organization_struct.employees
+        employee_params | organization_struct.employees
       ])
 
     IO.inspect("org_with_emps")

@@ -54,6 +54,11 @@ defmodule TurnStile.Patients do
     |> User.changeset(attrs)
     |> Repo.insert()
   end
+# handle the one-many for new user-v-employee on create
+  def handle_new_user_association_create(employee_struct, user_params) do
+    user = Ecto.build_assoc(employee_struct, :users, user_params)
+    Repo.insert(user)
+  end
 
   @doc """
   Updates a user.

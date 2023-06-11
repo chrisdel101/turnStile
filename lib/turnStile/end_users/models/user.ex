@@ -3,7 +3,6 @@ defmodule TurnStile.Patients.User do
   import Ecto.Changeset
 
   schema "users" do
-    field :client_type, :string
     field :email, :string
     field :first_name, :string
     field :health_card_num, :integer
@@ -19,7 +18,7 @@ defmodule TurnStile.Patients.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :client_type])
-    |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num, :client_type])
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id])
+    |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num])
   end
 end
