@@ -1,16 +1,18 @@
 <h1>Listing Users</h1>
 <%!-- remove this line later if saftey no needed --%>
 <%= if @current_employee do %>
-
+  <%   IO.inspect(@socket, label: "socket IN FORM 2") %>
   <%= if @live_action in [:new, :edit] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
+     <%   IO.inspect(@socket, label: "IN FORM 2") %>
+     <%   IO.inspect(@live_action, label: "IN FORM 2") %>
       <.live_component
         module={TurnStileWeb.UserLive.FormComponent}
-        id={@user.id || :new}
-        title={@page_title}
+        id={@user.id || :new}~
         action={@live_action}
         user={@user}
         return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
+        notice={@notice}  
       />
     </.modal>
     <% end %>

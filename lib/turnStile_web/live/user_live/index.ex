@@ -12,20 +12,28 @@ defmodule TurnStileWeb.UserLive.Index do
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
+    IO.inspect(socket, label: "sss")
     {:ok,
      assign(
        socket,
        users: list_users(),
        current_employee: current_employee,
-       trigger_submit: false
+       trigger_submit: false,
+       notice: "hello"
      )}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
+    IO.inspect(params, label: "params on index")
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
-
+  @impl true
+  def handle_info(param, socket) do
+    IO.inspect(param, label: "param22 on index")
+    # update the list of cards in the socket
+    {:noreply, socket}
+  end
   def handle_event("alert", values, socket) do
     user_id = values["value"]
     employee_id = socket.assigns.current_employee.id

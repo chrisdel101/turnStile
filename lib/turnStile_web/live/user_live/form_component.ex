@@ -15,6 +15,16 @@ defmodule TurnStileWeb.UserLive.FormComponent do
   end
 
   @impl true
+  # def handle_event(param1, %{"user" => user_params}, socket) do
+  #   changeset =
+  #     socket.assigns.user
+  #     |> Patients.change_user(user_params)
+  #     |> Map.put(:action, :validate)
+
+  #   {:noreply, assign(socket, :changeset, changeset)}
+  # end
+
+  @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset =
       socket.assigns.user
@@ -24,17 +34,39 @@ defmodule TurnStileWeb.UserLive.FormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
+  def handle_event(param1, param2, socket) do
+
+    IO.inspect(param1, label: "param1")
+    IO.inspect(param2, label: "param2")
+    # save_user(socket, socket.assigns.action, user_params)
+    socket = socket
+    |> put_flash(:error, "User updated successfully")
+    |> push_patch(to: "/organizations/17/employees/6/users/new")
+    # |> assign(:socket, socket)
+    # socket =
+    #   socket
+    #   |> put_flash(:error, "NONONONON ")
+
+
+
+    # IO.inspect(socket, label: "socketflasher")
+    {:noreply, socket}
+  end
   def handle_event("save", %{"user" => user_params}, socket) do
     IO.inspect(socket.assigns.action, label: "action")
-    save_user(socket, socket.assigns.action, user_params)
-    socket =
-      socket
-      |> put_flash(:error, "NONONONON ")
-      |> assign(:socket, socket)
-      |> assign(:flash, %{"info" => "some meesage"})
+    # save_user(socket, socket.assigns.action, user_params)
+    socket
+    |> put_flash(:info, "User updated successfully")
+    # |> push_patch(to: "/organizations/17/employees/6/users/new")
+    # |> assign(:socket, socket)
+    # socket =
+    #   socket
+    #   |> put_flash(:error, "NONONONON ")
 
 
-    {:noreply, put_flash(socket, :error, "NONONONON ")}
+
+    # IO.inspect(socket, label: "socketflasher")
+    {:noreply, socket}
   end
 
   defp save_user(socket, :edit, user_params) do
@@ -49,7 +81,6 @@ defmodule TurnStileWeb.UserLive.FormComponent do
          |> push_redirect(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset)
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
@@ -64,16 +95,12 @@ defmodule TurnStileWeb.UserLive.FormComponent do
          |> push_redirect(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect("errir")
-        IO.inspect(changeset)
+        socket = assign(socket, :socket, put_flash(socket, :error, "User No"))
 
-        socket =
-          socket
-          |> put_flash(:error, "User No")
-          |> assign(:socket, socket)
-
-        # IO.inspect(socket, label: "socket")
-        {:noreply, assign(socket, :changeset, changeset)}
+#
+        # IO.inspect(socket, label: "socketRARARA")
+        # {:noreply, push_patch(socket, to: Rou}
+        {:noreply, assign(socket, :notice, "User not created")}
     end
   end
 end
