@@ -56,7 +56,16 @@ defmodule TurnStile.Patients do
   end
 # handle the one-many for new user-v-employee on create
   def handle_new_user_association_create(employee_struct, user_params) do
-    user = Ecto.build_assoc(employee_struct, :users, user_params)
+    # IO.inspect(user_params, label: "user_params")
+    user = %TurnStile.Patients.User{
+      first_name: user_params["first_name"],
+      last_name: user_params["last_name"],
+      email: user_params["email"],
+      phone: user_params["phone"],
+      health_card_num: TurnStile.Utils.convert_to_int(user_params["health_card_num"]),
+    }
+    # IO.inspect(user, label: "user")
+    user = Ecto.build_assoc(employee_struct, :users, user)
     Repo.insert(user)
   end
 

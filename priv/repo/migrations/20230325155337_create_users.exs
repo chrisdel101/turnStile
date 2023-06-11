@@ -6,7 +6,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
     create table(:users) do
       add :first_name, :string
-      add :last_name, :string
+      add :last_name, :string, null: false
       add :email, :citext
       add :phone, :string
       add :health_card_num, :integer
