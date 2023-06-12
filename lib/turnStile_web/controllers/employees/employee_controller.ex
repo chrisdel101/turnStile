@@ -65,13 +65,6 @@ defmodule TurnStileWeb.EmployeeController do
   def edit(conn, %{"id" => id, "organization_id" => organization_id}) do
     employee = Staff.get_employee(id)
     changeset = Staff.change_employee(employee)
-    # add an action
-    Map.put(
-      conn.assigns,
-      :action,
-      Routes.organization_employee_path(conn, :create, organization_id, employee_id: id)
-    )
-
     conn
     |> render("edit.html",
       changeset: changeset,
@@ -84,16 +77,15 @@ defmodule TurnStileWeb.EmployeeController do
   Updates organization-only related fields
   - require_authenticated_employee
   - require_edit_access_employee
-  - has_sufficient_update_permissions??
+  - current_employee_can_edit?
 
   """
   def update(conn, %{"id" => id, "employee" => employee_params}) do
-    IO.inspect("HERE")
-    IO.inspect(employee_params)
     # look up employee that is being edited
     employee_to_update = Staff.get_employee(id)
+    # IO.inspect(employee_to_update)
 
-    if !TurnStileWeb.EmployeeAuth.has_sufficient_update_permissions?(conn, employee_to_update) do
+    if !TurnStileWeb.EmployeeAuth.has_sufficient_edit_permissions?(conn, employee_to_update) do
       conn
       |> put_flash(:error, "Error in employee edit. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))

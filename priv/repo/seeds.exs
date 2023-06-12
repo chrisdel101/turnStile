@@ -17,12 +17,12 @@ TurnStile.Repo.transaction(fn ->
   {:ok, organization1} = TurnStile.Company.create_and_preload_organization(org1_params)
   # IO.inspect(organization1)
 
-  # EMPLOYEE1
+  # EMPLOYEE1 - owner
   emp1_params = %{
-    email: "employee1@test.com",
-    email_confirmation: "employee1@test.com",
-    last_name: "Current Employee",
-    first_name: "Test1",
+    email: "sam1@jones.com",
+    email_confirmation: "sam1@jones.com",
+    last_name: "Jones1",
+    first_name: "Sam",
     password: "password",
     hashed_password: "password",
     current_organization_login_id: organization1.id,
@@ -30,44 +30,119 @@ TurnStile.Repo.transaction(fn ->
       to_string(RoleValuesMap.get_permission_role_value("owner")),
     role_on_current_organization: RoleValuesMap.get_permission_role("owner")
   }
-
-  IO.inspect(emp1_params)
   {:ok, employee1} = TurnStile.Staff.register_and_preload_employee(emp1_params, organization1)
-  IO.inspect(employee1)
-
   org_changeset = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee1])
-  # IO.inspect(org_with_emps)
-
   {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
-  # IO.inspect(organization1)
-  # IO.inspect(updated_org)
-
-  # # EMPLOYEE2
-  # emp2_params = %{
-  #   email: "employee2@test.com",
-  #   email_confirmation: "employee2@test.com",
-  #   last_name: "Employee2",
-  #   first_name: "Test2",
-  #   password: "password",
-  #   hashed_password: "password",
-  #   current_organization_login_id: organization1.id,
-  #   role_value_on_current_organization:
-  #     to_string(RoleValuesMap.get_permission_role_value("admin")),
-  #   role_on_current_organization: RoleValuesMap.get_permission_role("admin")
-  # }
-
-  #  {:ok, employee2} = TurnStile.Staff.register_and_preload_employee(emp2_params, organization1)
-  # IO.inspect(employee2)
-
-  # org_changeset2 = Ecto.Changeset.change(organization1)
-  # # put_assoc
-  # # IO.inspect(organization1)
-  # org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee2 | organization1.employees])
-  # # IO.inspect(org_with_emps)
-  # {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
-  # # IO.inspect(organization1)
+  # EMPLOYEE2 - admin
+  emp2_params = %{
+    email: "sam2@jones.com",
+    email_confirmation: "sam2@jones.com",
+    last_name: "Jones2",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: organization1.id,
+    role_value_on_current_organization:
+      to_string(RoleValuesMap.get_permission_role_value("admin")),
+    role_on_current_organization: RoleValuesMap.get_permission_role("admin")
+  }
+   {:ok, employee2} = TurnStile.Staff.register_and_preload_employee(emp2_params, organization1)
+  org_changeset2 = Ecto.Changeset.change(organization1)
+  # put_assoc
+  org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee2 | organization1.employees])
+  {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
+  # EMPLOYEE2 - admin
+  emp7_params = %{
+    email: "sam7@jones.com",
+    email_confirmation: "sam7@jones.com",
+    last_name: "Jones7",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: organization1.id,
+    role_value_on_current_organization:
+      to_string(RoleValuesMap.get_permission_role_value("admin")),
+    role_on_current_organization: RoleValuesMap.get_permission_role("admin")
+  }
+   {:ok, employee7} = TurnStile.Staff.register_and_preload_employee(emp7_params, organization1)
+  org_changeset2 = Ecto.Changeset.change(organization1)
+  # put_assoc
+  org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee7 | organization1.employees])
+  {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
+    # EMPLOYEE3 - editor
+  emp3_params = %{
+    email: "sam3@jones.com",
+    email_confirmation: "sam3@jones.com",
+    last_name: "Jones3",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: organization1.id,
+    role_value_on_current_organization:
+      to_string(RoleValuesMap.get_permission_role_value("editor")),
+    role_on_current_organization: RoleValuesMap.get_permission_role("editor")
+  }
+   {:ok, employee3} = TurnStile.Staff.register_and_preload_employee(emp3_params, organization1)
+  org_changeset2 = Ecto.Changeset.change(organization1)
+  # put_assoc
+  org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee3 | organization1.employees])
+  {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
+    # EMPLOYEE4 - contributor
+  emp4_params = %{
+    email: "sam4@jones.com",
+    email_confirmation: "sam4@jones.com",
+    last_name: "Jones4",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: organization1.id,
+    role_value_on_current_organization:
+      to_string(RoleValuesMap.get_permission_role_value("contributor")),
+    role_on_current_organization: RoleValuesMap.get_permission_role("contributor")
+  }
+   {:ok, employee4} = TurnStile.Staff.register_and_preload_employee(emp4_params, organization1)
+  org_changeset2 = Ecto.Changeset.change(organization1)
+  # put_assoc
+  org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee4 | organization1.employees])
+  {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
+    # EMPLOYEE5 - contributor
+  emp5_params = %{
+    email: "sam5@jones.com",
+    email_confirmation: "sam5@jones.com",
+    last_name: "Jones5",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: organization1.id,
+    role_value_on_current_organization:
+      to_string(RoleValuesMap.get_permission_role_value("contributor")),
+    role_on_current_organization: RoleValuesMap.get_permission_role("contributor")
+  }
+   {:ok, employee5} = TurnStile.Staff.register_and_preload_employee(emp5_params, organization1)
+  org_changeset2 = Ecto.Changeset.change(organization1)
+  # put_assoc
+  org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee5 | organization1.employees])
+  {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
+    # EMPLOYEE6 - viewer
+  emp6_params = %{
+    email: "sam6@jones.com",
+    email_confirmation: "sam6@jones.com",
+    last_name: "Jones6",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: organization1.id,
+    role_value_on_current_organization:
+      to_string(RoleValuesMap.get_permission_role_value("viewer")),
+    role_on_current_organization: RoleValuesMap.get_permission_role("viewer")
+  }
+   {:ok, employee6} = TurnStile.Staff.register_and_preload_employee(emp6_params, organization1)
+  org_changeset2 = Ecto.Changeset.change(organization1)
+  # put_assoc
+  org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee6 | organization1.employees])
+  {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
 
   # # ORGANZIATION2
   # org2_params = %{

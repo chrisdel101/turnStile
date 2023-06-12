@@ -1,6 +1,5 @@
 <h1>Edit Employee</h1>
 
-
-<%= render "form.html", Map.put(assigns, :action, Routes.employee_path(@conn, :update,  @current_employee.current_organization_login_id, @current_employee.id)) %>
+<%= render "form.html", Map.put(assigns, :action, Routes.employee_path(@conn, :update,  @current_employee.current_organization_login_id, Map.get(@conn.params, "id"))) %>
 
 <span><%= link "Back", to: Routes.organization_employee_path(@conn, :index,   @current_employee.current_organization_login_id) %></span>

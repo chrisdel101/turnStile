@@ -160,14 +160,14 @@ defmodule TurnStileWeb.Router do
     put "/edit", EmployeeController, :update
   end
 
-  # employee edit and update req write access
+  # /employees
   scope "/organizations/:organization_id/", TurnStileWeb do
     pipe_through [
       :browser,
       :require_authenticated_employee,
       :require_edit_access_employee
     ]
-
+  # employee edit action - req e access
     get "/employees", EmployeeController, :index, as: :organization_employee
   end
 

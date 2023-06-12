@@ -40,6 +40,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     is_in_organization? = Staff.check_employee_is_in_organization(employee, organization_id)
     IO.inspect("is_in_organization")
     IO.inspect(is_in_organization?)
+
     if !is_in_organization? do
       conn
       |> put_flash(:error, "Invalid or Non-Existent Organization afflitiation")
@@ -56,9 +57,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
     |> put_session(:current_organization_id_str, organization_id)
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(
-      to: "/organizations/#{organization_id}" || employee_return_to
-    )
+    |> redirect(to: "/organizations/#{organization_id}" || employee_return_to)
   end
 
   # logs in directly after being created - TODO diff to above
@@ -243,6 +242,8 @@ defmodule TurnStileWeb.EmployeeAuth do
         |> halt()
       else
         # handle no ID case - terrible syntax but nicer kept breaking
+        IO.puts("require_authenticated_employee: failed")
+
         conn
         |> put_flash(:info, "You tried to access a authencated route.")
         |> maybe_store_return_to()
@@ -261,14 +262,12 @@ defmodule TurnStileWeb.EmployeeAuth do
   def require_edit_access_employee(conn, _params) do
     current_employee = conn.assigns[:current_employee]
     IO.puts("require_edit_access_employee")
-    IO.inspect(current_employee)
 
     if !current_employee do
       handle_missing_employee(conn)
     else
       # conver role_value digit to int
-      role_value =
-        Utils.convert_to_int(current_employee.role_value_on_current_organization)
+      role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
 
       if role_value && role_value <= EmployeePermissionGroups.edit_permissions_threshold() do
         IO.puts("require_edit_access_employee: has edit access")
@@ -278,6 +277,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       end
     end
   end
+
   @doc """
   PLUG used in router
   Used for routes that require employee to have edit_access
@@ -294,8 +294,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       handle_missing_employee(conn)
     else
       # conver role_value digit to int
-      role_value =
-        Utils.convert_to_int(current_employee.role_value_on_current_organization)
+      role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
 
       if role_value && role_value <= EmployeePermissionGroups.register_permissions_threshold() do
         IO.puts("require_register_access_employee: has register access")
@@ -305,38 +304,8 @@ defmodule TurnStileWeb.EmployeeAuth do
       end
     end
   end
-  # check current employee has greater persmissions to edit
-  def has_sufficient_update_permissions?(conn, employee_to_update) do
-    # check employee trying to edit
-    current_employee = conn.assigns[:current_employee]
 
-    if !current_employee do
-      false
-    else
-      # owner has full access
-      if current_employee.role_value_on_current_organization ===
-        to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
-         IO.inspect("owner perms")
-         true
-      else
-        current_user_permission =
-          TurnStile.PermissionsUtils.get_employee_permissions_level(current_employee.role)
-
-        # check level of user being createdd
-        registrant_permissions =
-          TurnStile.PermissionsUtils.get_employee_permissions_level(employee_to_update.role)
-
-        # current must be LESS to edit
-        if current_user_permission <
-             registrant_permissions do
-          true
-        else
-          false
-        end
-      end
-    end
-  end
-  # check current employee has greater persmissions to edit
+  # check current employee has greater-equal persmissions to register
   def has_sufficient_register_permissions?(conn, employee_params_to_register) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
@@ -349,22 +318,54 @@ defmodule TurnStileWeb.EmployeeAuth do
       # check if owner; owner has full access
       if current_employee.role_value_on_current_organization ===
            to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
-            # IO.inspect("owner perms")
-            true
+        # IO.inspect("owner perms")
+        true
       else
-        # IO.inspect('CCCCCCCCC')
-        current_user_permission =
-          current_employee.role_value_on_current_organization
-        registrant_role = Map.get(employee_params_to_register, "role_on_current_organization") || Map.get(employee_params_to_register, :role_on_current_organization)
-        # IO.inspect(current_user_permission)
+        current_user_permission = current_employee.role_value_on_current_organization
 
-        registrant_role_value = EmployeePermissionGroups.get_persmission_value(registrant_role)
-        # IO.inspect(registrant_role_value)
-        # IO.inspect(current_user_permission <=
-          # registrant_role_value)
+        registrant_role_value =
+          Map.get(employee_params_to_register, "role_on_current_organization") ||
+            Map.get(employee_params_to_register, :role_on_current_organization)
         # current must be equal to register; both are digit strings
-        if         current_user_permission <=
-          to_string(registrant_role_value) do
+        if current_user_permission <=
+             registrant_role_value do
+          true
+        else
+          false
+        end
+      end
+    end
+  end
+
+  @doc """
+  Check if current_employee has persmission to edit other employee
+  Must has lower level role to edit
+  similiar to above register but
+  - takes employee_struct
+  - can only edit lower roles, not same
+  """
+  def has_sufficient_edit_permissions?(conn, employee_struct) do
+    # check employee trying to edit
+    current_employee = conn.assigns[:current_employee]
+    # IO.inspect(employee_struct)
+
+    if !current_employee do
+      false
+    else
+      # check if owner; owner has full access
+      if current_employee.role_value_on_current_organization ===
+           to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
+        true
+      else
+        current_user_permission = current_employee.role_value_on_current_organization
+
+        registrant_role_value = employee_struct.role_value_on_current_organization
+        # IO.inspect(current_user_permission, label: "current_user_permission")
+
+        # IO.inspect(registrant_role_value, label: "registrant_role_value")
+        # current must be equal to register; both are digit strings
+        if current_user_permission <
+             registrant_role_value do
           true
         else
           false
@@ -381,16 +382,24 @@ defmodule TurnStileWeb.EmployeeAuth do
 
   defp handle_missing_employee(conn) do
     IO.puts("handle_missing_employee: no current_employee")
+
     conn
     |> maybe_store_return_to()
     |> redirect(to: Routes.organization_employee_path(conn, :index, nil))
     |> halt()
   end
+
   defp handle_insufficent_permissions(conn) do
     IO.inspect("handle_insufficent_permissions: insufficient permissions")
+    IO.inspect(conn.assigns[:current_employee])
+
+    current_organization_login_id =
+      Map.get(conn.assigns[:current_employee], :current_organization_login_id, nil)
+
     conn
     |> put_flash(:error, "Insufficient permissions to access this page.")
-    |> maybe_store_return_to()
-    |> redirect(to: Routes.organization_path(conn, :show, conn.assigns[:current_employee][:current_organization_login_id]))
+    # |> maybe_store_return_to()
+    |> redirect(to: Routes.organization_path(conn, :show, current_organization_login_id))
+    |> halt()
   end
 end
