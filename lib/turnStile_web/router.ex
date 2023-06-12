@@ -58,7 +58,7 @@ defmodule TurnStileWeb.Router do
     end
   end
 
-  # if Mix.env() == :test do
+  if Mix.env() == :test do
   scope "/test" do
     pipe_through :browser
 
@@ -72,7 +72,7 @@ defmodule TurnStileWeb.Router do
         :employee_register_page
   end
 
-  # end
+  end
 
   scope "/", TurnStileWeb do
     pipe_through :browser

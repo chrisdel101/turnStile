@@ -1,5 +1,29 @@
 <h1>Settings</h1>
 
+<h3>Change Name</h3>
+
+<.form let={f} for={@changeset} action={Routes.employee_settings_path(@conn, :update, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"))} id="update_name">
+<%= if @changeset.action do %>
+    <div class="alert alert-danger">
+      <p>Oops, something went wrong! Please check the errors below.</p>
+    </div>
+  <% end %>
+
+  <%= hidden_input f, :action, name: "action", value: "update_name" %>
+  
+  <%= label f, :first_name %>
+  <%= text_input f, :first_name %>
+  <%= error_tag f, :first_name %>
+
+  <%= label f, :last_name %>
+  <%= text_input f, :last_name %>
+  <%= error_tag f, :last_name %>
+
+  <div>
+    <%= submit "Save" %>
+  </div>
+</.form>
+
 <h3>Change email</h3>
 
 <.form let={f} for={@email_changeset} action={Routes.employee_settings_path(@conn, :update, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"))} id="update_email">

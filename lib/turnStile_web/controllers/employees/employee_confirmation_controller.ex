@@ -73,7 +73,6 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
       end
     end
 
-    # IO.puts("HEREHEREHREREREHREH update")
     # check link has valid token
     case Staff.confirm_employee(token) do
       {:ok, employee} ->

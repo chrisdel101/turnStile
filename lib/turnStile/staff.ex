@@ -299,8 +299,7 @@ defmodule TurnStile.Staff do
       end
     else
       IO.inspect('Invalid PW changeset')
-      IO.inspect(changeset.errors)
-      {:error, changeset}
+      Ecto.Changeset.apply_action(changeset, :insert)
     end
   end
 
