@@ -206,7 +206,7 @@ defmodule TurnStileWeb.EmployeeAuth do
 
     if current_employee do
       # if owner/employee - don't redirect from registartion
-      # if (current_employee.role != "owner" or current_employee.role != "employee") and
+      # if (current_employee.role != "OWNER" or current_employee.role != "employee") and
       #      List.last(conn.path_info) != "register" do
       conn
       |> redirect(
@@ -315,7 +315,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     else
       # check if owner; owner has full access
       if current_employee.role_value_on_current_organization ===
-        RoleValuesMap.get_permission_role("owner") do
+        EmployeeRolesMap.get_permission_role("OWNER") do
         # IO.inspect("owner perms")
         true
       else
@@ -352,7 +352,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     else
       # check if owner; owner has full access
       if current_employee.role_value_on_current_organization ===
-        RoleValuesMap.get_permission_role("owner") do
+        EmployeeRolesMap.get_permission_role("OWNER") do
         true
       else
         current_user_permission = current_employee.role_value_on_current_organization

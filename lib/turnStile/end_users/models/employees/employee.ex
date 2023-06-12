@@ -82,7 +82,7 @@ defmodule TurnStile.Staff.Employee do
     |> validate_password(opts)
     |> hash_password(opts)
 
-    # |> put_change(:role_value,  to_string(RoleValuesMap.get_permission_role_value(attrs["role"])))
+    # |> put_change(:role_value,  to_string(EmployeeRolesMap.get_permission_role_value(attrs["role"])))
     # TODO: mayeb add check for this
     # |> valdiate_has_permissions(employee)
   end

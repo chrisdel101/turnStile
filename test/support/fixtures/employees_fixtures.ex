@@ -25,8 +25,8 @@ defmodule TurnStile.EmployeeFixtures do
       last_name: "Klown",
       client_type: valid_employee_client_type(),
       current_organization_login_id: "1",
-      role_value_on_current_organization: to_string(RoleValuesMap.get_permission_role_value("admin")),
-      role_on_current_organization: RoleValuesMap.get_permission_role("admin"),
+      role_value_on_current_organization: to_string(EmployeeRolesMap.get_permission_role_value("ADMIN")),
+      role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN"),
       is_logged_in?: false
     })
   end

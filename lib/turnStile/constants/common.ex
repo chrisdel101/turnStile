@@ -20,7 +20,7 @@ defmodule RouteTypesEnum do
   end
 end
 
-defmodule RoleValuesMap do
+defmodule EmployeeRolesMap do
   @moduledoc """
     Role values for permissio
     - Used to determine access level by value
@@ -34,21 +34,19 @@ defmodule RoleValuesMap do
     "viewer" => 6
   }
   @permission_roles %{
-    "owner" => "owner",
-    "developer" => "developer",
-    "admin" =>  "admin",
-    "editor" => "editor",
-    "contributor" =>  "contributor",
-    "viewer" =>  "viewer"
+    "OWNER" => "owner",
+    "DEVELOPER" => "developer",
+    "ADMIN" =>  "admin",
+    "EDITOR" => "editor",
+    "CONTRIBUTOR" =>  "contributor",
+    "VIEWER" =>  "viewer"
   }
   def get_permission_role_values do
     @permission_role_values
   end
-
   def get_permission_roles do
     @permission_roles
   end
-
   def get_permission_role(key) do
     Map.get(@permission_roles, key)
   end

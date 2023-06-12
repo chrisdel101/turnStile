@@ -97,7 +97,7 @@ defmodule TurnStile.Staff do
     # build a Role
     role = %TurnStile.Role{
       name: role_name,
-      value: to_string(RoleValuesMap.get_permission_role(role_name))
+      value: Map.get(attrs, "role_value_on_current_organization") || to_string(EmployeeRolesMap.get_permission_role_value(role_name)),
     }
 
     IO.inspect("role")

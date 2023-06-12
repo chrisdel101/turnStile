@@ -5,7 +5,7 @@
   <li>Role: <%= @current_employee.role %></li>
   <li>
     Permission Level:
-  <%= RoleValuesMap.get_permission_role(@current_employee.role_on_current_organization) %>
+  <%= @current_employee.role_on_current_organization %>
   </li>
   <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit) %></li>
   <!--TODO employee level can register new staff -->
