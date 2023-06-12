@@ -373,6 +373,10 @@ defmodule TurnStileWeb.EmployeeAuth do
       end
     end
   end
+  # same as edit but reneamed for clarity
+  def has_sufficient_delete_permissions?(conn, employee_struct) do
+    has_sufficient_edit_permissions?(conn, employee_struct)
+  end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :employee_return_to, current_path(conn))

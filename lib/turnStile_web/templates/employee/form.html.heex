@@ -4,12 +4,10 @@
       <p>Oops, something went wrong! Please check the errors below.</p>
     </div>
   <% end %>
-  <%= label f, :role_on_current_organization %>
-  <%= text_input f, :role_on_current_organization %>
-  <%= error_tag f, :role_on_current_organization %>
-
+   <%= select f, :role_on_current_organization, Enum.map(TurnStile.Utils.display_forward_list_values(EmployeePermissionRoles.get_employee_all_roles(),  @current_employee.role_on_current_organization), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+  <%= error_tag f, :role_on_current_organization %> 
 
   <div>
-    <%= submit "Save" %>
+    <%= submit "Save", data: [confirm: "Confirm Role Change?"]%>
   </div>
 </.form>

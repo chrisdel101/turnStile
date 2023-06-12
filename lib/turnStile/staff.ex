@@ -602,7 +602,7 @@ defmodule TurnStile.Staff do
 
   """
   def delete_employee(%Employee{} = employee) do
-    raise "TODO"
+    Repo.delete(employee)
   end
 
   @doc """

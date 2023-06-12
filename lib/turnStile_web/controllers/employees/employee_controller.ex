@@ -54,6 +54,7 @@ defmodule TurnStileWeb.EmployeeController do
     case TurnStile.Utils.is_digit(id) do
       true ->
         conn
+
       false ->
         conn
         |> put_status(404)
@@ -65,6 +66,7 @@ defmodule TurnStileWeb.EmployeeController do
   def edit(conn, %{"id" => id, "organization_id" => organization_id}) do
     employee = Staff.get_employee(id)
     changeset = Staff.change_employee(employee)
+
     conn
     |> render("edit.html",
       changeset: changeset,
@@ -113,11 +115,20 @@ defmodule TurnStileWeb.EmployeeController do
   end
 
   def delete(conn, %{"id" => id}) do
-    employee = Staff.get_employee(id)
-    {:ok, _employee} = Staff.delete_employee(employee)
+    employee_to_delete = Staff.get_employee(id)
+    current_employee = conn.assigns[:current_employee]
 
-    conn
-    |> put_flash(:info, "Employee deleted successfully.")
-    |> redirect(to: Routes.employee_path(conn, :index))
+
+    if !TurnStileWeb.EmployeeAuth.has_sufficient_delete_permissions?(conn, employee_to_delete) do
+      conn
+      |> put_flash(:error, "Error in employee delete. Insufficient permissions.")
+      |> redirect(to: Routes.organization_path(conn, :index))
+    else
+      {:ok, _employee} = Staff.delete_employee(employee_to_delete)
+      conn
+      |> put_flash(:info, "Employee deleted successfully.")
+      |> redirect(to: Routes.organization_employee_path(conn, :index,  current_employee
+      |> Map.get(:current_organization_login_id, nil)))
+    end
   end
 end

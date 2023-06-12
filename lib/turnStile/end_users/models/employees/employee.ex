@@ -22,7 +22,7 @@ defmodule TurnStile.Staff.Employee do
       join_through: "organization_employees"
 
     # employee has one role for many orgs;
-    has_many :roles, TurnStile.Role
+    has_many :roles, TurnStile.Role, on_delete: :delete_all
     # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
