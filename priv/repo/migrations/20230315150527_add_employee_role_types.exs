@@ -3,7 +3,7 @@ defmodule TurnStile.Repo.Migrations.AddEmployeeRoleTypes do
 
   def change do
       # https://stackoverflow.com/a/37216214/5972531
-      execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")
+      execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRolesEnum.get_employee_all_roles())}")
 
       execute("create type employee_role_value as enum #{TurnStile.Utils.convert_to_parens_string(Enum.map(RoleValuesMap.get_permission_role_values(), fn {_key, value} -> value end))}")
 

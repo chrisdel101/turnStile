@@ -21,7 +21,7 @@
 
 
     <!-- display only roles allowed by permissions -->
-      <%= select f, :role_on_current_organization, Enum.map(TurnStile.Utils.display_forward_list_values(EmployeePermissionRoles.get_employee_all_roles(),  @current_employee.role_on_current_organization), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+      <%= select f, :role_on_current_organization, Enum.map(TurnStile.Utils.display_forward_list_values(EmployeePermissionRolesEnum.get_employee_all_roles(),  @current_employee.role_on_current_organization), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
 
     <%= label f, :email %>
     <%= text_input f, :email %>

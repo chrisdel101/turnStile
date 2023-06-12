@@ -24,7 +24,7 @@
   <%= label f, :role %>
 
   <!-- display only roles allowed by permissions -->
-  <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminPermissionRoles.get_admin_manager_roles(),  "owner"), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
+  <%= select f, :role, Enum.map(TurnStile.Utils.display_forward_list_values(AdminPermissionRolesEnum.get_admin_manager_roles(),  "owner"), fn x -> Atom.to_string(x) end), prompt: "Choose Role", required: true %>
 
 
   <%= label f, :email %>

@@ -26,7 +26,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 1. Employee: Auth, schema, auth migration, auth html 
   - `mix phx.gen.auth Staff Employee employees`  
   - half of context created here
-  - in auth migration: add roles with `execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRoles.get_employee_all_roles())}")` 
+  - in auth migration: add roles with `execute("create type employee_role as enum #{TurnStile.Utils.convert_to_parens_string(EmployeePermissionRolesEnum.get_employee_all_roles())}")` 
 2. Employee: context, complete html, route resources 
   - `mix phx.gen.html Staff Employee employees --no-schema`
   - other half of context created here
@@ -40,7 +40,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 -  `mix phx.gen.live Patients User users -no-schema --no-context`
 7. Opertations Admin: Auth, schema, auth migration, auth html 
 - `mix phx.gen.auth Operations Admin admins`
-- in auth migration: add roles with ` execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(AdminPermissionRoles.get_admin_all_roles())}")`
+- in auth migration: add roles with ` execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(AdminPermissionRolesEnum.get_admin_all_roles())}")`
   - half of context created here
 8. Opertations Admin: context, complete web html, route resources 
 - `mix phx.gen.html Operations Admin admins --no-schema`

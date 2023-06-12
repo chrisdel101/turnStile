@@ -269,7 +269,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       # conver role_value digit to int
       role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
 
-      if role_value && role_value <= EmployeePermissionGroups.edit_permissions_threshold() do
+      if role_value && (role_value <= EmployeePermissionThresholds.edit_permissions_threshold()) do
         IO.puts("require_edit_access_employee: has edit access")
         conn
       else
@@ -296,7 +296,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       # conver role_value digit to int
       role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
 
-      if role_value && role_value <= EmployeePermissionGroups.register_permissions_threshold() do
+      if role_value && (role_value <= EmployeePermissionThresholds.register_permissions_threshold()) do
         IO.puts("require_register_access_employee: has register access")
         conn
       else
@@ -313,11 +313,9 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      # IO.inspect(current_employee.role_on_current_organization)
-      # IO.inspect(to_string(EmployeePermissionGroups.get_persmission_value("owner")))
       # check if owner; owner has full access
       if current_employee.role_value_on_current_organization ===
-           to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
+        RoleValuesMap.get_permission_role("owner") do
         # IO.inspect("owner perms")
         true
       else
@@ -354,7 +352,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     else
       # check if owner; owner has full access
       if current_employee.role_value_on_current_organization ===
-           to_string(EmployeePermissionGroups.get_persmission_value("owner")) do
+        RoleValuesMap.get_permission_role("owner") do
         true
       else
         current_user_permission = current_employee.role_value_on_current_organization
