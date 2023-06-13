@@ -20,7 +20,7 @@
       </span>
       <%!-- <%IO.inspect(employee) %> --%>
       <%!-- <%IO.inspect(@current_employee) %> --%>
-      <%= if employee.id === @current_employee.id ||  !TurnStileWeb.EmployeeAuth.has_sufficient_edit_permissions?(@conn, employee) do %>
+      <%= if employee.id === @current_employee.id ||  !TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(@conn, employee) do %>
         <span>Show</span>
         <span>Edit</span>
         <span>Delete</span>

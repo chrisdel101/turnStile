@@ -4,6 +4,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Patients
   alias TurnStile.Patients.User
   alias TurnStile.Staff
+  alias TurnStileWeb.EmployeeAuth
 
   @impl true
   def mount(_params, session, socket) do
@@ -40,17 +41,39 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
   def handle_event("alert", values, socket) do
     user_id = values["value"]
-    employee_id = socket.assigns.current_employee.id
-    socket = send_alert(socket, %{"employee_id" => employee_id, "user_id" => user_id})
-    {:noreply, socket}
+    current_employee = socket.assigns.current_employee
+    if EmployeeAuth.has_alert_send_permissions?(socket, current_employee) do
+      socket = send_alert(socket, %{"employee_id" => current_employee.id, "user_id" => user_id})
+      {:noreply, socket}
+    else
+      socket =
+        socket
+        |> put_flash(:error, "Insuffient permissions to perform alert send")
+        {:noreply, socket}
+    end
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
-    user = Patients.get_user!(id)
-    {:ok, _} = Patients.delete_user(user)
+    current_employee = socket.assigns.current_employee
 
-    {:noreply, assign(socket, :users, list_users())}
+    if EmployeeAuth.has_user_delete_permissions?(socket, current_employee) do
+      user = Patients.get_user!(id)
+      IO.inspect(user, label: "user")
+      {:ok, _} = Patients.delete_user(user)
+
+      socket =
+        socket
+        |> put_flash(:info, "User deleted successfully.")
+        {:noreply, assign(socket, :users, list_users())}
+    else
+      socket =
+        socket
+        |> put_flash(:error, "Insuffient permissions to perform user delete")
+        {:noreply, assign(socket, :users, list_users())}
+    end
+
   end
+
   defp apply_action(socket, :edit_all, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit User")
@@ -69,7 +92,6 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user, nil)
   end
 
-
   defp list_users do
     Patients.list_users()
   end
@@ -80,18 +102,23 @@ defmodule TurnStileWeb.UserLive.Index do
         socket =
           socket
           |> put_flash(:info, "Alert sent successfully.")
+
         socket
+
       # handle twilio errors
       {:error, error_map, _error_code} ->
         socket =
           socket
           |> put_flash(:error, "Alert Failed: #{error_map["message"]}")
+
         socket
+
       _ ->
         socket =
           socket
           |> put_flash(:error, "An unknown error occured")
-          socket
+
+        socket
     end
   end
 end

@@ -11,7 +11,6 @@
         current_employee={@current_employee}
         user={@user}
         return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
-        notice={@notice}  
       />
     </.modal>
     <% end %>
@@ -32,15 +31,26 @@
           <td><%= user.phone %></td>
           <td><%= user.health_card_num %></td>
 
+
           <td>
             <span><%= live_redirect "Show", to: Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
+
+          <%= if TurnStileWeb.EmployeeAuth.has_user_edit_permissions?(nil, @current_employee) do %>
             <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit_all, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
+          <% end %>
+          
+          <%= if TurnStileWeb.EmployeeAuth.has_user_delete_permissions?(nil, @current_employee) do %>
             <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
+          <% end %>
           </td>
 
         <td>
 
-        <button class="btn btn-primary" phx-click={:alert} value={user.id}>Alert</button>
+        <button 
+          class="btn btn-primary" 
+          phx-click={:alert} 
+          value={user.id}> Alert
+        </button>
 
 
         </td>

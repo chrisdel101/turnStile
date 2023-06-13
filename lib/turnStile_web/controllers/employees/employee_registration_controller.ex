@@ -55,7 +55,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           IO.inspect(employee_params)
 
           x =
-            TurnStileWeb.EmployeeAuth.has_sufficient_register_permissions?(conn, employee_params)
+            TurnStileWeb.EmployeeAuth.has_employee_register_permissions?(conn, employee_params)
 
           IO.inspect("HERE")
           IO.inspect(x)

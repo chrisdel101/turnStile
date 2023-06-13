@@ -94,15 +94,21 @@ defmodule EmployeePermissionThresholds do
     "viewer" => 6
   }
   # all values GE (including) have write permissions
-  @edit_permissions_threshold 3
-  @register_permissions_threshold 3
+  @edit_employee_permissions_threshold 3
+  @register_employee_permissions_threshold 3
+  @add_user_permissions_threshold 5
+  @edit_user_permissions_threshold 4
+  @send_alert_permissions_threshold 5
   def get_persmission_value(key) do
     @permissions[key]
   end
 
   def permissions, do: @permissions
-  def edit_permissions_threshold, do: @edit_permissions_threshold
-  def register_permissions_threshold, do: @register_permissions_threshold
+  def edit_employee_permissions_threshold, do: @edit_employee_permissions_threshold
+  def register_employee_permissions_threshold, do: @register_employee_permissions_threshold
+  def add_user_permissions_threshold, do: @add_user_permissions_threshold
+  def edit_user_permissions_threshold, do: @edit_user_permissions_threshold
+  def send_alert_permissions_threshold, do: @send_alert_permissions_threshold
 end
 
 defmodule EmployeeManagerRolesEnum do

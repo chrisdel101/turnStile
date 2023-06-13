@@ -74,7 +74,7 @@ defmodule TurnStileWeb.EmployeeController do
     employee_to_update = Staff.get_employee(id)
     # IO.inspect(employee_to_update)
 
-    if !TurnStileWeb.EmployeeAuth.has_sufficient_edit_permissions?(conn, employee_to_update) do
+    if !TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(conn, employee_to_update) do
       conn
       |> put_flash(:error, "Error in employee edit. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))
@@ -106,7 +106,7 @@ defmodule TurnStileWeb.EmployeeController do
     current_employee = conn.assigns[:current_employee]
 
 
-    if !TurnStileWeb.EmployeeAuth.has_sufficient_delete_permissions?(conn, employee_to_delete) do
+    if !TurnStileWeb.EmployeeAuth.has_employee_delete_permissions?(conn, employee_to_delete) do
       conn
       |> put_flash(:error, "Error in employee delete. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))

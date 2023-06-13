@@ -256,7 +256,7 @@ defmodule TurnStileWeb.EmployeeAuth do
   @doc """
   Used for routes that require employee to have edit_access
 
-  checks if current_employee role above edit_permissions_threshold; can visit pages that require it
+  checks if current_employee role above edit_employee_permissions_threshold; can visit pages that require it
 
   """
   def require_edit_access_employee(conn, _params) do
@@ -269,11 +269,11 @@ defmodule TurnStileWeb.EmployeeAuth do
       # conver role_value digit to int
       role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
 
-      if role_value && (role_value <= EmployeePermissionThresholds.edit_permissions_threshold()) do
+      if role_value && (role_value <= EmployeePermissionThresholds.edit_employee_permissions_threshold()) do
         IO.puts("require_edit_access_employee: has edit access")
         conn
       else
-        handle_insufficent_permissions(conn)
+        handle_insufficent_access(conn)
       end
     end
   end
@@ -282,7 +282,7 @@ defmodule TurnStileWeb.EmployeeAuth do
   PLUG used in router
   Used for routes that require employee to have edit_access
 
-  checks if current_employee role above edit_permissions_threshold; can visit pages that require it
+  checks if current_employee role above edit_employee_permissions_threshold; can visit pages that require it
 
   """
   def require_register_access_employee(conn, _params) do
@@ -296,17 +296,17 @@ defmodule TurnStileWeb.EmployeeAuth do
       # conver role_value digit to int
       role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
 
-      if role_value && (role_value <= EmployeePermissionThresholds.register_permissions_threshold()) do
+      if role_value && (role_value <= EmployeePermissionThresholds.register_employee_permissions_threshold()) do
         IO.puts("require_register_access_employee: has register access")
         conn
       else
-        handle_insufficent_permissions(conn)
+        handle_insufficent_access(conn)
       end
     end
   end
 
   # check current employee has greater-equal persmissions to register
-  def has_sufficient_register_permissions?(conn, employee_params_to_register) do
+  def has_employee_register_permissions?(conn, employee_params_to_register) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
     # IO.inspect(current_employee)
@@ -342,7 +342,7 @@ defmodule TurnStileWeb.EmployeeAuth do
   - takes employee_struct
   - can only edit lower roles, not same
   """
-  def has_sufficient_edit_permissions?(conn, employee_struct) do
+  def has_employee_edit_permissions?(conn, employee_struct) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
     # IO.inspect(employee_struct)
@@ -372,10 +372,81 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
   end
   # same as edit but reneamed for clarity
-  def has_sufficient_delete_permissions?(conn, employee_struct) do
-    has_sufficient_edit_permissions?(conn, employee_struct)
+  def has_employee_delete_permissions?(conn, employee_struct) do
+    has_employee_edit_permissions?(conn, employee_struct)
+  end
+  # check current employee has user-add permissions
+  def has_user_add_permissions?(conn) do
+    current_employee = conn.assigns[:current_employee]
+    if !current_employee do
+      false
+    else
+      if current_employee.role_value_on_current_organization <=
+        EmployeePermissionThresholds.add_user_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
+  end
+  def has_user_add_permissions?(_socket, current_employee) do
+    if !current_employee do
+      false
+    else
+      if current_employee.role_value_on_current_organization <=
+        EmployeePermissionThresholds.add_user_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
+  end
+  # check current employee has user-add permissions
+  def has_user_edit_permissions?(conn) do
+    current_employee = conn.assigns[:current_employee]
+    if !current_employee do
+      false
+    else
+      if current_employee.role_value_on_current_organization <=
+        EmployeePermissionThresholds.edit_user_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
+  end
+  def has_user_edit_permissions?(_socket, current_employee) do
+    if !current_employee do
+      false
+    else
+      if current_employee.role_value_on_current_organization <=
+        EmployeePermissionThresholds.edit_user_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
+  end
+  # same as edit above - renamed for clarity
+  def _has_user_delete_permissions?(conn) do
+    has_user_edit_permissions?(conn)
+  end
+  def has_user_delete_permissions?(socket, current_employee) do
+    has_user_edit_permissions?(socket, current_employee)
   end
 
+  def has_alert_send_permissions?(_socket, current_employee) do
+    if !current_employee do
+      false
+    else
+      if current_employee.role_value_on_current_organization <=
+        EmployeePermissionThresholds.send_alert_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
+  end
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :employee_return_to, current_path(conn))
   end
@@ -391,8 +462,8 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> halt()
   end
 
-  defp handle_insufficent_permissions(conn) do
-    IO.inspect("handle_insufficent_permissions: insufficient permissions")
+  defp handle_insufficent_access(conn) do
+    IO.inspect("handle_insufficent_access: insufficient permissions")
     IO.inspect(conn.assigns[:current_employee])
 
     current_organization_login_id =
