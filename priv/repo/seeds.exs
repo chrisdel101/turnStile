@@ -31,9 +31,9 @@ TurnStile.Repo.transaction(fn ->
     role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER")
   }
   {:ok, employee1} = TurnStile.Staff.register_and_preload_employee(emp1_params, organization1)
-   IO.inspect(employee1)
+  #  IO.inspect(employee1)
    org_changeset = Ecto.Changeset.change(organization1)
-   IO.inspect(org_changeset)
+  #  IO.inspect(org_changeset)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee1])
   {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
@@ -146,6 +146,38 @@ TurnStile.Repo.transaction(fn ->
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee6 | organization1.employees])
   {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
 
+  user1 = %{
+    first_name: "Joe",
+    last_name: "Schmoe",
+    email: "joe1@schmoe.com",
+    phone: "777777777",
+    health_card_num: 1234
+  }
+  TurnStile.Patients.handle_new_user_association_create(employee1, user1)
+  user2 = %{
+    first_name: "Joe2",
+    last_name: "Schmoe",
+    email: "joe2@schmoe.com",
+    phone: "777777777",
+    health_card_num: 5678
+  }
+  TurnStile.Patients.handle_new_user_association_create(employee1, user2)
+  user3 = %{
+    first_name: "Joe3",
+    last_name: "Schmoe",
+    email: "joe3@schmoe.com",
+    phone: "777777777",
+    health_card_num: 9010
+  }
+  TurnStile.Patients.handle_new_user_association_create(employee1, user3)
+  user4 = %{
+    first_name: "Joe4",
+    last_name: "Schmoe",
+    email: "joe4@schmoe.com",
+    phone: "777777777",
+    health_card_num: 1112
+  }
+  TurnStile.Patients.handle_new_user_association_create(employee1, user4)
   # # ORGANZIATION2
   # org2_params = %{
   #   email: "org2@test.com",

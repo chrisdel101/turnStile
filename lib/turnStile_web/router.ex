@@ -145,11 +145,15 @@ defmodule TurnStileWeb.Router do
 
     live "/organizations/:organization_id/employees/:employee_id/users/:id/edit",
       UserLive.Index,
-      :edit
+      :edit_all
 
-    live "/organizations/:organization_id/employees/:employee_id/users/:user_id",
+    live "/organizations/:organization_id/employees/:employee_id/users/:id",
       UserLive.Show,
       :show
+
+    live "/organizations/:organization_id/employees/:employee_id/users/:id/edit_show",
+      UserLive.Show,
+      :edit
   end
 
   # employee edit and update req write access

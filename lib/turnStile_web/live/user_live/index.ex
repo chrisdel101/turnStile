@@ -13,6 +13,7 @@ defmodule TurnStileWeb.UserLive.Index do
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
     IO.inspect(socket, label: "sss")
+
     {:ok,
      assign(
        socket,
@@ -28,12 +29,14 @@ defmodule TurnStileWeb.UserLive.Index do
     IO.inspect(params, label: "params on index")
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
+
   @impl true
   def handle_info(param, socket) do
     IO.inspect(param, label: "param22 on index")
     # update the list of cards in the socket
     {:noreply, socket}
   end
+
   def handle_event("alert", values, socket) do
     user_id = values["value"]
     employee_id = socket.assigns.current_employee.id
@@ -41,7 +44,7 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, socket}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit_all, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit User")
     |> assign(:user, Patients.get_user!(id))
@@ -77,16 +80,18 @@ defmodule TurnStileWeb.UserLive.Index do
         socket =
           socket
           |> put_flash(:info, "Alert sent successfully.")
-          # handle twilio errors
-        {:error, error_map, error_code} ->
+        socket
+      # handle twilio errors
+      {:error, error_map, _error_code} ->
         socket =
           socket
           |> put_flash(:error, "Alert Failed: #{error_map["message"]}")
+        socket
       true ->
         socket =
-        socket
-        |> put_flash(:error, "An unknown error occured")
+          socket
+          |> put_flash(:error, "An unknown error occured")
+          socket
     end
   end
-
 end

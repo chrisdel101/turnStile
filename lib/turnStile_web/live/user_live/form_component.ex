@@ -42,10 +42,25 @@ defmodule TurnStileWeb.UserLive.FormComponent do
       save_user(socket, socket.assigns.action, user_params)
     end
   end
-
+  # index edit form
+  defp save_user(socket, :edit_all, user_params) do
+    case Patients.update_user(socket.assigns.user, user_params) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "User updated successfully")
+         |> push_redirect(to: socket.assigns.return_to)}
+      {:error, %Ecto.Changeset{} = changeset} ->
+        socket =
+          socket
+          |> put_flash(:error, "User not created")
+        {:noreply, assign(socket, :changeset, changeset)}
+    end
+  end
+  # show edit form
   defp save_user(socket, :edit, user_params) do
     case Patients.update_user(socket.assigns.user, user_params) do
-      {:ok, user} ->
+      {:ok, _user} ->
         {:noreply,
          socket
          |> put_flash(:info, "User updated successfully")

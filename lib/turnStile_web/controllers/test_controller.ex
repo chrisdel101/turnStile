@@ -8,7 +8,7 @@ defmodule TurnStileWeb.TestController do
   alias TurnStile.Staff.Employee
 
   def employee_register_page(conn, params) do
-    current_employee = conn.assigns[:current_employee]
+    _current_employee = conn.assigns[:current_employee]
     %{"id" => id} = params
     changeset = Staff.change_employee_registration(%Employee{})
 

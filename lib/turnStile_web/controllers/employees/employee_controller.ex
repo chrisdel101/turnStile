@@ -23,18 +23,6 @@ defmodule TurnStileWeb.EmployeeController do
     render(conn, "index.html", employees: employees, organization_id: organization_id)
   end
 
-  def create(conn, %{"employee" => employee_params}) do
-    case Staff.create_employee(employee_params) do
-      {:ok, employee} ->
-        conn
-        |> put_flash(:info, "Employee created successfully.")
-        |> redirect(to: Routes.employee_path(conn, :show, employee))
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
-    end
-  end
-
   def show(conn, %{"id" => id, "organization_id" => organization_id}) do
     show_validate_employee_id(conn, id)
     # confirm employee is assoc with this org
@@ -54,7 +42,6 @@ defmodule TurnStileWeb.EmployeeController do
     case TurnStile.Utils.is_digit(id) do
       true ->
         conn
-
       false ->
         conn
         |> put_status(404)

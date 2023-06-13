@@ -368,19 +368,6 @@ defmodule TurnStile.Operations do
   end
 
   @doc """
-  Gets a single admin.
-
-  Raises if the Admin does not exist.
-
-  ## Examples
-
-      iex> get_admin!(123)
-      %Admin{}
-
-  """
-  def get_admin!(id), do: raise "TODO"
-
-  @doc """
   Creates a admin.
 
   ## Examples

@@ -56,14 +56,14 @@ defmodule TurnStileWeb.AlertController do
   end
 
   # live-view version- create and send the alert only
-  def create_live(%{"employee_id" => employee_id, "user_id" => user_id}) do
+  def create_live(%{"employee_id" => _employee_id, "user_id" => _user_id}) do
     case ExTwilio.Message.create(
            to: System.get_env("TEST_NUMBER"),
            from: System.get_env("TWILIO_PHONE_NUM"),
            body: @json["alerts"]["request"]["initial"]
          ) do
-      {:ok, _twilio_msg} ->
-        {:ok, _twilio_msg}
+      {:ok, twilio_msg} ->
+        {:ok, twilio_msg}
       # handle twilio errors
       {:error, error_map, error_code} ->
         {:error, error_map, error_code}

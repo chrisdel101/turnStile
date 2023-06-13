@@ -60,21 +60,25 @@ defmodule TurnStile.Utils do
 
   # TODO - add env guards
   def convert_to_int(value) do
-    case value do
-      integer when is_integer(integer) ->
-        integer
+    if !is_nil(value) do
+      case value do
+        integer when is_integer(integer) ->
+          integer
 
-      float when is_float(float) ->
-        round(float)
+        float when is_float(float) ->
+          round(float)
 
-      string when is_binary(string) ->
-        case String.to_integer(string) do
-          integer when is_integer(integer) -> integer
-          _ -> 0
+        string when is_binary(string) ->
+          case String.to_integer(string) do
+            integer when is_integer(integer) -> integer
+            _ -> 0
+          end
+
+        _ ->
+          0
         end
-
-      _ ->
-        0
+      else
+        nil
     end
   end
 

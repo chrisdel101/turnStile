@@ -4,13 +4,25 @@ defmodule TurnStileWeb.UserLive.Show do
   alias TurnStile.Patients
 
   @impl true
-  def mount(_params, _session, socket) do
-    IO.puts("HERE11")
-    {:ok, socket}
+  def mount(params, session, socket) do
+    IO.inspect(params)
+
+    # get token from session
+    employee_token = session["employee_token"]
+    # use to get logged in user
+    current_employee = TurnStile.Staff.get_employee_by_session_token(employee_token)
+    IO.inspect(socket, label: "sss")
+
+    {:ok,
+     assign(
+       socket,
+       current_employee: current_employee,
+     )}
   end
 
+
   @impl true
-  def handle_params(%{"employee_id" => employee_id, "organization_id" => organization_id, "user_id" => user_id}, _, socket) do
+  def handle_params(%{"employee_id" => employee_id, "organization_id" => organization_id, "id" => user_id}, _, socket) do
     IO.puts("HERE2")
     {:noreply,
      socket

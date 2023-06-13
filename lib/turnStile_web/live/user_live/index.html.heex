@@ -2,7 +2,7 @@
 <%!-- remove this line later if saftey no needed --%>
 <%= if @current_employee do %>
   <%   IO.inspect(@socket, label: "socket IN FORM 2") %>
-  <%= if @live_action in [:new, :edit] do %>
+  <%= if @live_action in [:new, :edit_all] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
      <%   IO.inspect(@socket, label: "IN FORM 2") %>
      <%   IO.inspect(@live_action, label: "IN FORM 2") %>
@@ -36,7 +36,7 @@
 
           <td>
             <span><%= live_redirect "Show", to: Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
-            <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
+            <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit_all, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
             <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
           </td>
 
@@ -51,7 +51,8 @@
       <% end %>
     </tbody>
   </table>
-<% end %>
 <span><%= live_patch "Add_New_User", to: Routes.user_index_path(@socket, :new, @current_employee.current_organization_login_id, @current_employee.id) %></span>
-<%!--
---%>
+<% else %>
+  <p>Not authorized</p> 
+<% end %>
+
