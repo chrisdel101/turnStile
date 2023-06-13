@@ -37,6 +37,7 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("alert", values, socket) do
     user_id = values["value"]
     employee_id = socket.assigns.current_employee.id
@@ -44,6 +45,12 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, socket}
   end
 
+  def handle_event("delete", %{"id" => id}, socket) do
+    user = Patients.get_user!(id)
+    {:ok, _} = Patients.delete_user(user)
+
+    {:noreply, assign(socket, :users, list_users())}
+  end
   defp apply_action(socket, :edit_all, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit User")
@@ -62,13 +69,6 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user, nil)
   end
 
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    user = Patients.get_user!(id)
-    {:ok, _} = Patients.delete_user(user)
-
-    {:noreply, assign(socket, :users, list_users())}
-  end
 
   defp list_users do
     Patients.list_users()
@@ -87,7 +87,7 @@ defmodule TurnStileWeb.UserLive.Index do
           socket
           |> put_flash(:error, "Alert Failed: #{error_map["message"]}")
         socket
-      true ->
+      _ ->
         socket =
           socket
           |> put_flash(:error, "An unknown error occured")

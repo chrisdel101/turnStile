@@ -53,7 +53,7 @@ defmodule TurnStile.Operations.Admin do
     |> unique_constraint(:email)
   end
 
-  defp validate_password(changeset, opts) do
+  defp validate_password(changeset, _opts) do
     changeset
     |> validate_required([:password])
     |> validate_length(:password, min: 8, max: 72)

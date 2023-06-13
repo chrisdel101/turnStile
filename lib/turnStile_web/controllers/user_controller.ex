@@ -8,7 +8,7 @@ defmodule TurnStileWeb.UserController do
     # IO.inspect(conn)
     changeset = Patients.change_user(%User{})
     users = Patients.list_users()
-    render(conn, "index.html", users: users, changeset: changeset, title: "SOME TITLE")
+    render(conn, "index.html", users: users, changeset: changeset)
   end
 
   def new(conn, _params) do
@@ -27,7 +27,7 @@ defmodule TurnStileWeb.UserController do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Routes.organization_employee_user_path(conn, :show, current_employee.organization_id, current_employee.id, user))
+        |> redirect(to: Routes.organization_employee_user_path(conn, :show, current_employee.dcurrent_organization_login_id, current_employee.id, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
@@ -54,7 +54,7 @@ defmodule TurnStileWeb.UserController do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User updated successfully.")
-        |> redirect(to: Routes.organization_employee_user_path(conn, :show, current_employee.organization_id, current_employee.id, user))
+        |> redirect(to: Routes.organization_employee_user_path(conn, :show, current_employee.dcurrent_organization_login_id, current_employee.id, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "edit.html", user: user, changeset: changeset)
@@ -70,7 +70,7 @@ defmodule TurnStileWeb.UserController do
 
     conn
     |> put_flash(:info, "User deleted successfully.")
-    |> redirect(to: Routes.organization_employee_user_path(conn, :index, current_employee.organization_id, current_employee.id))
+    |> redirect(to: Routes.organization_employee_user_path(conn, :index, current_employee.dcurrent_organization_login_id, current_employee.id))
   end
   # make sure current employee exists
   defp maybe_employee_exists(conn) do
