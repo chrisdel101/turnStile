@@ -314,7 +314,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       false
     else
       # check if owner; owner has full access
-      if current_employee.role_value_on_current_organization ===
+      if current_employee.role_on_current_organization ===
         EmployeeRolesMap.get_permission_role("OWNER") do
         # IO.inspect("owner perms")
         true
@@ -351,7 +351,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       false
     else
       # check if owner; owner has full access
-      if current_employee.role_value_on_current_organization ===
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) ===
         EmployeeRolesMap.get_permission_role("OWNER") do
         true
       else
@@ -381,7 +381,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      if current_employee.role_value_on_current_organization <=
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
         EmployeePermissionThresholds.add_user_permissions_threshold() do
         true
       else
@@ -393,7 +393,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      if current_employee.role_value_on_current_organization <=
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
         EmployeePermissionThresholds.add_user_permissions_threshold() do
         true
       else
@@ -407,7 +407,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      if current_employee.role_value_on_current_organization <=
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
         EmployeePermissionThresholds.edit_user_permissions_threshold() do
         true
       else
@@ -419,7 +419,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      if current_employee.role_value_on_current_organization <=
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
         EmployeePermissionThresholds.edit_user_permissions_threshold() do
         true
       else
@@ -439,7 +439,7 @@ defmodule TurnStileWeb.EmployeeAuth do
     if !current_employee do
       false
     else
-      if current_employee.role_value_on_current_organization <=
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
         EmployeePermissionThresholds.send_alert_permissions_threshold() do
         true
       else

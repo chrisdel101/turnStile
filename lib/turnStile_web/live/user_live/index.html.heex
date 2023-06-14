@@ -14,12 +14,18 @@
       />
     </.modal>
     <% end %>
+    <%= if TurnStileWeb.EmployeeAuth.has_user_add_permissions?(nil, @current_employee) do %>
+      <span><%= live_patch "Add_New_User", to: Routes.user_index_path(@socket, :new, @current_employee.current_organization_login_id, @current_employee.id) %></span>
+    <% end %>
 
   <table>
     <thead>
       <tr>
 
-        <th></th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Phone</th>
+        <th>Health #</th>
       </tr>
     </thead>
     <tbody id="users">
@@ -27,39 +33,34 @@
         <tr id={"user-#{user.id}"}>
           <td><%= user.first_name %></td>
           <td><%= user.last_name %></td>
-          <td><%= user.email %></td>
           <td><%= user.phone %></td>
           <td><%= user.health_card_num %></td>
 
+          <td>
+              <button 
+                class="btn btn-primary" 
+                phx-click={:alert} 
+                value={user.id}> Alert
+              </button>
+          </td>
 
           <td>
             <span><%= live_redirect "Show", to: Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
-
+          </td>
+<%!-- 
           <%= if TurnStileWeb.EmployeeAuth.has_user_edit_permissions?(nil, @current_employee) do %>
             <span><%= live_patch "Edit", to: Routes.user_index_path(@socket, :edit_all, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
-          <% end %>
+          <% end %> --%>
           
           <%= if TurnStileWeb.EmployeeAuth.has_user_delete_permissions?(nil, @current_employee) do %>
+          <td>
             <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
-          <% end %>
           </td>
-
-        <td>
-
-        <button 
-          class="btn btn-primary" 
-          phx-click={:alert} 
-          value={user.id}> Alert
-        </button>
-
-
-        </td>
-
+          <% end %>
         </tr>
       <% end %>
     </tbody>
   </table>
-<span><%= live_patch "Add_New_User", to: Routes.user_index_path(@socket, :new, @current_employee.current_organization_login_id, @current_employee.id) %></span>
 <% else %>
   <p>Not authorized</p> 
 <% end %>
