@@ -3,7 +3,10 @@ defmodule TurnStile.Alerts.Alert do
   import Ecto.Changeset
 
   schema "alerts" do
-    field :text, :string
+    field :title, :string
+    field :body, :string
+    field :to, :string
+    field :from, :string
     field :alert_category, :string
     field :alert_format, :string
     belongs_to :employee, TurnStile.Staff.Employee
@@ -14,7 +17,6 @@ defmodule TurnStile.Alerts.Alert do
   @doc false
   def changeset(alert, attrs) do
     alert
-    |> cast(attrs, [:text])
-    |> validate_required([:text])
+    |> cast(attrs, [:title, :body, :to, :from, :alert_category, :alert_format, :employee_id, :user_id])
   end
 end
