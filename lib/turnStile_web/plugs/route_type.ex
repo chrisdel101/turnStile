@@ -12,8 +12,8 @@ defmodule TurnStileWeb.Plugs.RouteType do
   defp set_route_type(conn, default) do
     if length(conn.path_info) > 0 do
       path_info_head = hd(conn.path_info)
-      admin = RouteTypesEnum.get_route_type_value("ADMIN")
-      test = RouteTypesEnum.get_route_type_value("TEST")
+      admin = RouteTypesMap.get_route_type_value("ADMIN")
+      test = RouteTypesMap.get_route_type_value("TEST")
 
       route_type =
         case path_info_head do

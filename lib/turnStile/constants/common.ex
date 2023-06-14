@@ -1,6 +1,6 @@
 # TODO - remove enum  where not enum
-# - leaving for now since easier to search for RouteTypesEnum than just RouteTypes
-defmodule RouteTypesEnum do
+# - leaving for now since easier to search for RouteTypesMap than just RouteTypes
+defmodule RouteTypesMap do
   @moduledoc """
   Route Types.
   Ggetters for route types
@@ -69,5 +69,44 @@ defmodule ClientTypesEnum do
 
   def get_client_type_value(type) do
     Enum.find(@client_types, &(&1 == type))
+  end
+end
+defmodule AlertCategoryTypesMap do
+  @moduledoc """
+    AlertTypesMap
+  """
+  @alerts %{
+    "INITIAL" => "initial",
+    "CONFIRMATION" =>"confirmation",
+    "CONFIRMATION_REQUEST" =>"confirmation_request",
+    "CANCELLATION" => "cancellation",
+    "CHANGE" => "change"
+  }
+  def get_alerts do
+    @alerts
+  end
+  def get_alert(key) do
+    Map.get(@alerts, key)
+  end
+  def get_alerts_enum do
+    @alerts |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
+  end
+end
+defmodule AlertFormatTypesMap do
+  @moduledoc """
+   AlertFormatTypesMap
+  """
+  @alerts %{
+    "EMAIL" => "email",
+    "SMS" =>"sms"
+  }
+  def get_alerts do
+    @alerts
+  end
+  def get_alert(key) do
+    Map.get(@alerts, key)
+  end
+  def get_alerts_enum do
+    @alerts |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
   end
 end

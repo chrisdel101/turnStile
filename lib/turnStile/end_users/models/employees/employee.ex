@@ -26,7 +26,7 @@ defmodule TurnStile.Staff.Employee do
     # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
-    has_many :alerts, TurnStile.Alert
+    has_many :alerts, TurnStile.Alerts.Alert
     # any employees that is an owner
     has_one :owner, TurnStile.Staff.Owner
     timestamps()

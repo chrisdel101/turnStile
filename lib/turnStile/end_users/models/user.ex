@@ -9,7 +9,7 @@ defmodule TurnStile.Patients.User do
     field :last_name, :string
     field :phone, :string
     belongs_to :employee, TurnStile.Staff.Employee
-    has_many :alerts, TurnStile.Alert
+    has_many :alerts, TurnStile.Alerts.Alert
 
 
     timestamps()

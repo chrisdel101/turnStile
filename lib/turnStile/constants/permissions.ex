@@ -126,11 +126,3 @@ defmodule EmployeeNonManagerRolesEnum do
     @roles
   end
 end
-
-defmodule AlertTypesEnum do
-  @roles [:initial, :confirmation, :req_for_conf, :cancellation, :change]
-  def get_roles do
-    # getter
-    @roles
-  end
-end

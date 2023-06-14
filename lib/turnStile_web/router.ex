@@ -130,12 +130,6 @@ defmodule TurnStileWeb.Router do
       resources "/employees", EmployeeController, except: [:new, :edit, :update, :index]
     end
 
-    post(
-      "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",
-      AlertController,
-      :create
-    )
-
     live "/organizations/:organization_id/employees/:employee_id/users/", UserLive.Index, :index
 
     live "/organizations/:organization_id/employees/:employee_id/users/new", UserLive.Index, :new
@@ -148,9 +142,19 @@ defmodule TurnStileWeb.Router do
       UserLive.Show,
       :show
 
-    live "/organizations/:organization_id/employees/:employee_id/users/:id/edit_show",
+      live "/organizations/:organization_id/employees/:employee_id/users/:id/edit_show",
       UserLive.Show,
       :edit
+
+      live "/organizations/:organization_id/employees/:employee_id/users/:id/alerts",
+        UserLive.Index,
+        :index, as: :organization_employee_user_alert
+
+        # post(
+        #   "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",
+        #   AlertController,
+        #   :create
+        # )
   end
 
   scope "/", TurnStileWeb do
