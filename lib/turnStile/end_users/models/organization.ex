@@ -24,9 +24,10 @@ defmodule TurnStile.Company.Organization do
     |> validate_required([:name, :slug])
     |> validate_email()
   end
+
   defp validate_email(changeset) do
     changeset
-    |> validate_format(:_email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
-    |> validate_length(:_email, max: 160)
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_length(:email, max: 160)
   end
 end

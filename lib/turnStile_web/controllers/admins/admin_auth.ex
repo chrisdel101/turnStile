@@ -128,7 +128,7 @@ defmodule TurnStileWeb.AdminAuth do
   they use the application at all, here would be a good place.
   """
   def require_authenticated_admin(conn, _opts) do
-    if System.get_env("ENFORCE_ADMIN_ONLY_ACCESS") === true do
+    if System.get_env("ENFORCE_ADMIN_ONLY_ACCESS") === "true" do
       if conn.assigns[:current_admin] do
         conn
       else
@@ -142,7 +142,7 @@ defmodule TurnStileWeb.AdminAuth do
     end
   end
 
-  defp maybe_store_return_to(%{method: "GET"} = conn) do
+  defp _maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :admin_return_to, current_path(conn))
   end
 

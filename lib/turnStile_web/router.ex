@@ -20,7 +20,6 @@ defmodule TurnStileWeb.Router do
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
     plug TurnStileWeb.Plugs.EmptyParams
-    plug :first_org_form_submit?, false
     plug :fetch_current_organization
     plug :set_test_current_employee
   end
@@ -105,8 +104,6 @@ defmodule TurnStileWeb.Router do
   scope "/organizations/:id", TurnStileWeb do
     pipe_through [
       :browser,
-      :organization_setup?,
-      :require_authenticated_employee_post_org_setup,
       :require_register_access_employee
     ]
 
@@ -186,7 +183,6 @@ defmodule TurnStileWeb.Router do
     post "/new", OrganizationController, :handle_new
     post "/", OrganizationController, :create
 
-    # get "/new-organization", OrganizationController, :confirm_organization
     get "/:id", OrganizationController, :show
   end
 

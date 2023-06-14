@@ -167,8 +167,7 @@ defmodule TurnStileWeb.OrganizationController do
                   conn
                   |> assign(:org_form_submitted, true)
                   |> put_flash(:error, "Employee not created. Try again.")
-
-                  render("new.html", changeset: error)
+                  |> render("new.html", changeset: error)
               end
           #  default case; if runtime or unknown error, etc
             _ ->
@@ -214,8 +213,7 @@ defmodule TurnStileWeb.OrganizationController do
               conn
               |> assign(:org_form_submitted, true)
               |> put_flash(:error, "Employee not created. Try again.")
-
-              render("new.html", changeset: error)
+              |> render("new.html", changeset: error)
           end
         end
 
@@ -278,42 +276,6 @@ defmodule TurnStileWeb.OrganizationController do
     |> redirect(to: Routes.organization_path(conn, :index))
   end
 
-  # TODO - is setup route should work, may not need this
-  def organization_setup?(conn, _opts) do
-    organization_id = conn.params["id"]
-    organization? = Company.get_organization(organization_id)
-
-    if !organization? do
-      conn
-      |> put_flash(:error, "That organization is not setup yet. Setup it to continue. ")
-      |> redirect(to: Routes.organization_path(conn, :new))
-    end
-
-    conn
-  end
-
-  # if org is not setup to block request
-  # if org is setup, but as no members, allow first time setup reg
-  # else require auth
-  def require_authenticated_employee_post_org_setup(conn, _opts) do
-    # if members exist require auth
-    organization_id = conn.params["id"]
-    organization_id = TurnStile.Utils.convert_to_int(organization_id)
-
-    if organization_id && is_integer(organization_id) &&
-         Company.organization_has_members?(organization_id) do
-      assign(conn, :current_organization_setup, true)
-      # this halts if not authenticated
-
-      # THIS NEED FIXING - [] is just temp fix to make it run
-      for_arity_error = []
-      EmployeeAuth.require_authenticated_employee(conn, for_arity_error)
-    else
-      assign(conn, :current_organization_setup, false)
-      # if no members, allow first time setup reg
-      conn
-    end
-  end
 
   # display search bar for organizations
   def search_get(conn, _params) do
@@ -334,14 +296,13 @@ defmodule TurnStileWeb.OrganizationController do
       |> put_flash(:error, "No organization by that name.")
       |> redirect(to: Routes.organization_path(conn, :search_get))
     else
-      # redirect to rest using ID - will redriect to name auto
-      # Kernal.inpsect makes id a string
-      show(conn, %{"param" => Kernel.inspect(organization.id)})
+      redirect(conn, to: Routes.organization_path(conn, :show, organization.id))
     end
   end
 
   # plug
-  def first_org_form_submit?(conn, bool) do
-    assign(conn, :org_form_submitted, bool)
-  end
+  # def first_org_form_submit?(conn, bool) do
+  #   assign(conn, :org_form_submitted, bool)
+  # end
+
 end

@@ -1,15 +1,20 @@
 <ul>
-  <%= if @current_employee do %>
-  
+ <li><%= link "Home", to: "/" %></li>
+    <%= if @conn.assigns.route_type === RouteTypesEnum.get_route_type_value("NON-ADMIN")  do %>
+      <%= if @current_employee do %>
+      
+        <!--employee level can register new 
+        staff -->
+        <li>
+          <%= link "My Organization", to: Routes.organization_path(@conn, :show,  @current_employee.current_organization_login_id) %>
+        </li>
+        <li>
+          <%= link "User Dashboard", to: Routes.user_index_path(@conn, :index,  @current_employee.current_organization_login_id, @current_employee.id) %>
+        </li>
 
-    <li><%= link "Settings", to: Routes.employee_settings_path(@conn, :edit,   @conn.assigns[:current_organization_id_str]) %></li>
+        <li><%= link "My Settings", to: Routes.employee_settings_path(@conn, :edit,   @conn.assigns[:current_organization_id_str]) %></li>
+        <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete, 1), method: :delete %></li>
 
-    <!--employee level can register new staff -->
-    <%!-- 
-  
-    --%>
-
-    <li><%= link "Log out", to: Routes.employee_session_path(@conn, :delete, 1), method: :delete %></li>
-
+      <% end %>
   <% end %>
 </ul>
