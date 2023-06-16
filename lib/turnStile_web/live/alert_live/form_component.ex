@@ -4,13 +4,15 @@ defmodule TurnStileWeb.AlertLive.FormComponent do
   alias TurnStile.Alerts
 
   @impl true
-  def update(%{alert: alert} = assigns, socket) do
-    changeset = Alerts.change_alert(alert)
-
+  def update(props, socket) do
+    %{id: user_id} = props
+    alerts = Alerts.get_alerts_for_user(user_id)
+    IO.inspect(alerts, label: "props on update")
     {:ok,
      socket
-     |> assign(assigns)
-     |> assign(:changeset, changeset)}
+     |> assign(props)
+     |> assign(:alerts, alerts)
+     |> assign(:title, "Alerts")}
   end
 
   @impl true

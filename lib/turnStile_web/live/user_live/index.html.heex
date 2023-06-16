@@ -1,4 +1,4 @@
-<h1>Listing Users</h1>
+<h1><%= @page_title %></h1>
 <%!-- remove this line later if saftey no needed --%>
 <%= if @current_employee do %>
   <%= if @live_action in [:new, :edit_all] do %>
@@ -13,6 +13,20 @@
         return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
       />
     </.modal>
+    <% end %>
+    <%= if @live_action in [:alerts] do %> 
+     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
+   
+      <.live_component
+        module={TurnStileWeb.AlertLive.FormComponent}
+        id={@user.id || :new}~
+        action={@live_action}
+        current_employee={@current_employee}
+        user={@user}
+        return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
+      />
+    </.modal>
+      <span><%= live_patch "Back", to: Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id) %></span>
     <% end %>
     <%= if TurnStileWeb.EmployeeAuth.has_user_add_permissions?(nil, @current_employee) do %>
       <span><%= live_patch "Add_New_User", to: Routes.user_index_path(@socket, :new, @current_employee.current_organization_login_id, @current_employee.id) %></span>
@@ -37,11 +51,16 @@
           <td><%= user.health_card_num %></td>
 
           <td>
+          <%!-- <span>
               <button 
                 class="btn btn-primary" 
                 phx-click={:alert} 
-                value={user.id}> Alert
+                value={user.id}> Alerts
               </button>
+          </span> --%>
+              <span>
+                <%= live_patch "Alerts", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id) %>
+              </span>
           </td>
 
           <td>

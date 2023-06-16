@@ -16,7 +16,7 @@ defmodule TurnStile.Staff.Employee do
     field :role_value_on_current_organization, :string, default: nil
     field :role_on_current_organization, :string, default: nil
     field :is_logged_in?, :boolean, default: false
-
+    field :timezone, :string
     # org has many employees within the company; employees belongs to many orgs
     many_to_many :organizations, TurnStile.Company.Organization,
       join_through: "organization_employees"

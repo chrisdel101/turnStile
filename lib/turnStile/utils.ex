@@ -32,7 +32,7 @@ defmodule TurnStile.Utils do
 
 # convert a list to a string with parenthese "()" - used for DB enum type syntax - https://stackoverflow.com/a/37216214/5972531
   def convert_to_parens_string(roles_list) do
-    Enum.with_index(roles_list)
+    x = Enum.with_index(roles_list)
     |> Enum.map(fn x ->
       value = elem(x, 0)
       index = elem(x, 1)
@@ -49,6 +49,8 @@ defmodule TurnStile.Utils do
       end
     end)
     |> Enum.join(", ")
+    IO.puts("#{x}")
+    x
   end
 
   def is_digit(str) do

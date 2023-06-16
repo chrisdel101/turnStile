@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :turnStile,
   ecto_repos: [TurnStile.Repo]
 
@@ -53,7 +55,8 @@ config :esbuild,
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id],
-  level: :debug
+  level: :debug,
+  truncate: :infinity
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

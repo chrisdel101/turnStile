@@ -54,7 +54,9 @@ defmodule TurnStile.MixProject do
       # Library for creating TwiML from elixir macros
       {:ex_twiml, "~> 2.1"},
       {:dotenv, "~> 3.0.0"},
-      {:httpoison, "~> 2.0"}    ]
+      {:httpoison, "~> 2.0"},
+      {:tzdata, "~> 1.1"}
+    ]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

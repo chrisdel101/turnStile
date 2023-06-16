@@ -22,6 +22,7 @@ defmodule TurnStileWeb.Router do
     plug TurnStileWeb.Plugs.EmptyParams
     plug :fetch_current_organization
     plug :set_test_current_employee
+
   end
 
   pipeline :api do
@@ -148,7 +149,7 @@ defmodule TurnStileWeb.Router do
 
       live "/organizations/:organization_id/employees/:employee_id/users/:id/alerts",
         UserLive.Index,
-        :index, as: :organization_employee_user_alert
+        :alerts, as: :organization_employee_user_alert
 
         # post(
         #   "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",

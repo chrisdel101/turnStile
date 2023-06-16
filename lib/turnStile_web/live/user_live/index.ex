@@ -13,27 +13,32 @@ defmodule TurnStileWeb.UserLive.Index do
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
-    IO.inspect(socket, label: "sss")
 
     {:ok,
      assign(
        socket,
        users: list_users(),
        current_employee: current_employee,
-       trigger_submit: false,
-       notice: "hello"
+       trigger_submit: false
      )}
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    IO.inspect(params, label: "params on index")
+  def handle_params(%{"employee_id" => _employee_id, "id" =>  user_id, "organization_id" => _organization_id} = params, _url, socket) do
+    IO.inspect(user_id, label: "params on index alert")
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
+  def handle_params(%{"employee_id" => _employee_id, "organization_id" => _organization_id} = params, _url, socket) do
+    IO.inspect(socket.assigns.live_action, label: "action on index")
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+
+
   @impl true
   def handle_info(param, socket) do
-    IO.inspect(param, label: "param22 on index")
+    IO.inspect(param, label: "user-live handle_info on index")
     # update the list of cards in the socket
     {:noreply, socket}
   end
@@ -58,7 +63,6 @@ defmodule TurnStileWeb.UserLive.Index do
 
     if EmployeeAuth.has_user_delete_permissions?(socket, current_employee) do
       user = Patients.get_user!(id)
-      IO.inspect(user, label: "user")
       {:ok, _} = Patients.delete_user(user)
 
       socket =
@@ -72,6 +76,13 @@ defmodule TurnStileWeb.UserLive.Index do
         {:noreply, assign(socket, :users, list_users())}
     end
 
+  end
+
+  defp apply_action(socket, :alerts, params) do
+    %{"id" => user_id} = params
+    socket
+    |> assign(:page_title, "User Alerts")
+    |> assign(:user, Patients.get_user!(user_id))
   end
 
   defp apply_action(socket, :edit_all, %{"id" => id}) do

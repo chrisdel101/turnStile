@@ -2,13 +2,40 @@
   <h2><%= @title %></h2>
 
   <.form
-    let={f}
-    for={@changeset}
+    let={_f}
+    for={:user}
     id="alert-form"
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
-  
+  <% IO.inspect(DateTime.from_naive(@user.inserted_at, "America/Chicago")) %>
+  <table>
+    <thead>
+      <tr>
+
+        <th>Category</th>
+        <th>Time Sent</th>
+        <th>Format</th>
+        <th>to</th>
+        <th>Title</th>
+        <th>Body</th>
+      </tr>
+    </thead>
+    <tbody id="users">
+      <%= for alert <- @alerts do %>
+        <tr id={"alert-#{alert.id}"}>
+          <td><%= alert.alert_category %></td>
+          <td><%= alert.inserted_at %></td>
+          <td><%= alert.alert_format %></td>
+          <td><%= alert.to %></td>
+          <td><%= alert.title %></td>
+          <td><%= alert.body %></td>
+
+          
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
     <div>
       <%= submit "Save", phx_disable_with: "Saving..." %>
     </div>

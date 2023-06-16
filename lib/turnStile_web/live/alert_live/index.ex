@@ -5,7 +5,10 @@ defmodule TurnStileWeb.AlertLive.Index do
   alias TurnStile.Alerts.Alert
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount( %{"employee_id" => employee_id, "id" => user_id, "organization_id" => organization_id}, _session, socket) do
+    # get all alerts for user
+    alerts = Alerts.list_alerts_for_user(user_id)
+    IO.inspect()
     {:ok, assign(socket, :alerts, list_alerts())}
   end
 

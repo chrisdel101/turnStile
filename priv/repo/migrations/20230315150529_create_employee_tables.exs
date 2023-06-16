@@ -13,6 +13,7 @@ defmodule TurnStile.Repo.Migrations.CreateEmployeesAuthTables do
       add :is_logged_in?, :boolean
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
+      add :timezone, :timezone
       add :confirmed_at, :naive_datetime
       timestamps()
     end
