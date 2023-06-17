@@ -1,6 +1,7 @@
 defmodule TurnStile.Staff.Employee do
   use Ecto.Schema
   import Ecto.Changeset
+  alias TurnStile.Company
 
   schema "employees" do
     field :first_name, :string
@@ -47,6 +48,21 @@ defmodule TurnStile.Staff.Employee do
     |> hash_password(opts)
   end
 
+  # use custome timezone, else add one from organization
+  defp handle_timezone_insert(changeset) do
+    # IO.inspect(changeset, label: "changeset in handle_timezone")
+    # IO.inspect((!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)), label: "HERE")
+    case (!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)) do
+      true ->
+        # IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
+        organization = Company.get_organization(changeset.changes.current_organization_login_id)
+        # IO.inspect(organization, label: "organization in handle_timezone")
+        changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
+      false ->
+        # IO.inspect(changeset, label: "changeset in handle_timezone")
+        changeset
+    end
+  end
   @doc """
   A employee changeset for registration.
 
@@ -75,16 +91,13 @@ defmodule TurnStile.Staff.Employee do
       :role_value_on_current_organization,
       :role_on_current_organization,
       :is_logged_in?,
-      :current_organization_login_id
+      :current_organization_login_id, :timezone
     ])
     |> validate_required([:last_name, :first_name])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
-
-    # |> put_change(:role_value,  to_string(EmployeeRolesMap.get_permission_role_value(attrs["role"])))
-    # TODO: mayeb add check for this
-    # |> valdiate_has_permissions(employee)
+    |> handle_timezone()
   end
 
   defp validate_email(changeset) do
