@@ -7,7 +7,7 @@ defmodule TurnStile.Repo.Migrations.CreateOrganizations do
       add :slug, :string
       add :email, :string
       add :phone, :string
-      add :default_timezone, :timezone
+      add :timezone, :timezone
 
       timestamps()
     end

@@ -22,8 +22,8 @@
 
 
   <%= label f, "TimeZone (Default UTC)" %>
-  <%= select f, :default_timezone,Enum.map(Tzdata.zone_list(), fn x -> x end), prompt: "Choose TimeZone"  %>
-  <%= error_tag f, :default_timezone %>
+  <%= select f, :timezone,Enum.map(Tzdata.zone_list(), fn x -> x end), prompt: "Choose TimeZone"  %>
+  <%= error_tag f, :timezone %>
 
   <div>
     <%= submit "Save" %>

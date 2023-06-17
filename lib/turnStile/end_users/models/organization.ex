@@ -8,7 +8,7 @@ defmodule TurnStile.Company.Organization do
     field :name, :string
     field :slug, :string
     field :phone, :string
-    field :default_timezone, :string, default: "Etc/UTC"
+    field :timezone, :string, default: "Etc/UTC"
     # org has many employees; employees can belong to many organiztions
     many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employees"
     has_many :roles, TurnStile.Role
@@ -21,7 +21,7 @@ defmodule TurnStile.Company.Organization do
 
   def changeset(organization, attrs) do
     organization
-    |> cast(attrs, [:name, :email, :phone, :slug])
+    |> cast(attrs, [:name, :email, :phone, :slug, :timezone])
     |> validate_required([:name, :slug])
     |> validate_email()
   end

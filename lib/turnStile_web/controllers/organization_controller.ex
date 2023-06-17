@@ -13,6 +13,7 @@ defmodule TurnStileWeb.OrganizationController do
   @moduledoc """
   Controller for managing organizations
   Flow: using multi-step form
+  - handled by track_form_stage on each call
   1. init - render form 1 (new_org_form.html)
   2. handle_new - handle submit form 1; display form 2 (new_employee_form.html)
   3. handle_create - handle submit form 2; create org
@@ -30,14 +31,13 @@ defmodule TurnStileWeb.OrganizationController do
     org_params = get_session(conn, :org_params)
     # IO.inspect(org_params)
     changeset = Company.change_organization(%Organization{}, org_params || %{})
-    conn = assign(conn, :org_form_submitted, false)
     render(conn, "new.html", changeset: changeset)
   end
 
   # second render - handle submuit form 1; display form 2
   def handle_new(conn, %{"organization" => org_params}) do
     changeset = Company.change_organization(%Organization{}, org_params)
-
+    # IO.inspect( changeset, label: "HERE222")
     # make sure name is not empty
     case Ecto.Changeset.get_change(changeset, :name) do
       # handle empty name
@@ -46,7 +46,6 @@ defmodule TurnStileWeb.OrganizationController do
         {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
         # re-render "new" again
         render(conn, "new.html", changeset: changeset)
-
       # when valid name field
       _ ->
         # extract name
@@ -69,7 +68,9 @@ defmodule TurnStileWeb.OrganizationController do
             # add org params to sessions
             conn = Plug.Conn.put_session(conn, :org_params, org_params)
             # set from partial flag on conn
-            conn = assign(conn, :org_form_submitted, true)
+            # conn = assign(conn, :org_form_submitted, true)
+            conn = track_form_stage(conn, nil, true)
+
             render(conn, "new.html", changeset: employee_changeset)
           else
             employee_changeset = Staff.create_employee(%Employee{})
@@ -77,7 +78,8 @@ defmodule TurnStileWeb.OrganizationController do
             # add org params to sessions
             conn = Plug.Conn.put_session(conn, :org_params, org_params)
             # set from partial flag on conn
-            conn = assign(conn, :org_form_submitted, true)
+            # conn = assign(conn, :org_form_submitted, true)
+            conn = track_form_stage(conn, nil, true)
             render(conn, "new.html", changeset: employee_changeset)
           end
         end
@@ -89,7 +91,7 @@ defmodule TurnStileWeb.OrganizationController do
     changeset = Company.change_organization(%Organization{}, org_params)
 
     conn
-    |> put_flash(:error, "A parameter error ocurred. Try again")
+    |> put_flash(:error, "A parameter error ocurred. Cancel and retry.")
     # re-render "new" again w error
     |> render("new.html", changeset: changeset)
   end
@@ -122,6 +124,7 @@ defmodule TurnStileWeb.OrganizationController do
               # TurnStile.Repo.rollback({:undo_organization_insert})
               IO.inspect("ERROR in create orgnization_controller")
               # conn = assign(conn, :org_form_submitted, true)
+              conn = track_form_stage(conn, nil, true)
               conn
               |> assign(:org_form_submitted, true)
               |> put_flash(:error, "Error in Employee creation. Try again.")
@@ -189,9 +192,7 @@ defmodule TurnStileWeb.OrganizationController do
               error_msg = "ERROR in create orgnization_controller default case"
               IO.inspect(error_msg)
               # conn = assign(conn, :org_form_submitted, true)
-              conn
-              |> assign(:org_form_submitted, true)
-              |> put_flash(:error, error_msg)
+              conn = track_form_stage(conn, nil, true)              |> put_flash(:error, error_msg)
               |> render("new.html",
                 changeset: Employee.registration_changeset(%Staff.Employee{}, %{})
               )
@@ -222,8 +223,7 @@ defmodule TurnStileWeb.OrganizationController do
             {:error, error} ->
               IO.inspect("ERROR")
 
-              conn
-              |> assign(:org_form_submitted, true)
+              conn = track_form_stage(conn, nil, true)
               |> put_flash(:error, "Employee not created. Try again.")
               |> render("new.html", changeset: error)
           end
@@ -313,13 +313,11 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # plug
-  # form has 2 stages
-  def track_form_stage(conn, _opts, bool \\ false) do
-
+  # sets flag to false unless manulally set to true
+  defp track_form_stage(conn, _opts, bool \\ false) do
     IO.inspect(bool, label: "bool")
     conn = conn
     |> assign(:org_form_submitted, bool)
-    # IO.inspect(conn.assigns)
   end
 
 end
