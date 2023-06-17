@@ -5,9 +5,8 @@ defmodule TurnStileWeb.AlertLive.FormComponent do
 
   @impl true
   def update(props, socket) do
-    %{id: user_id} = props
+    %{id: user_id, current_employee: current_employee} = props
     alerts = Alerts.get_alerts_for_user(user_id)
-    IO.inspect(alerts, label: "props on update")
     {:ok,
      socket
      |> assign(props)

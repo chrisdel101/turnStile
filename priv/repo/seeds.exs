@@ -28,7 +28,8 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: organization1.id,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("owner")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER"),
+    timezone: "America/New_York"
   }
   {:ok, employee1} = TurnStile.Staff.register_and_preload_employee(emp1_params, organization1)
   #  IO.inspect(employee1)

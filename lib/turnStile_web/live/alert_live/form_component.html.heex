@@ -8,7 +8,6 @@
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
-  <% IO.inspect(DateTime.from_naive(@user.inserted_at, "America/Chicago")) %>
   <table>
     <thead>
       <tr>
@@ -25,7 +24,16 @@
       <%= for alert <- @alerts do %>
         <tr id={"alert-#{alert.id}"}>
           <td><%= alert.alert_category %></td>
-          <td><%= alert.inserted_at %></td>
+          
+          <%= if @current_employee.timezone !== "Etc/Utc" do %>
+          <% shifted_datetime = TimeZones.shift_datetime(@current_employee.inserted_at, @current_employee.timezone) %>
+          <td><%= "#{elem(shifted_datetime, 1).year}, #{elem(shifted_datetime, 1).month}, #{elem(shifted_datetime, 1).day}" %></td>
+            <%!-- <td><%= elem(TimeZones.shift_datetime(@current_employee.inserted_at, @current_employee.timezone), 1) %></td>
+            <td><%= elem(TimeZones.shift_datetime(@current_employee.inserted_at, @current_employee.timezone), 1) %></td> --%>
+          
+          <% else %>
+            <td><%= alert.inserted_at %></td>
+          <% end %>
           <td><%= alert.alert_format %></td>
           <td><%= alert.to %></td>
           <td><%= alert.title %></td>

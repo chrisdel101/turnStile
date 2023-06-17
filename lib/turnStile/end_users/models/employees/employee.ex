@@ -97,7 +97,7 @@ defmodule TurnStile.Staff.Employee do
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
-    |> handle_timezone()
+    |> handle_timezone_insert()
   end
 
   defp validate_email(changeset) do
