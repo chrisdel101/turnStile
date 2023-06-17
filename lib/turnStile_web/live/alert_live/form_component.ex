@@ -11,7 +11,8 @@ defmodule TurnStileWeb.AlertLive.FormComponent do
      socket
      |> assign(props)
      |> assign(:alerts, alerts)
-     |> assign(:title, "Alerts")}
+     |> assign(:form_title, "Alerts Dispatch")
+     |> assign(:title, "Alerts Sent")}
   end
 
   @impl true
