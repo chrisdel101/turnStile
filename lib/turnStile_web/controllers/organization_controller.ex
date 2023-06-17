@@ -8,7 +8,17 @@ defmodule TurnStileWeb.OrganizationController do
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Staff.Employee
 
-  # TODO - create permissions to block all end users from seeing this page
+  plug :track_form_stage
+
+  @moduledoc """
+  Controller for managing organizations
+  Flow: using multi-step form
+  1. init - render form 1 (new_org_form.html)
+  2. handle_new - handle submit form 1; display form 2 (new_employee_form.html)
+  3. handle_create - handle submit form 2; create org
+
+  """
+
   def index(conn, _params) do
     # no end users ever see this page
     organizations = Company.list_organizations()
@@ -18,14 +28,16 @@ defmodule TurnStileWeb.OrganizationController do
   # init - render form 1
   def new(conn, _params) do
     org_params = get_session(conn, :org_params)
+    # IO.inspect(org_params)
     changeset = Company.change_organization(%Organization{}, org_params || %{})
-    IO.inspect(changeset)
+    conn = assign(conn, :org_form_submitted, false)
     render(conn, "new.html", changeset: changeset)
   end
 
   # second render - handle submuit form 1; display form 2
   def handle_new(conn, %{"organization" => org_params}) do
     changeset = Company.change_organization(%Organization{}, org_params)
+
     # make sure name is not empty
     case Ecto.Changeset.get_change(changeset, :name) do
       # handle empty name
@@ -301,8 +313,13 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   # plug
-  # def first_org_form_submit?(conn, bool) do
-  #   assign(conn, :org_form_submitted, bool)
-  # end
+  # form has 2 stages
+  def track_form_stage(conn, _opts, bool \\ false) do
+
+    IO.inspect(bool, label: "bool")
+    conn = conn
+    |> assign(:org_form_submitted, bool)
+    # IO.inspect(conn.assigns)
+  end
 
 end

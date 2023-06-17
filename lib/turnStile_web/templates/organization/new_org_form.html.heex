@@ -19,6 +19,12 @@
   <%= text_input f, :phone, placeholder: "Company Phone" %>
   <%= error_tag f, :phone %>
 
+
+
+  <%= label f, "TimeZone (Default UTC)" %>
+  <%= select f, :default_timezone,Enum.map(Tzdata.zone_list(), fn x -> x end), prompt: "Choose TimeZone"  %>
+  <%= error_tag f, :default_timezone %>
+
   <div>
     <%= submit "Save" %>
   </div>
