@@ -1,5 +1,12 @@
 <div>
-  <h2><%= @form_title %></h2>
+  <h2><%= @page_title %></h2>
+  <hr/>
+   <span> <%= live_patch "Dispatch", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "dispatch"}) %> </span>
+   <span> <%= live_patch "History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "history"}) %> </span>
+<%!-- 
+   <span phx-click={:dispatch} phx-target={@myself}>Dispatch</span>
+   <span phx-click={:history} phx-target={@myself}>History</span> --%>
+   <%!-- <%= if  %> --%>
   <table>
     <thead>
       <tr>

@@ -6,14 +6,14 @@ defmodule TurnStileWeb.AlertLive.Index do
 
   @impl true
   def mount( %{"employee_id" => employee_id, "id" => user_id, "organization_id" => organization_id}, _session, socket) do
-    # get all alerts for user
-    alerts = Alerts.list_alerts_for_user(user_id)
-    IO.inspect()
-    {:ok, assign(socket, :alerts, list_alerts())}
+    IO.inspect(socket, label: "socket")
+
+      {:ok, assign(socket, :alerts, list_alerts())}
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
+  def handle_params(params, url, socket) do
+    IO.inspect(url, label: "url")
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
