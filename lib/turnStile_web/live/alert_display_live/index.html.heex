@@ -1,0 +1,37 @@
+<h1>Listing Alerts</h1>
+
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.alert_display_index_path(@socket, :index)}>
+    <.live_component
+      module={TurnStileWeb.AlertDisplayLive.PanelComponent}
+      id={@alert_display.id || :new}
+      title={@page_title}
+      action={@live_action}
+      alert_display={@alert_display}
+      return_to={Routes.alert_display_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
+
+<table>
+  <thead>
+    <tr>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="alerts">
+    <%= for alert_display <- @alerts do %>
+      <tr id={"alert_display-#{alert_display.id}"}>
+
+        <td>
+          <span><%= live_redirect "Show", to: Routes.alert_display_show_path(@socket, :show, alert_display) %></span>
+          <span><%= live_patch "Edit", to: Routes.alert_display_index_path(@socket, :edit, alert_display) %></span>
+          <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: alert_display.id, data: [confirm: "Are you sure?"] %></span>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<span><%= live_patch "New Alert display", to: Routes.alert_display_index_path(@socket, :new) %></span>

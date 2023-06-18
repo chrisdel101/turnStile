@@ -22,7 +22,7 @@
 
 
   <%= label f, "TimeZone (Default UTC)" %>
-  <%= select f, :timezone,Enum.map(TimeZones.fetch_timezones(), fn x -> x end), prompt: "Choose TimeZone"  %>
+  <%= select f, :timezone,Enum.map(Utils.fetch_timezones(), fn x -> x end), prompt: "Choose TimeZone"  %>
   <%= error_tag f, :timezone %>
 
   <div>

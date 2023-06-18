@@ -18,7 +18,7 @@
      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
    
       <.live_component
-        module={TurnStileWeb.AlertLive.FormComponent}
+        module={TurnStileWeb.AlertDisplayLive.PanelComponent}
         id={@user.id || :new}~
         action={@live_action}
         current_employee={@current_employee}
@@ -59,7 +59,7 @@
               </button>
           </span> --%>
               <span>
-                <%= live_patch "Alerts", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id) %>
+                <%= live_patch "User Alerts", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id) %>
               </span>
           </td>
 

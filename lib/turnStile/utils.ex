@@ -89,5 +89,30 @@ defmodule TurnStile.Utils do
     |> File.read!()
     |> Jason.decode!()
   end
+  def fetch_timezones_enum do
+    query_result = Ecto.Adapters.SQL.query(TurnStile.Repo, "select enum_range(null::timezone)", [])
+    case query_result do
+      {:ok, %Postgrex.Result{rows: [rows]}} ->
+        rows
+      {:ok, %Postgrex.Result{rows: []}} ->
+        []
+
+      {:error, _} ->
+        []
+    end
+  end
+  def fetch_timezones do
+    Tzdata.zone_list()
+  end
+  def shift_datetime(naive_UTC, timezone_to_shift) do
+    first_datetime = DateTime.from_naive!(naive_UTC, "Etc/UTC")
+    case DateTime.shift_zone(first_datetime, timezone_to_shift)
+    do
+      {:ok, new_datetime} ->
+        {:ok, new_datetime}
+      {:error, error} ->
+        {:error, error}
+    end
+  end
 
 end

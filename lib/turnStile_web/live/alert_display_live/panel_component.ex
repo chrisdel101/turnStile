@@ -1,7 +1,8 @@
-defmodule TurnStileWeb.AlertLive.FormComponent do
+defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   use TurnStileWeb, :live_component
 
   alias TurnStile.Alerts
+  alias TurnStile.Alerts.Alert
 
   @impl true
   def update(props, socket) do
