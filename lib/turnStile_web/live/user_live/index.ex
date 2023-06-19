@@ -13,24 +13,26 @@ defmodule TurnStileWeb.UserLive.Index do
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
+    # IO.inspect(panel, label: "mount on index")
 
     {:ok,
      assign(
        socket,
        users: list_users(),
-       current_employee: current_employee,
-       trigger_submit: false
+       current_employee: current_employee
      )}
   end
 
   @impl true
-  def handle_params(%{"employee_id" => _employee_id, "id" =>  user_id, "organization_id" => _organization_id} = params, _url, socket) do
-    IO.inspect(user_id, label: "params on index alert")
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  def handle_params(%{"employee_id" => _employee_id, "organization_id" => _organization_id} = params, _url, socket) do
-    IO.inspect(socket.assigns.live_action, label: "action on index")
+  # called on show when user_id
+  # def handle_params(params, url, socket) do
+  #   # IO.inspect(params, label: "params on index")
+  #   {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  # end
+  # called on index when no user_id
+  def handle_params(%{"panel" => panel} = params, _url, socket) do
+    IO.inspect(params, label: "action on index")
+    socket = assign(socket, :panel, panel)
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 

@@ -6,7 +6,10 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   @impl true
   def update(props, socket) do
-    %{id: user_id, current_employee: current_employee} = props
+    # IO.inspect(props, label: "props")
+    # IO.inspect(socket, label: "socket")
+
+    %{id: user_id} = props
     alerts = Alerts.get_alerts_for_user(user_id)
     {:ok,
      socket
@@ -24,6 +27,12 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       |> Alerts.change_alert(alert_params)
       |> Map.put(:action, :validate)
 
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  def handle_event("dispatch", params, socket) do
+   IO.inspect(params, label: "params")
+   changeset = %Alert{}
     {:noreply, assign(socket, :changeset, changeset)}
   end
 

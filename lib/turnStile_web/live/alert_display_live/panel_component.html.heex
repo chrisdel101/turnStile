@@ -3,10 +3,8 @@
   <hr/>
    <span> <%= live_patch "Dispatch", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "dispatch"}) %> </span>
    <span> <%= live_patch "History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "history"}) %> </span>
-<%!-- 
-   <span phx-click={:dispatch} phx-target={@myself}>Dispatch</span>
-   <span phx-click={:history} phx-target={@myself}>History</span> --%>
-   <%!-- <%= if  %> --%>
+
+   <%= if @panel === "dispatch" do %>
   <table>
     <thead>
       <tr>
@@ -39,6 +37,10 @@
           </tr>
       </tbody>
     </table>
+   
+   <% end %>
+   <% IO.inspect(@panel) %>
+   <%= if @panel === "history" do %>
   <div>
   <h2><%= @title %></h2>
     <table>
@@ -69,4 +71,6 @@
       </tbody>
     </table>
   </div>
+  <% end %>
+
 </div>

@@ -158,15 +158,15 @@ defmodule TurnStileWeb.Router do
         # )
   end
 
-  scope "/", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_admin]
-    live "/alerts", AlertLive.Index, :index
-    live "/alerts/new", AlertLive.Index, :new
-    live "/alerts/:id/edit", AlertLive.Index, :edit
+  # scope "/", TurnStileWeb do
+  #   pipe_through [:browser, :require_authenticated_admin]
+  #   live "/alerts", AlertLive.Index, :index
+  #   live "/alerts/new", AlertLive.Index, :new
+  #   live "/alerts/:id/edit", AlertLive.Index, :edit
 
-    live "/alerts/:id", AlertLive.Show, :show
-    live "/alerts/:id/show/edit", AlertLive.Show, :edit
-  end
+  #   live "/alerts/:id", AlertLive.Show, :show
+  #   live "/alerts/:id/show/edit", AlertLive.Show, :edit
+  # end
 
   # employee edit and update req write access
   scope "/organizations/:organization_id/employees/:id", TurnStileWeb do
