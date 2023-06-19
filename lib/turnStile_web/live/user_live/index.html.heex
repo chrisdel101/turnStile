@@ -57,15 +57,19 @@
           <td><%= user.health_card_num %></td>
 
           <td>
-          <%!-- <span>
+          <span>
               <button 
                 class="btn btn-primary" 
-                phx-click={:alert} 
-                value={user.id}> Alerts
+                phx-click={:initial_alert} 
+                value={user.id}> Init Alert
               </button>
-          </span> --%>
+          </span>
               <span>
-                <%= live_patch "User Alerts", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "dispatch"}) %>
+                <%= live_patch "Custom_Alert", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "dispatch"}) %>
+              </span>
+
+              <span>
+                <%= live_patch "Alert_History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "history"}) %>
               </span>
           </td>
 

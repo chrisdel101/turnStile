@@ -5,49 +5,52 @@
    <span> <%= live_patch "History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "history"}) %> </span>
 
    <%= if @panel === "dispatch" do %>
+   <div>
+   <h3><%= @title %></h3>
   <table>
     <thead>
       <tr>
-        <th>Action</th>
-        <th>User Status</th>
+        <th>Format</th>
+        <th>to</th>
+        <th>Body</th>
       </tr>
     </thead>
-      <tbody id="users-dispatch">
+        <.form
+        let={f}
+        for={@changeset}
+        id="alert-form"
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save">
+        <tbody id="users-dispatch">
           <tr>
             <td>
-            <button 
-              class="btn btn-primary" 
-              phx-click={:alert} 
-              value={@user.id}> Send
-            </button>
+             <%= label f, :alert_format, "SMS" %>
+             <%= radio_button f, :alert_format, :sms, checked: true %>
+            <%= label f, :alert_format, "Email" %>
+            <%= radio_button f, :alert_format, :email, checked: false %>
             </td>
             <td>
-            <%= String.capitalize(@user.status)%>
+            <%= IO.inspect(f) %>
             </td>
           </tr>
           <tr>
             <td>
-              <.form
-              let={_f}
-              for={:user}
-              id="alert-form"
-              phx-target={@myself}
-              phx-change="validate"
-              phx-submit="save">
               <div>
               <%= submit "Send", phx_disable_with: "Saving..." %>
               </div>
-            </.form>
             </td>
           </tr>
-      </tbody>
+        </tbody>
+      </.form>
     </table>
    
+   </div>
    <% end %>
    <% IO.inspect(@panel) %>
    <%= if @panel === "history" do %>
   <div>
-  <h2><%= @title %></h2>
+  <h3><%= @title %></h3>
     <table>
       <thead>
         <tr>

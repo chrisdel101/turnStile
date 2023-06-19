@@ -46,7 +46,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  def handle_event("alert", values, socket) do
+  def handle_event("initial_alert", values, socket) do
     user_id = values["value"]
     current_employee = socket.assigns.current_employee
     if EmployeeAuth.has_alert_send_permissions?(socket, current_employee) do

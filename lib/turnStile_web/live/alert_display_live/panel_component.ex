@@ -11,17 +11,23 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
     %{id: user_id} = props
     alerts = Alerts.get_alerts_for_user(user_id)
+    # IO.inspect(alerts, label: "alerts"
     {:ok,
      socket
      |> assign(props)
      |> assign(:alerts, alerts)
      |> assign(:form_title, "Alerts Dispatch")
-     |> assign(:title, "Alert History")
-     |> assign(:page_title, "Alerts")}
+     |> assign(:title, set_title(props.panel))
+     |> assign(:page_title, "Alert Panel")
+     |> assign(:changeset, Alerts.change_alert(%Alert{}))}
   end
 
   @impl true
+  def handle_event(any,%{"alert" => alert_params}, socket) do
+    IO.inspect(any, label: "any")
+  end
   def handle_event("validate", %{"alert" => alert_params}, socket) do
+    IO.inspect("validate", label: "validate")
     changeset =
       socket.assigns.alert
       |> Alerts.change_alert(alert_params)
@@ -52,6 +58,15 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
+
+  defp set_title(panel_prop) do
+    if panel_prop === "history" do
+      "Alert History"
+    else
+      "Alert Dispatch"
+    end
+  end
+
 
   defp save_alert(socket, :new, alert_params) do
     case Alerts.create_alert(alert_params) do

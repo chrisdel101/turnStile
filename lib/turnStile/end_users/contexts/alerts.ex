@@ -111,7 +111,8 @@ defmodule TurnStile.Alerts do
       %Todo{...}
 
   """
-  def change_alert(%Alert{} = alert, _attrs \\ %{}) do
-    raise "TODO"
+  def change_alert(%Alert{} = alert, attrs \\ %{}) do
+    Alert.changeset(alert, attrs)
+
   end
 end
