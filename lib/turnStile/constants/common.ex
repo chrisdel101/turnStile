@@ -78,7 +78,6 @@ defmodule AlertCategoryTypesMap do
   @alerts %{
     "INITIAL" => "initial",
     "CONFIRMATION" =>"confirmation",
-    "CONFIRMATION_REQUEST" =>"confirmation_request",
     "CANCELLATION" => "cancellation",
     "CHANGE" => "change"
   }
@@ -108,5 +107,26 @@ defmodule AlertFormatTypesMap do
   end
   def get_alerts_enum do
     @alerts |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
+  end
+end
+defmodule UserStatusTypesMap do
+  @moduledoc """
+   AlertFormatTypesMap
+  """
+  @statuses %{
+    "UNALERTED" => "unalerted",
+    "PENDING" =>"pending",
+    "CONFIRMED" => "confirmed",
+    "CANCELLED" => "cancelled",
+    "EXPIRED" => "expired",
+  }
+  def get_user_statuses do
+    @statuses
+  end
+  def get_user_status(key) do
+    Map.get(@statuses, key)
+  end
+  def get_user_statuses_enum do
+    @statuses |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
   end
 end

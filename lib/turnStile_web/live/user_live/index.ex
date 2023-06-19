@@ -18,26 +18,26 @@ defmodule TurnStileWeb.UserLive.Index do
     {:ok,
      assign(
        socket,
-       users: list_users(),
+       users: list_active_users(),
        current_employee: current_employee
      )}
   end
 
   @impl true
-  # called on show when user_id
-  # def handle_params(params, url, socket) do
-  #   # IO.inspect(params, label: "params on index")
-  #   {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  # end
   # called on index when no user_id
   def handle_params(%{"panel" => panel} = params, _url, socket) do
-    IO.inspect(params, label: "action on index")
+    # IO.inspect(params, label: "action on index")
     socket = assign(socket, :panel, panel)
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
+  # called on show when user_id
+  def handle_params(params, _url, socket) do
+    # IO.inspect(params, label: "params on index")
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
 
-
+#
   @impl true
   def handle_info(param, socket) do
     IO.inspect(param, label: "user-live handle_info on index")
@@ -70,12 +70,30 @@ defmodule TurnStileWeb.UserLive.Index do
       socket =
         socket
         |> put_flash(:info, "User deleted successfully.")
-        {:noreply, assign(socket, :users, list_users())}
+        {:noreply, assign(socket, :users, list_active_users())}
     else
       socket =
         socket
         |> put_flash(:error, "Insuffient permissions to perform user delete")
-        {:noreply, assign(socket, :users, list_users())}
+        {:noreply, assign(socket, :users, list_active_users())}
+    end
+  end
+  def handle_event("remove", %{"id" => id}, socket) do
+    current_employee = socket.assigns.current_employee
+
+    if EmployeeAuth.has_user_remove_permissions?(socket, current_employee) do
+      user = Patients.get_user!(id)
+      Patients.deactivate_user(user)
+
+      socket =
+        socket
+        |> put_flash(:info, "User inactivated.")
+        {:noreply, assign(socket, :users, list_active_users())}
+    else
+      socket =
+        socket
+        |> put_flash(:error, "Insuffient permissions to perform user remove")
+        {:noreply, assign(socket, :users, list_active_users())}
     end
 
   end
@@ -107,6 +125,9 @@ defmodule TurnStileWeb.UserLive.Index do
 
   defp list_users do
     Patients.list_users()
+  end
+  defp list_active_users do
+    Patients.list_active_users()
   end
 
   defp send_alert(socket, %{"employee_id" => employee_id, "user_id" => user_id}) do

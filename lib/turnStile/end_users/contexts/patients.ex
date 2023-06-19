@@ -21,6 +21,14 @@ defmodule TurnStile.Patients do
     Repo.all(User)
   end
 
+  def list_active_users do
+    q = from(u in User,
+      where: u.is_active? == true,
+      order_by: [desc: u.inserted_at]
+    )
+    Repo.all(q)
+  end
+
   @doc """
   Gets a single user.
 
@@ -103,6 +111,13 @@ defmodule TurnStile.Patients do
     Repo.delete(user)
   end
 
+
+  def deactivate_user(%User{} = user) do
+    IO.inspect(user, label: "user")
+    # new_user = change_user(user, %{is_active?: false})
+    {:ok, new_user} = update_user(user, %{is_active?: false})
+    IO.inspect(new_user, label: "new_user")
+  end
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 

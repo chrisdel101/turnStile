@@ -427,12 +427,31 @@ defmodule TurnStileWeb.EmployeeAuth do
       end
     end
   end
-  # same as edit above - renamed for clarity
-  def _has_user_delete_permissions?(conn) do
-    has_user_edit_permissions?(conn)
+
+  def has_user_delete_permissions?(_socket, current_employee) do
+    if !current_employee do
+      false
+    else
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
+        EmployeePermissionThresholds.delete_user_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
   end
-  def has_user_delete_permissions?(socket, current_employee) do
-    has_user_edit_permissions?(socket, current_employee)
+  # sets user to inactive - removes from the page
+  def has_user_remove_permissions?(_socket, current_employee) do
+    if !current_employee do
+      false
+    else
+      if Utils.convert_to_int(current_employee.role_value_on_current_organization) <=
+        EmployeePermissionThresholds.remove_user_permissions_threshold() do
+        true
+      else
+        false
+      end
+    end
   end
 
   def has_alert_send_permissions?(_socket, current_employee) do

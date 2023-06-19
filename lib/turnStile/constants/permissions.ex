@@ -98,6 +98,8 @@ defmodule EmployeePermissionThresholds do
   @register_employee_permissions_threshold 3
   @add_user_permissions_threshold 5
   @edit_user_permissions_threshold 4
+  @delete_user_permissions_threshold 4
+  @remove_user_permissions_threshold 5 # removes/sets to inactive but not deletes
   @send_alert_permissions_threshold 5
   def get_persmission_value(key) do
     @permissions[key]
@@ -105,14 +107,17 @@ defmodule EmployeePermissionThresholds do
 
   def permissions, do: @permissions
   def edit_employee_permissions_threshold, do: @edit_employee_permissions_threshold
+  def delete_user_permissions_threshold, do: @delete_user_permissions_threshold
   def register_employee_permissions_threshold, do: @register_employee_permissions_threshold
   def add_user_permissions_threshold, do: @add_user_permissions_threshold
   def edit_user_permissions_threshold, do: @edit_user_permissions_threshold
   def send_alert_permissions_threshold, do: @send_alert_permissions_threshold
+  def remove_user_permissions_threshold, do: @remove_user_permissions_threshold
 end
 
 defmodule EmployeeManagerRolesEnum do
   @roles [:owner, :developer, :admin]
+  @spec get_roles :: [:admin | :developer | :owner, ...]
   def get_roles do
     # getter
     @roles

@@ -1,6 +1,6 @@
 <div>
   <h2><%= @page_title %></h2>
-  <hr/>
+  
    <span> <%= live_patch "Dispatch", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "dispatch"}) %> </span>
    <span> <%= live_patch "History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "history"}) %> </span>
 
@@ -8,8 +8,8 @@
   <table>
     <thead>
       <tr>
-        <th>Send Initial Alert</th>
-        <th>Custom Alert</th>
+        <th>Action</th>
+        <th>User Status</th>
       </tr>
     </thead>
       <tbody id="users-dispatch">
@@ -21,6 +21,11 @@
               value={@user.id}> Send
             </button>
             </td>
+            <td>
+            <%= String.capitalize(@user.status)%>
+            </td>
+          </tr>
+          <tr>
             <td>
               <.form
               let={_f}
