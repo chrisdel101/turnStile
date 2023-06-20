@@ -1,84 +1,120 @@
 <div>
   <h2><%= @page_title %></h2>
-  
-   <span> <%= live_patch "Dispatch", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "dispatch"}) %> </span>
-   <span> <%= live_patch "History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, @user.id, %{panel: "history"}) %> </span>
+  <div class="alert-panel-nav">
+    <span>
+      <%= live_patch("Dispatch",
+        to:
+          Routes.organization_employee_user_alert_path(
+            @socket,
+            :alerts,
+            @current_employee.current_organization_login_id,
+            @current_employee.id,
+            @user.id,
+            %{panel: "dispatch"}
+          )
+      ) %>
+    </span>
+    <span>
+      <%= live_patch("History",
+        to:
+          Routes.organization_employee_user_alert_path(
+            @socket,
+            :alerts,
+            @current_employee.current_organization_login_id,
+            @current_employee.id,
+            @user.id,
+            %{panel: "history"}
+          )
+      ) %>
+    </span>
+  </div>
 
-   <%= if @panel === "dispatch" do %>
-   <div>
-   <h3><%= @title %></h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Format</th>
-        <th>to</th>
-        <th>Body</th>
-      </tr>
-    </thead>
-        <.form
+  <%= if @panel === "dispatch" do %>
+    <div>
+      <h3><%= @title %></h3>
+      <.form
         let={f}
         for={@changeset}
         id="alert-form"
         phx-target={@myself}
         phx-change="validate"
-        phx-submit="save">
-        <tbody id="users-dispatch">
-          <tr>
-            <td>
-             <%= label f, :alert_format, "SMS" %>
-             <%= radio_button f, :alert_format, :sms, checked: true %>
-            <%= label f, :alert_format, "Email" %>
-            <%= radio_button f, :alert_format, :email, checked: false %>
-            </td>
-            <td>
-            <%= IO.inspect(f) %>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div>
-              <%= submit "Send", phx_disable_with: "Saving..." %>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </.form>
-    </table>
-   
-   </div>
-   <% end %>
-   <% IO.inspect(@panel) %>
-   <%= if @panel === "history" do %>
-  <div>
-  <h3><%= @title %></h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Time Sent</th>
-          <th>Format</th>
-          <th>to</th>
-          <th>Title</th>
-          <th>Body</th>
-        </tr>
-      </thead>
-      <tbody id="users-sent">
-        <%= for alert <- @alerts do %>
-          <tr id={"alert-#{alert.id}"}>
-            <td><%= alert.alert_category %></td>
-            <td>
-              <% {:ok, shifted_datetime} = TurnStile.Utils.shift_datetime(@current_employee.inserted_at, @current_employee.timezone) %>
-              <%= "#{shifted_datetime.year}-#{shifted_datetime.month}-#{shifted_datetime.day} #{shifted_datetime.hour}:#{shifted_datetime.minute}:#{shifted_datetime.second} #{if shifted_datetime.hour >= 12, do: "PM", else: "AM"}" %>
-            </td>
-            <td><%= alert.alert_format %></td>
-            <td><%= alert.to %></td>
-            <td><%= alert.title %></td>
-            <td><%= alert.body %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-  <% end %>
+        phx-submit="save"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Format</th>
+              <th>to</th>
+              <th>Body</th>
+            </tr>
+          </thead>
 
+          <tbody id="users-dispatch">
+            <tr>
+              <td>
+                <%= label(f, :alert_format, "SMS") %>
+                <%= radio_button(f, :alert_format, :sms, checked: true) %>
+                <%= label(f, :alert_format, "Email") %>
+                <%= radio_button(f, :alert_format, :email, checked: false) %>
+              </td>
+              <%= if @changeset.changes.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do %>
+                <td>
+                  HELLO
+                </td>
+              <% end %>
+              <%!-- <td>
+                <%= label(f, :alert_format) %>
+                <%= text_input(f, :alert_format) %>
+                <%= error_tag(f, :alert_format) %>
+              </td> --%>
+            </tr>
+            <tr>
+              <td>
+                <div>
+                  <%= submit("Send", phx_disable_with: "Saving...") %>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </.form>
+    </div>
+  <% end %>
+  <% IO.inspect(@panel) %>
+  <%= if @panel === "history" do %>
+    <div>
+      <h3><%= @title %></h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Time Sent</th>
+            <th>Format</th>
+            <th>to</th>
+            <th>Title</th>
+            <th>Body</th>
+          </tr>
+        </thead>
+        <tbody id="users-sent">
+          <%= for alert <- @alerts do %>
+            <tr id={"alert-#{alert.id}"}>
+              <td><%= alert.alert_category %></td>
+              <td>
+                <% {:ok, shifted_datetime} =
+                  TurnStile.Utils.shift_datetime(
+                    @current_employee.inserted_at,
+                    @current_employee.timezone
+                  ) %>
+                <%= "#{shifted_datetime.year}-#{shifted_datetime.month}-#{shifted_datetime.day} #{shifted_datetime.hour}:#{shifted_datetime.minute}:#{shifted_datetime.second} #{if shifted_datetime.hour >= 12, do: "PM", else: "AM"}" %>
+              </td>
+              <td><%= alert.alert_format %></td>
+              <td><%= alert.to %></td>
+              <td><%= alert.title %></td>
+              <td><%= alert.body %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
 </div>

@@ -9,36 +9,66 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     # IO.inspect(props, label: "props")
     # IO.inspect(socket, label: "socket")
 
-    %{id: user_id} = props
+    %{id: user_id, current_employee: current_employee} = props
     alerts = Alerts.get_alerts_for_user(user_id)
-    # IO.inspect(alerts, label: "alerts"
+    # IO.inspect(alerts, label: "alerts")
+    # build alert to track changes across form
+    attrs =
+      Alerts.build_alert_attrs(
+        AlertCategoryTypesMap.get_alert("CUSTOM"),
+        AlertFormatTypesMap.get_alert("SMS")
+      )
+
+    # IO.inspect(changeset.data, label: "HELLO")
+    changeset = Alerts.create_alert_w_assoc(current_employee.id, user_id, attrs)
+
+    # IO.inspect(changeset, label: "HELLO")
+
     {:ok,
      socket
      |> assign(props)
      |> assign(:alerts, alerts)
-     |> assign(:form_title, "Alerts Dispatch")
      |> assign(:title, set_title(props.panel))
      |> assign(:page_title, "Alert Panel")
-     |> assign(:changeset, Alerts.change_alert(%Alert{}))}
+     |> assign(:changeset, changeset)}
   end
 
   @impl true
-  def handle_event(any,%{"alert" => alert_params}, socket) do
-    IO.inspect(any, label: "any")
-  end
-  def handle_event("validate", %{"alert" => alert_params}, socket) do
-    IO.inspect("validate", label: "validate")
-    changeset =
-      socket.assigns.alert
-      |> Alerts.change_alert(alert_params)
-      |> Map.put(:action, :validate)
+  # def handle_event(any, any2, socket) do
+  #   IO.inspect(any, label: "any")
+  #   IO.inspect(any2, label: "any2")
+  #   IO.inspect(socket, label: "socket")
+  #   {:noreply, socket}
+  # end
 
-    {:noreply, assign(socket, :changeset, changeset)}
+  def handle_event("validate", params, socket) do
+    # IO.inspect("validate", label: "validate")
+    # IO.inspect(socket, label: "socket")
+    alert_params = Map.get(params, :alert) || Map.get(params, "alert")
+
+    # check for change on radio buttons
+    if alert_params && Map.has_key?(socket.assigns.changeset, :data) do
+      # IO.inspect(alert_params, label: "alert_params")
+
+      changeset =
+        socket.assigns.changeset.data
+        |> Alerts.change_alert(alert_params)
+        |> Map.put(:action, :validate)
+
+      # IO.inspect(socket, label: "changeset")
+      {:noreply, assign(socket, :changeset, changeset)}
+    else
+      {:noreply, socket}
+    end
+
+    # IO.inspect(socket, label: "socket")
+
+    # {:noreply, socket}
   end
 
   def handle_event("dispatch", params, socket) do
-   IO.inspect(params, label: "params")
-   changeset = %Alert{}
+    IO.inspect(params, label: "params")
+    changeset = %Alert{}
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
@@ -66,7 +96,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       "Alert Dispatch"
     end
   end
-
 
   defp save_alert(socket, :new, alert_params) do
     case Alerts.create_alert(alert_params) do

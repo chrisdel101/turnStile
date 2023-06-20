@@ -34,14 +34,15 @@ defmodule TurnStile.Alerts do
       %Alert{}
 
   """
-  def get_alert!(id), do: raise "TODO"
-
+  def get_alert!(id), do: raise("TODO")
 
   def get_alerts_for_user(user_id) do
-    query = from(a in Alert,
+    query =
+      from(a in Alert,
       where: a.user_id == ^user_id,
       order_by: [desc: a.inserted_at]
     )
+
     Repo.all(query)
   end
 
@@ -52,21 +53,92 @@ defmodule TurnStile.Alerts do
   def create_new_alert(%Alert{} = alert, attrs \\ %{}) do
     Alert.changeset(alert, attrs)
   end
+
   @doc """
   create_alert_w_assoc
-  Handles creation and insertion into DB.
+  Creates new alert changset with assoc to user & employee. No DB insertion
   """
   def create_alert_w_assoc(employee_id, user_id, attrs) do
     user = Patients.get_user!(user_id)
     employee = Staff.get_employee(employee_id)
+
+    if !user || !employee do
+      {:error, "User or Employee not found for alert creation"}
+    else
+      # build_assoc to both user & employee
+      alert_assoc = Ecto.build_assoc(user, :alerts, employee_id: employee.id)
+      create_new_alert(alert_assoc, attrs)
+    end
+  end
+
+  @doc """
+  insert_alert_w_assoc
+   Creates new alert changset with assoc to user & employee.
+   DB insertion
+  """
+  def insert_alert_w_assoc(employee_id, user_id, attrs) do
+    user = Patients.get_user!(user_id)
+    employee = Staff.get_employee(employee_id)
+
     if !user || !employee do
       {:error, "User or Employee not found for alert creation"}
     else
       # build_assoc to both user & employee
       alert_assoc = Ecto.build_assoc(user, :alerts, employee_id: employee.id)
       alert = create_new_alert(alert_assoc, attrs)
-
       Repo.insert(alert)
+    end
+  end
+
+  @doc """
+  insert_alert
+   Basic insert w/o assoc
+  """
+  def insert_alert(%Alert{} = alert) do
+      Repo.insert(alert)
+    end
+
+  @doc """
+  build_alert_attr
+  Auto-fills in possible fields based on category
+  Returns a map of alert attributes
+  """
+  def build_alert_attrs(
+        alert_category,
+        alert_format \\ AlertFormatTypesMap.get_alert("SMS")
+      ) do
+    cond do
+      alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
+        %{
+          title: "Custom Alert",
+          body: "This is an custom alert being to test the alert system",
+          from:
+            cond do
+              alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                System.get_env("SYSTEM_ALERT_FROM_EMAIL")
+
+              true ->
+                System.get_env("SYSTEM_ALERT_FROM_SMS")
+            end,
+          alert_format: alert_format,
+          alert_category: alert_category
+        }
+
+      true ->
+        %{
+          title: "Initial Alert",
+          body: "This is an initial alert being to test the alert system",
+          from:
+            cond do
+              alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                System.get_env("SYSTEM_ALERT_FROM_EMAIL")
+
+              true ->
+                System.get_env("SYSTEM_ALERT_FROM_SMS")
+            end,
+          alert_format: alert_format,
+          alert_category: alert_category
+        }
     end
   end
 

@@ -15,6 +15,7 @@ defmodule RouteTypesMap do
   def get_route_types do
     @route_types
   end
+
   def get_route_type_value(key) do
     Map.get(@route_types, key)
   end
@@ -36,20 +37,23 @@ defmodule EmployeeRolesMap do
   @permission_roles %{
     "OWNER" => "owner",
     "DEVELOPER" => "developer",
-    "ADMIN" =>  "admin",
+    "ADMIN" => "admin",
     "EDITOR" => "editor",
-    "CONTRIBUTOR" =>  "contributor",
-    "VIEWER" =>  "viewer"
+    "CONTRIBUTOR" => "contributor",
+    "VIEWER" => "viewer"
   }
   def get_permission_role_values do
     @permission_role_values
   end
+
   def get_permission_roles do
     @permission_roles
   end
+
   def get_permission_role(key) do
     Map.get(@permission_roles, key)
   end
+
   def get_permission_role_value(key) do
     Map.get(@permission_role_values, key)
   end
@@ -71,62 +75,72 @@ defmodule ClientTypesEnum do
     Enum.find(@client_types, &(&1 == type))
   end
 end
+
 defmodule AlertCategoryTypesMap do
   @moduledoc """
     AlertTypesMap
   """
   @alerts %{
     "INITIAL" => "initial",
-    "CONFIRMATION" =>"confirmation",
+    "CONFIRMATION" => "confirmation",
     "CANCELLATION" => "cancellation",
-    "CHANGE" => "change"
+    "CHANGE" => "change",
+    "CUSTOM" => "custom"
   }
   def get_alerts do
     @alerts
   end
+
   def get_alert(key) do
     Map.get(@alerts, key)
   end
+
   def get_alerts_enum do
-    @alerts |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
+    @alerts |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
   end
 end
+
 defmodule AlertFormatTypesMap do
   @moduledoc """
    AlertFormatTypesMap
   """
   @alerts %{
     "EMAIL" => "email",
-    "SMS" =>"sms"
+    "SMS" => "sms"
   }
   def get_alerts do
     @alerts
   end
+
   def get_alert(key) do
     Map.get(@alerts, key)
   end
+
   def get_alerts_enum do
-    @alerts |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
+    @alerts |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
   end
 end
+
 defmodule UserStatusTypesMap do
   @moduledoc """
    AlertFormatTypesMap
   """
   @statuses %{
     "UNALERTED" => "unalerted",
-    "PENDING" =>"pending",
+    "PENDING" => "pending",
     "CONFIRMED" => "confirmed",
     "CANCELLED" => "cancelled",
-    "EXPIRED" => "expired",
+    "EXPIRED" => "expired"
   }
   def get_user_statuses do
     @statuses
   end
+
   def get_user_status(key) do
     Map.get(@statuses, key)
   end
+
   def get_user_statuses_enum do
-    @statuses |> Map.values() |>  Enum.map(fn value -> String.to_atom(value) end)
+    @statuses |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
   end
 end

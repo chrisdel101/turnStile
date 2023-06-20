@@ -188,28 +188,29 @@ TurnStile.Repo.transaction(fn ->
     body: "some body1",
     title: "alert1"
   }
-  TurnStile.Alerts.create_alert_w_assoc(1, 1, a1)
+  TurnStile.Alerts.insert_alert_w_assoc(1, 1, a1)
   a4 = %{
     alert_category: "confirmation",
     alert_format: "sms",
     body: "some body4",
     title: "alert4"
   }
-  TurnStile.Alerts.create_alert_w_assoc(1, 1, a4)
+  TurnStile.Alerts.insert_alert_w_assoc(1, 1, a4)
   a2 = %{
     alert_category: "initial",
     alert_format: "sms",
     body: "some body2",
     title: "alert2"
   }
-  TurnStile.Alerts.create_alert_w_assoc(1, 2, a2)
+  TurnStile.Alerts.insert_alert_w_assoc(1, 2, a2)
   a3 = %{
     alert_category: "initial",
     alert_format: "sms",
     body: "some body3",
     title: "alert3"
   }
-  TurnStile.Alerts.create_alert_w_assoc(1, 3, a3)
+  TurnStile.Alerts.insert_alert_w_assoc(1, 3, a3)
+
 
   # # ORGANZIATION2
   # org2_params = %{
