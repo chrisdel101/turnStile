@@ -6,15 +6,16 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   @impl true
   def update(props, socket) do
-    # IO.inspect(props, label: "props")
+    IO.inspect(props, label: "props")
     # IO.inspect(socket, label: "socket")
 
-    %{id: user_id, current_employee: current_employee} = props
+    %{id: user_id, current_employee: current_employee, user: user} = props
     alerts = Alerts.get_alerts_for_user(user_id)
     # IO.inspect(alerts, label: "alerts")
     # build alert to track changes across form
     attrs =
       Alerts.build_alert_attrs(
+        user,
         AlertCategoryTypesMap.get_alert("CUSTOM"),
         AlertFormatTypesMap.get_alert("SMS")
       )
@@ -22,7 +23,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     # IO.inspect(changeset.data, label: "HELLO")
     changeset = Alerts.create_alert_w_assoc(current_employee.id, user_id, attrs)
 
-    # IO.inspect(changeset, label: "HELLO")
+    IO.inspect(changeset  , label: "HELLO")
 
     {:ok,
      socket

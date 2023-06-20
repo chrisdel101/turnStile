@@ -104,6 +104,7 @@ defmodule TurnStile.Alerts do
   Returns a map of alert attributes
   """
   def build_alert_attrs(
+        user,
         alert_category,
         alert_format \\ AlertFormatTypesMap.get_alert("SMS")
       ) do
@@ -111,18 +112,23 @@ defmodule TurnStile.Alerts do
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
         %{
           title: "Custom Alert",
-          body: "This is an custom alert being to test the alert system",
-          from:
-            cond do
-              alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                System.get_env("SYSTEM_ALERT_FROM_EMAIL")
-
-              true ->
-                System.get_env("SYSTEM_ALERT_FROM_SMS")
-            end,
+          body: "This is a custom alert being used to test the alert system",
+          from: cond do
+                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                    System.get_env("SYSTEM_ALERT_FROM_EMAIL")
+                  true ->
+                    System.get_env("SYSTEM_ALERT_FROM_SMS")
+                end,
+          to: cond do
+                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                  user.email
+                true ->
+                  user.phone
+              end,
           alert_format: alert_format,
           alert_category: alert_category
         }
+
 
       true ->
         %{

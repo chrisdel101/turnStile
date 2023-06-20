@@ -44,8 +44,7 @@
           <thead>
             <tr>
               <th>Format</th>
-              <th>to</th>
-              <th>Body</th>
+              <th>Custom Mesage</th>
             </tr>
           </thead>
 
@@ -59,8 +58,32 @@
               </td>
               <%= if @changeset.changes.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do %>
                 <td>
-                  HELLO
+                <%= label f, :to%>
+                <%= text_input f, :from, value: @user.email  %>
+                <%= error_tag f, :to %>
+
+                <%= label f, :from%>
+                <%= text_input f, :from, value: @changeset.changes.from %>
+                <%= error_tag f, :to %>
+
+                <%= label f, "Message" %>
+                <%= textarea f, :body %>
+                <%= error_tag f, :body %>
                 </td>
+              <% else %>
+              <td>
+                <%= label f, :to%>
+                <%= text_input f, :from, value: @changeset.changes.to  %>
+                <%= error_tag f, :to %>
+
+                <%= label f, :from%>
+                <%= text_input f, :from, value: @changeset.changes.from %>
+                <%= error_tag f, :to %>
+
+                <%= label f, "Message" %>
+                <%= textarea f, :body %>
+                <%= error_tag f, :body %>
+              </td>
               <% end %>
               <%!-- <td>
                 <%= label(f, :alert_format) %>
