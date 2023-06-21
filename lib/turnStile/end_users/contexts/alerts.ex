@@ -39,9 +39,9 @@ defmodule TurnStile.Alerts do
   def get_alerts_for_user(user_id) do
     query =
       from(a in Alert,
-      where: a.user_id == ^user_id,
-      order_by: [desc: a.inserted_at]
-    )
+        where: a.user_id == ^user_id,
+        order_by: [desc: a.inserted_at]
+      )
 
     Repo.all(query)
   end
@@ -95,8 +95,8 @@ defmodule TurnStile.Alerts do
    Basic insert w/o assoc
   """
   def insert_alert(%Alert{} = alert) do
-      Repo.insert(alert)
-    end
+    Repo.insert(alert)
+  end
 
   @doc """
   build_alert_attr
@@ -109,26 +109,37 @@ defmodule TurnStile.Alerts do
         alert_format \\ AlertFormatTypesMap.get_alert("SMS")
       ) do
     cond do
+      # build custom type alert
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
         %{
           title: "Custom Alert",
-          body: "This is a custom alert being used to test the alert system",
-          from: cond do
-                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                    System.get_env("SYSTEM_ALERT_FROM_EMAIL")
-                  true ->
-                    System.get_env("SYSTEM_ALERT_FROM_SMS")
-                end,
-          to: cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  user.email
-                true ->
-                  user.phone
-              end,
+          body:
+            cond do
+              alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                "This is a custom alert being used to test the alert system for EMAIL"
+
+              true ->
+                "This is a custom alert being used to test the alert system for SMS"
+            end,
+          from:
+            cond do
+              alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                System.get_env("SYSTEM_ALERT_FROM_EMAIL")
+
+              true ->
+                System.get_env("SYSTEM_ALERT_FROM_SMS")
+            end,
+          to:
+            cond do
+              alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                user.email
+
+              true ->
+                user.phone
+            end,
           alert_format: alert_format,
           alert_category: alert_category
         }
-
 
       true ->
         %{
@@ -191,6 +202,5 @@ defmodule TurnStile.Alerts do
   """
   def change_alert(%Alert{} = alert, attrs \\ %{}) do
     Alert.changeset(alert, attrs)
-
   end
 end

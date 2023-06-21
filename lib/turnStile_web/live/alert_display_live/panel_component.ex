@@ -1,29 +1,27 @@
 defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   use TurnStileWeb, :live_component
-
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
 
   @impl true
   def update(props, socket) do
-    IO.inspect(props, label: "props")
+    # IO.inspect(props, label: "props")
     # IO.inspect(socket, label: "socket")
 
     %{id: user_id, current_employee: current_employee, user: user} = props
     alerts = Alerts.get_alerts_for_user(user_id)
     # IO.inspect(alerts, label: "alerts")
-    # build alert to track changes across form
-    attrs =
+    # build SMS alert to start
+    sms_attrs =
       Alerts.build_alert_attrs(
         user,
         AlertCategoryTypesMap.get_alert("CUSTOM"),
         AlertFormatTypesMap.get_alert("SMS")
       )
 
-    # IO.inspect(changeset.data, label: "HELLO")
-    changeset = Alerts.create_alert_w_assoc(current_employee.id, user_id, attrs)
+    changeset = Alerts.create_alert_w_assoc(current_employee.id, user_id, sms_attrs)
 
-    IO.inspect(changeset  , label: "HELLO")
+    IO.inspect(changeset, label: "HELLO")
 
     {:ok,
      socket
@@ -44,27 +42,63 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   def handle_event("validate", params, socket) do
     # IO.inspect("validate", label: "validate")
-    # IO.inspect(socket, label: "socket")
+    # IO.inspect(socket, label: "params")
     alert_params = Map.get(params, :alert) || Map.get(params, "alert")
 
     # check for change on radio buttons
     if alert_params && Map.has_key?(socket.assigns.changeset, :data) do
-      # IO.inspect(alert_params, label: "alert_params")
+      # IO.inspect(alert_params["alert_format"], label: "alert_params")
+      # check which type of alert to change
+      cond do
+        alert_params["alert_format"] === AlertFormatTypesMap.get_alert("EMAIL") ->
+          IO.inspect("EMAIL", label: "EMAIL")
 
-      changeset =
-        socket.assigns.changeset.data
-        |> Alerts.change_alert(alert_params)
-        |> Map.put(:action, :validate)
+          email_attrs =
+            Alerts.build_alert_attrs(
+              socket.assigns.user,
+              AlertCategoryTypesMap.get_alert("CUSTOM"),
+              AlertFormatTypesMap.get_alert("EMAIL")
+            )
 
-      # IO.inspect(socket, label: "changeset")
-      {:noreply, assign(socket, :changeset, changeset)}
-    else
-      {:noreply, socket}
+          changeset =
+            socket.assigns.changeset.data
+            |> Alerts.change_alert(email_attrs)
+            |> Map.put(:action, :validate)
+
+          IO.inspect(changeset, label: "changeset HERE")
+
+          {:noreply, assign(socket, :changeset, changeset)}
+
+        # end
+        alert_params["alert_format"] === AlertFormatTypesMap.get_alert("SMS") ->
+          IO.inspect("SMS", label: "SMS")
+
+          sms_attrs =
+            Alerts.build_alert_attrs(
+              socket.assigns.user,
+              AlertCategoryTypesMap.get_alert("CUSTOM"),
+              AlertFormatTypesMap.get_alert("SMS")
+            )
+
+          changeset =
+            socket.assigns.changeset.data
+            |> Alerts.change_alert(sms_attrs)
+            |> Map.put(:action, :validate)
+
+          IO.inspect(changeset, label: "changeset")
+
+          {:noreply, assign(socket, :changeset, changeset)}
+
+        #  end
+        true ->
+          {:noreply, socket}
+      end
+
+      # else
+      #   {:noreply, socket}
     end
 
     # IO.inspect(socket, label: "socket")
-
-    # {:noreply, socket}
   end
 
   def handle_event("dispatch", params, socket) do
