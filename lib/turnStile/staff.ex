@@ -115,7 +115,7 @@ defmodule TurnStile.Staff do
     IO.inspect(emp_changeset)
     IO.inspect(role)
     # Repo.transaction(fn ->
-    # insert employee - auto insert role using associations``
+    # insert employee - auto insert role using associations
     case Repo.insert(emp_changeset) do
       {:ok, new_emp} ->
         emp_preload =
@@ -135,7 +135,7 @@ defmodule TurnStile.Staff do
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking employee registration changes.
   Used to change employees via register.
-  - hash_password: false
+  -hash_password: false
 
 
   ## Examples
@@ -261,9 +261,9 @@ defmodule TurnStile.Staff do
   @doc """
   Updates the employee password.
 
-  - takes employee struct with ID
-  - current valid password
-  - new password in a map %{password: "new_password}"
+  takes employee struct with ID
+  current valid password
+  new password in a map %{password: "new_password}"
   ## Examples
 
       iex> update_employee_password(employee, "valid password", %{password: ...})
@@ -691,14 +691,14 @@ defmodule TurnStile.Staff do
   end
 
   # sets is_logged_in? employee flag to true
-  def set_is_logged_in(employee) do
-    change_employee(employee, %{is_logged_in?: true})
+  def set_is_logged_in(employee, organization_id) do
+    change_employee(employee, %{is_logged_in?: true, current_organization_login_id: organization_id})
     |> Repo.update()
   end
 
   # sets is_logged_in? employee flag to false
   def unset_is_logged_in(employee) do
-    change_employee(employee, %{is_logged_in?: false})
+    change_employee(employee, %{is_logged_in?: false, current_organization_login_id: nil})
     |> Repo.update()
   end
 

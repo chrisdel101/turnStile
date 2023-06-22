@@ -81,7 +81,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       {:ok, employee} ->
         IO.puts("employee")
         IO.inspect(employee)
-        Staff.set_is_logged_in(employee)
+        Staff.set_is_logged_in(employee, organization_id)
 
         conn
         |> renew_session()

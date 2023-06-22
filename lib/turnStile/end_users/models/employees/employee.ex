@@ -11,9 +11,8 @@ defmodule TurnStile.Staff.Employee do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-
     # set these fields at login
-    field :current_organization_login_id, :integer, default: nil
+    field :current_organization_login_id, :integer
     field :role_value_on_current_organization, :string, default: nil
     field :role_on_current_organization, :string, default: nil
     field :is_logged_in?, :boolean, default: false
@@ -52,16 +51,25 @@ defmodule TurnStile.Staff.Employee do
   defp handle_timezone_insert(changeset) do
     # IO.inspect(changeset, label: "changeset in handle_timezone")
     # IO.inspect((!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)), label: "HERE")
+    # if employee has not explieitly set timezone, use organization timezone
     case (!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)) do
       true ->
         # IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
         organization = Company.get_organization(changeset.changes.current_organization_login_id)
         # IO.inspect(organization, label: "organization in handle_timezone")
         changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
+        changeset
       false ->
         # IO.inspect(changeset, label: "changeset in handle_timezone")
         changeset
     end
+  end
+  # reset field to nil; set when employee logs in
+  defp remove_current_organization_login_id(changeset) do
+    IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
+    changeset = changeset
+    |> put_change(:current_organization_login_id, nil)
+    IO.inspect(changeset, label: "changeset in remove_current_organization_login_id after")
   end
   @doc """
   A employee changeset for registration.
@@ -91,13 +99,15 @@ defmodule TurnStile.Staff.Employee do
       :role_value_on_current_organization,
       :role_on_current_organization,
       :is_logged_in?,
-      :current_organization_login_id, :timezone
+      :current_organization_login_id,
+      :timezone
     ])
     |> validate_required([:last_name, :first_name])
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
     |> handle_timezone_insert()
+    |> remove_current_organization_login_id()
   end
 
   defp validate_email(changeset) do

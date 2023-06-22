@@ -8,9 +8,5 @@
     "priv/*/seeds.exs",
     "{config,lib,test}/**/*.{ex,exs}"
   ],
-  whitespace_trimming: [
-    leading: true,
-    trailing: true
-  ],
   subdirectories: ["priv/*/migrations"]
 ]
