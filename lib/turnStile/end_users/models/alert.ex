@@ -2,6 +2,12 @@ defmodule TurnStile.Alerts.Alert do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @moduledoc """
+  Alert Schema
+  -alerts belong to one user
+  -alerts belong to one employee
+  -alerts belong to one organization
+  """
   schema "alerts" do
     field :title, :string
     field :body, :string
@@ -11,6 +17,7 @@ defmodule TurnStile.Alerts.Alert do
     field :alert_format, :string
     belongs_to :employee, TurnStile.Staff.Employee
     belongs_to :user, TurnStile.Patients.User
+    belongs_to :organization, TurnStile.Company.Organization
     timestamps()
   end
 

@@ -64,9 +64,10 @@ defmodule TurnStile.Patients do
   end
 # handle the one-many for new user-to-employee on create
   def create_user_w_assocs(employee_struct, user_params, organization_struct \\ nil) do
-    IO.inspect(user_params, label: "user_params")
+    # IO.inspect(user_params, label: "user_params")
+    # IO.inspect(organization_struct, label: "organization_struct")
     # build user struct from map
-    user = %TurnStile.Patients.User{
+    user = %User{
       first_name: user_params["first_name"] || user_params.first_name,
       last_name: user_params["last_name"] || user_params.last_name,
       email: user_params["email"] || user_params.email,
@@ -86,8 +87,9 @@ defmodule TurnStile.Patients do
           nil ->
             error = "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
             IO.puts(error)
-            {:eror, error}
+            {:error, error}
           _ ->
+              # add org assoc
             user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
             {:ok, user_struct}
             # IO.inspect(user_struct, label: "organization struct")
@@ -106,7 +108,7 @@ defmodule TurnStile.Patients do
 
   def insert_user(user) do
      # user = Ecto.build_assoc(employee_struct, :users, user)
-     IO.inspect(user, label: "insert_user")
+    #  IO.inspect(user, label: "insert_user")
     Repo.insert(user)
   end
 

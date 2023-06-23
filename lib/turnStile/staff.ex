@@ -85,7 +85,7 @@ defmodule TurnStile.Staff do
   # Registers a employee assocaited with organizatio and role
 
   """
-  def register_and_preload_employee(attrs, organization) do
+  def insert_register_and_preload_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
     IO.inspect("attrs")
     IO.inspect(attrs)

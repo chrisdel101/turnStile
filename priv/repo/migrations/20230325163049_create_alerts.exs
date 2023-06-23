@@ -11,6 +11,7 @@ defmodule TurnStile.Repo.Migrations.CreateAlerts do
       add :alert_format, :alert_format, null: false
       add :employee_id, references("employees"), null: false
       add :user_id, references("users"), null: false
+      add :organization_id, references("organizations")
 
       timestamps()
     end

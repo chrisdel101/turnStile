@@ -13,10 +13,10 @@ defmodule TurnStileWeb.OrganizationController do
   @moduledoc """
   Controller for managing organizations
   Flow: using multi-step form
-  - handled by track_form_stage on each call
-  1. init - render form 1 (new_org_form.html)
-  2. handle_new - handle submit form 1; display form 2 (new_employee_form.html)
-  3. handle_create - handle submit form 2; create org
+  -handled by track_form_stage on each call
+  1.init - render form 1 (new_org_form.html)
+  2.handle_new - handle submit form 1; display form 2 (new_employee_form.html)
+  3.handle_create - handle submit form 2; create org
 
   """
 
@@ -101,7 +101,7 @@ defmodule TurnStileWeb.OrganizationController do
     current_employee = conn.assigns[:current_employee]
     org_params = Map.get(get_session(conn), "org_params")
     # add organization
-    case Company.create_and_preload_organization(org_params) do
+    case Company.insert_and_preload_organization(org_params) do
       {:ok, organization} ->
         IO.inspect("ORG HERE")
         IO.inspect(organization)

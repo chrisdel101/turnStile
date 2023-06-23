@@ -14,7 +14,7 @@ TurnStile.Repo.transaction(fn ->
     slug: "org1"
   }
 
-  {:ok, organization1} = TurnStile.Company.create_and_preload_organization(org1_params)
+  {:ok, organization1} = TurnStile.Company.insert_and_preload_organization(org1_params)
   # IO.inspect(organization1)
 
   # EMPLOYEE1 - OWNER
@@ -31,7 +31,7 @@ TurnStile.Repo.transaction(fn ->
     role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER"),
     timezone: "America/New_York"
   }
-  {:ok, employee1} = TurnStile.Staff.register_and_preload_employee(emp1_params, organization1)
+  {:ok, employee1} = TurnStile.Staff.insert_register_and_preload_employee(emp1_params, organization1)
   #  IO.inspect(employee1)
    org_changeset = Ecto.Changeset.change(organization1)
   #  IO.inspect(org_changeset)
@@ -51,7 +51,7 @@ TurnStile.Repo.transaction(fn ->
       to_string(EmployeeRolesMap.get_permission_role_value("admin")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN")
   }
-   {:ok, employee2} = TurnStile.Staff.register_and_preload_employee(emp2_params, organization1)
+   {:ok, employee2} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee2 | organization1.employees])
@@ -69,7 +69,7 @@ TurnStile.Repo.transaction(fn ->
       to_string(EmployeeRolesMap.get_permission_role_value("admin")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN")
   }
-   {:ok, employee7} = TurnStile.Staff.register_and_preload_employee(emp7_params, organization1)
+   {:ok, employee7} = TurnStile.Staff.insert_register_and_preload_employee(emp7_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee7 | organization1.employees])
@@ -87,7 +87,7 @@ TurnStile.Repo.transaction(fn ->
       to_string(EmployeeRolesMap.get_permission_role_value("editor")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("EDITOR")
   }
-   {:ok, employee3} = TurnStile.Staff.register_and_preload_employee(emp3_params, organization1)
+   {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee3 | organization1.employees])
@@ -105,7 +105,7 @@ TurnStile.Repo.transaction(fn ->
       to_string(EmployeeRolesMap.get_permission_role_value("contributor")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR")
   }
-   {:ok, employee4} = TurnStile.Staff.register_and_preload_employee(emp4_params, organization1)
+   {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp4_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee4 | organization1.employees])
@@ -123,7 +123,7 @@ TurnStile.Repo.transaction(fn ->
       to_string(EmployeeRolesMap.get_permission_role_value("contributor")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR")
   }
-   {:ok, employee5} = TurnStile.Staff.register_and_preload_employee(emp5_params, organization1)
+   {:ok, employee5} = TurnStile.Staff.insert_register_and_preload_employee(emp5_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee5 | organization1.employees])
@@ -141,7 +141,7 @@ TurnStile.Repo.transaction(fn ->
       to_string(EmployeeRolesMap.get_permission_role_value("viewer")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("VIEWER")
   }
-   {:ok, employee6} = TurnStile.Staff.register_and_preload_employee(emp6_params, organization1)
+   {:ok, employee6} = TurnStile.Staff.insert_register_and_preload_employee(emp6_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee6 | organization1.employees])
@@ -155,7 +155,9 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 1234
   }
-  x = TurnStile.Patients.create_user_w_assocs(employee1, organization1, user1,)
+    # user w/ emp and org assocs
+    {:ok, user1} = TurnStile.Patients.create_user_w_assocs(employee1, user1, organization1)
+
   user2 = %{
     first_name: "Joe2",
     last_name: "Schmoe",
@@ -163,7 +165,9 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 5678
   }
-  TurnStile.Patients.create_user_w_assocs(employee1, user2)
+ # user w/ emp and org assocs
+ {:ok, user2} = TurnStile.Patients.create_user_w_assocs(employee1, user2, organization1)
+
   user3 = %{
     first_name: "Joe3",
     last_name: "Schmoe",
@@ -171,7 +175,9 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 9010
   }
-  TurnStile.Patients.create_user_w_assocs(employee1, user3)
+# user w/ emp and org assocs
+{:ok, user3} = TurnStile.Patients.create_user_w_assocs(employee1, user3, organization1)
+
   user4 = %{
     first_name: "Joe4",
     last_name: "Schmoe",
@@ -179,7 +185,14 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 1112
   }
-  TurnStile.Patients.create_user_w_assocs(employee1, user4)
+
+  # user w/ emp and org assocs
+  {:ok, user4} = TurnStile.Patients.create_user_w_assocs(employee1, user4, organization1)
+
+  {:ok, user1} = TurnStile.Repo.insert(user1)
+  {:ok, user2} = TurnStile.Repo.insert(user2)
+  {:ok, user3} = TurnStile.Repo.insert(user3)
+  {:ok, user4} = TurnStile.Repo.insert(user4)
 
   # ALERTS
   a1 = %{
@@ -188,28 +201,32 @@ TurnStile.Repo.transaction(fn ->
     body: "some body1",
     title: "alert1"
   }
-  TurnStile.Alerts.insert_alert_w_assoc(1, 1, a1)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a1)
+  TurnStile.Alerts.insert_alert(alert)
   a4 = %{
     alert_category: "confirmation",
     alert_format: "sms",
     body: "some body4",
     title: "alert4"
   }
-  TurnStile.Alerts.insert_alert_w_assoc(1, 1, a4)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a4)
+  TurnStile.Alerts.insert_alert(alert)
   a2 = %{
     alert_category: "initial",
     alert_format: "sms",
     body: "some body2",
     title: "alert2"
   }
-  TurnStile.Alerts.insert_alert_w_assoc(1, 2, a2)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a2)
+  TurnStile.Alerts.insert_alert(alert)
   a3 = %{
     alert_category: "initial",
     alert_format: "sms",
     body: "some body3",
     title: "alert3"
   }
-  TurnStile.Alerts.insert_alert_w_assoc(1, 3, a3)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a3)
+  TurnStile.Alerts.insert_alert(alert)
 
 
   # # ORGANZIATION2
@@ -220,7 +237,7 @@ TurnStile.Repo.transaction(fn ->
   #   slug: "org2"
   # }
 
-  # {:ok, organization2} = TurnStile.Company.create_and_preload_organization(org2_params)
+  # {:ok, organization2} = TurnStile.Company.insert_and_preload_organization(org2_params)
   # # IO.inspect(organization2)
 
   # # EMPLOYEE3
@@ -237,7 +254,7 @@ TurnStile.Repo.transaction(fn ->
   #   role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER")
   # }
 
-  # {:ok, employee3} = TurnStile.Staff.register_and_preload_employee(emp3_params, organization2)
+  # {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization2)
   # IO.inspect(employee3)
 
   # org_changeset = Ecto.Changeset.change(organization2)
@@ -263,7 +280,7 @@ TurnStile.Repo.transaction(fn ->
   #   role_on_current_organization: EmployeeRolesMap.get_permission_role("EDITOR")
   # }
 
-  #  {:ok, employee4} = TurnStile.Staff.register_and_preload_employee(emp2_params, organization2)
+  #  {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization2)
   # IO.inspect(employee4)
 
   # org_changeset2 = Ecto.Changeset.change(organization2)
@@ -273,5 +290,5 @@ TurnStile.Repo.transaction(fn ->
   # # IO.inspect(org_with_emps)
   # {:ok, organization2} = TurnStile.Company.update_organization_changeset(org_with_emps)
 
-  # # TurnStile.Repo.rollback({:rolling_back})
+  # TurnStile.Repo.rollback({:rolling_back})
 end)

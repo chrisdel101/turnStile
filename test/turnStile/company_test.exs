@@ -20,17 +20,17 @@ defmodule TurnStile.CompanyTest do
       assert Company.get_organization(organization.id) == organization
     end
 
-    test "create_and_preload_organization/1 with valid data creates a organization" do
+    test "insert_and_preload_organization/1 with valid data creates a organization" do
       valid_attrs = %{email: "some email", name: "some name", phone: "some phone"}
 
-      assert {:ok, %Organization{} = organization} = Company.create_and_preload_organization(valid_attrs)
+      assert {:ok, %Organization{} = organization} = Company.insert_and_preload_organization(valid_attrs)
       assert organization.email == "some email"
       assert organization.name == "some name"
       assert organization.phone == "some phone"
     end
 
-    test "create_and_preload_organization/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Company.create_and_preload_organization(@invalid_attrs)
+    test "insert_and_preload_organization/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Company.insert_and_preload_organization(@invalid_attrs)
     end
 
     test "update_organization/2 with valid data updates the organization" do

@@ -15,6 +15,7 @@ defmodule TurnStile.Company.Organization do
     # org has many owners; owners can have many orgs
     many_to_many :owners, TurnStile.Staff.Owner, join_through: "organization_owners"
     has_many :users, TurnStile.Patients.User
+    has_many :alerts, TurnStile.Alerts.Alert
 
     timestamps()
 

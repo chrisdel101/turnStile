@@ -39,7 +39,7 @@ defmodule TurnStileWeb.OrganizationControllerTest do
   end
 
   describe "edit organization" do
-    setup [:create_and_preload_organization]
+    setup [:insert_and_preload_organization]
 
     test "renders form for editing chosen organization", %{conn: conn, organization: organization} do
       conn = get(conn, Routes.organization_path(conn, :edit, organization))
@@ -48,7 +48,7 @@ defmodule TurnStileWeb.OrganizationControllerTest do
   end
 
   describe "update organization" do
-    setup [:create_and_preload_organization]
+    setup [:insert_and_preload_organization]
 
     test "redirects when data is valid", %{conn: conn, organization: organization} do
       conn = put(conn, Routes.organization_path(conn, :update, organization), organization: @update_attrs)
@@ -65,7 +65,7 @@ defmodule TurnStileWeb.OrganizationControllerTest do
   end
 
   describe "delete organization" do
-    setup [:create_and_preload_organization]
+    setup [:insert_and_preload_organization]
 
     test "deletes chosen organization", %{conn: conn, organization: organization} do
       conn = delete(conn, Routes.organization_path(conn, :delete, organization))
@@ -77,7 +77,7 @@ defmodule TurnStileWeb.OrganizationControllerTest do
     end
   end
 
-  defp create_and_preload_organization(_) do
+  defp insert_and_preload_organization(_) do
     organization = organization_fixture()
     %{organization: organization}
   end

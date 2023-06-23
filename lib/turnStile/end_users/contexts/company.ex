@@ -54,16 +54,16 @@ defmodule TurnStile.Company do
   -build organization with params
   ## Examples
 
-      iex> create_and_preload_organization(%{field: value})
+      iex> insert_and_preload_organization(%{field: value})
       {:ok, %Organization{}}
 
-      iex> create_and_preload_organization(%{field: bad_value})
+      iex> insert_and_preload_organization(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_and_preload_organization(attrs \\ %{}) do
+  def insert_and_preload_organization(attrs \\ %{}) do
     org_changeset = Organization.changeset(%Organization{}, attrs)
-    # IO.inspect("create_and_preload_organization")
+    # IO.inspect("insert_and_preload_organization")
     # IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
@@ -76,7 +76,7 @@ defmodule TurnStile.Company do
         {:ok, org_preload}
 
       {:error, error} ->
-        # IO.inspect("ERROR create_and_preload_organization")
+        # IO.inspect("ERROR insert_and_preload_organization")
         # IO.inspect(error)
         {:error, error}
     end

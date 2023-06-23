@@ -56,21 +56,29 @@ defmodule TurnStile.Alerts do
 
   @doc """
   create_alert_w_assoc
-  Creates new alert changset with assoc to user & employee. No DB insertion
+  Creates new alert with 3 assoc
   """
-  def create_alert_w_assoc(employee_id, user_id, attrs) do
-    user = Patients.get_user!(user_id)
-    employee = Staff.get_employee(employee_id)
+  def create_alert_w_assoc(employee_struct, user_struct, attrs) do
+    organization = TurnStile.Company.get_organization(user_struct.organization_id)
+    # build alert instance
+    alert = %Alert{
+      alert_category: attrs["alert_category"] || attrs.alert_category,
+      alert_format: attrs["alert_format"] || attrs.alert_format,
+      body: attrs["body"] || attrs.body,
+      title: attrs["title"] || attrs.title
+    }
 
-    if !user || !employee do
-      {:error, "User or Employee not found for alert creation"}
-    else
-      # build_assoc to both user & employee
-      alert_assoc = Ecto.build_assoc(user, :alerts, employee_id: employee.id)
-      create_new_alert(alert_assoc, attrs)
-    end
+      # build_assoc user, emp, org
+      alert_struct = Ecto.build_assoc(user_struct, :alerts, alert)
+      alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
+      alert_struct = Ecto.build_assoc(organization, :alerts, alert_struct)
+      alert_struct
+      {:ok, alert_struct}
   end
 
+  def insert_alert(alert) do
+    Repo.insert(alert)
+  end
   @doc """
   insert_alert_w_assoc
    Creates new alert changset with assoc to user & employee.

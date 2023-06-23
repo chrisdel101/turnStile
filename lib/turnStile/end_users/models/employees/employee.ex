@@ -35,7 +35,17 @@ defmodule TurnStile.Staff.Employee do
   # should be used for changing employee info - NOT during registration
   def changeset(employee, attrs, _opts \\ []) do
     employee
-    |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password, :current_organization_login_id, :role_value_on_current_organization, :is_logged_in?, :role_on_current_organization])
+    |> cast(attrs, [
+      :email,
+      :last_name,
+      :first_name,
+      :password,
+      :hashed_password,
+      :current_organization_login_id,
+      :role_value_on_current_organization,
+      :is_logged_in?,
+      :role_on_current_organization
+    ])
   end
 
   # used for building a form when registering/creating
@@ -52,25 +62,46 @@ defmodule TurnStile.Staff.Employee do
     # IO.inspect(changeset, label: "changeset in handle_timezone")
     # IO.inspect((!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)), label: "HERE")
     # if employee has not explieitly set timezone, use organization timezone
-    case (!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)) do
+    # check no timezone ovrerride set on employee
+    case !Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone) do
       true ->
-        # IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
-        organization = Company.get_organization(changeset.changes.current_organization_login_id)
-        # IO.inspect(organization, label: "organization in handle_timezone")
-        changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
-        changeset
+        # check employee has an org
+        case Map.get(changeset.changes, :current_organization_login_id) do
+          nil ->
+            IO.puts(
+              "Error: Staff.Employee handle_timezone_insert. ucurrent_organization_login_id cannot be nil when timezone is also nil"
+            )
+
+            raise "Error: handle_timezone_insert missing organization id"
+
+          _ ->
+            # IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
+            # get timefrom organization
+            organization =
+              Company.get_organization(changeset.changes.current_organization_login_id)
+
+            # IO.inspect(organization, label: "organization in handle_timezone")
+            changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
+            changeset
+        end
       false ->
         # IO.inspect(changeset, label: "changeset in handle_timezone")
+        # add timezone override
         changeset
     end
   end
+
   # reset field to nil; set when employee logs in
   defp remove_current_organization_login_id(changeset) do
     IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
-    changeset = changeset
-    |> put_change(:current_organization_login_id, nil)
+
+    changeset =
+      changeset
+      |> put_change(:current_organization_login_id, nil)
+
     IO.inspect(changeset, label: "changeset in remove_current_organization_login_id after")
   end
+
   @doc """
   A employee changeset for registration.
 
