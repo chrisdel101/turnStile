@@ -13,6 +13,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :is_active?, :boolean
       add :status, :string
       add :employee_id, references("employees"), null: false
+      add :organization_id, references("organizations"), null: false
 
       timestamps()
     end

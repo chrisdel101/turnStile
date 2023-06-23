@@ -155,7 +155,7 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 1234
   }
-  TurnStile.Patients.handle_new_user_association_create(employee1, user1)
+  x = TurnStile.Patients.create_user_w_assocs(employee1, organization1, user1,)
   user2 = %{
     first_name: "Joe2",
     last_name: "Schmoe",
@@ -163,7 +163,7 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 5678
   }
-  TurnStile.Patients.handle_new_user_association_create(employee1, user2)
+  TurnStile.Patients.create_user_w_assocs(employee1, user2)
   user3 = %{
     first_name: "Joe3",
     last_name: "Schmoe",
@@ -171,7 +171,7 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 9010
   }
-  TurnStile.Patients.handle_new_user_association_create(employee1, user3)
+  TurnStile.Patients.create_user_w_assocs(employee1, user3)
   user4 = %{
     first_name: "Joe4",
     last_name: "Schmoe",
@@ -179,7 +179,7 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 1112
   }
-  TurnStile.Patients.handle_new_user_association_create(employee1, user4)
+  TurnStile.Patients.create_user_w_assocs(employee1, user4)
 
   # ALERTS
   a1 = %{

@@ -50,8 +50,8 @@ defmodule TurnStile.Company do
   Creates a organization.
 
   # Creating an organization with owner_employee.
-  - build employee with params
-  - build organization with params
+  -build employee with params
+  -build organization with params
   ## Examples
 
       iex> create_and_preload_organization(%{field: value})
@@ -67,7 +67,11 @@ defmodule TurnStile.Company do
     # IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
-        org_preload = Repo.preload(new_org, :employees) |> Repo.preload(:roles)
+        org_preload =
+          new_org
+        |> Repo.preload(:employees)
+        |> Repo.preload(:roles)
+        |> Repo.preload(:users)
         # IO.inspect(org_preload)
         {:ok, org_preload}
 

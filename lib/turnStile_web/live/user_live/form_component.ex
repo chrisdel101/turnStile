@@ -109,7 +109,7 @@ defmodule TurnStileWeb.UserLive.FormComponent do
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
     IO.puts("HERE")
-    case Patients.handle_new_user_association_create(current_employee, user_params) do
+    case Patients.create_user_w_assocs(current_employee, user_params) do
       {:ok, _user} ->
         {:noreply,
          socket =

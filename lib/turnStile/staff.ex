@@ -111,16 +111,18 @@ defmodule TurnStile.Staff do
       |> Employee.registration_changeset(attrs)
       |> Ecto.Changeset.put_assoc(:roles, [role])
 
-    IO.inspect("emp_changeset")
-    IO.inspect(emp_changeset)
-    IO.inspect(role)
+    # IO.inspect("emp_changeset")
+    # IO.inspect(emp_changeset)
+    # IO.inspect(role)
     # Repo.transaction(fn ->
     # insert employee - auto insert role using associations
     case Repo.insert(emp_changeset) do
       {:ok, new_emp} ->
         emp_preload =
-          Repo.preload(new_emp, :organizations)
+          new_emp
+          |> Repo.preload(:organizations)
           |> Repo.preload(:roles)
+          |> Repo.preload(:users)
 
         {:ok, emp_preload}
 
@@ -691,12 +693,14 @@ defmodule TurnStile.Staff do
   end
 
   # sets is_logged_in? employee flag to true
+  # sets current_organization_login_id
   def set_is_logged_in(employee, organization_id) do
     change_employee(employee, %{is_logged_in?: true, current_organization_login_id: organization_id})
     |> Repo.update()
   end
 
   # sets is_logged_in? employee flag to false
+  # unsets current_organization_login_id
   def unset_is_logged_in(employee) do
     change_employee(employee, %{is_logged_in?: false, current_organization_login_id: nil})
     |> Repo.update()

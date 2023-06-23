@@ -12,6 +12,8 @@ defmodule TurnStile.Patients.User do
     field :status, :string, default: UserStatusTypesMap.get_user_status("UNALERTED")
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert
+    belongs_to :organization, TurnStile.Company.Organization
+
 
 
     timestamps()

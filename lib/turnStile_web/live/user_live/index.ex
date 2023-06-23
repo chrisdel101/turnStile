@@ -123,9 +123,6 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user, nil)
   end
 
-  defp list_users do
-    Patients.list_users()
-  end
   defp list_active_users do
     Patients.list_active_users()
   end

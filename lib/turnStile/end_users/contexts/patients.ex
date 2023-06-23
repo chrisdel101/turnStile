@@ -62,9 +62,10 @@ defmodule TurnStile.Patients do
     |> User.changeset(attrs)
     |> Repo.insert()
   end
-# handle the one-many for new user-v-employee on create
-  def handle_new_user_association_create(employee_struct, user_params) do
-    # IO.inspect(user_params, label: "user_params")
+# handle the one-many for new user-to-employee on create
+  def create_user_w_assocs(employee_struct, user_params, organization_struct \\ nil) do
+    IO.inspect(user_params, label: "user_params")
+    # build user struct from map
     user = %TurnStile.Patients.User{
       first_name: user_params["first_name"] || user_params.first_name,
       last_name: user_params["last_name"] || user_params.last_name,
@@ -72,8 +73,40 @@ defmodule TurnStile.Patients do
       phone: user_params["phone"] || user_params.phone,
       health_card_num: TurnStile.Utils.convert_to_int(user_params["health_card_num"]) || TurnStile.Utils.convert_to_int(user_params.health_card_num)
     }
+    IO.inspect(employee_struct, label: "employee_struct")
+    # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
     # IO.inspect(user, label: "user")
-    user = Ecto.build_assoc(employee_struct, :users, user)
+    # add employee assoc
+    user_struct = Ecto.build_assoc(employee_struct, :users, user)
+    # add organization assoc
+    case employee_struct.current_organization_login_id do
+      # if no logged-in user
+      nil ->
+        case organization_struct do
+          nil ->
+            error = "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
+            IO.puts(error)
+            {:eror, error}
+          _ ->
+            user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
+            {:ok, user_struct}
+            # IO.inspect(user_struct, label: "organization struct")
+            # insert_user(user_struct)
+        end
+        # if logged-in user
+      _ ->
+        organization_id = employee_struct.current_organization_login_id
+        organization_struct = TurnStile.Company.get_organization(organization_id)
+        user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
+        # IO.inspect(user_struct, label: "organization struct123")
+        {:ok, user_struct}
+        # insert_user(user_struct)
+      end
+  end
+
+  def insert_user(user) do
+     # user = Ecto.build_assoc(employee_struct, :users, user)
+     IO.inspect(user, label: "insert_user")
     Repo.insert(user)
   end
 
