@@ -19,7 +19,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         AlertFormatTypesMap.get_alert("SMS")
       )
 
-    changeset = Alerts.create_alert_w_assoc(current_employee.id, user_id, sms_attrs)
+    changeset = Alerts.create_alert_w_assoc(current_employee, user, sms_attrs)
 
     IO.inspect(changeset, label: "HELLO")
 

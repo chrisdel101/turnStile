@@ -25,7 +25,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("owner")),
     role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER"),
@@ -46,10 +46,11 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("admin")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN"),
+    timezone: "America/New_York"
   }
    {:ok, employee2} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
@@ -64,10 +65,11 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("admin")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN"),
+    timezone: "America/New_York"
   }
    {:ok, employee7} = TurnStile.Staff.insert_register_and_preload_employee(emp7_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
@@ -82,10 +84,11 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("editor")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("EDITOR")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("EDITOR"),
+    timezone: "America/New_York"
   }
    {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
@@ -100,10 +103,11 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("contributor")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR"),
+    timezone: "America/New_York"
   }
    {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp4_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
@@ -118,10 +122,11 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("contributor")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR"),
+    timezone: "America/New_York"
   }
    {:ok, employee5} = TurnStile.Staff.insert_register_and_preload_employee(emp5_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
@@ -136,10 +141,11 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Sam",
     password: "password",
     hashed_password: "password",
-    current_organization_login_id: organization1.id,
+    current_organization_login_id: nil,
     role_value_on_current_organization:
       to_string(EmployeeRolesMap.get_permission_role_value("viewer")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("VIEWER")
+    role_on_current_organization: EmployeeRolesMap.get_permission_role("VIEWER"),
+    timezone: "America/New_York"
   }
    {:ok, employee6} = TurnStile.Staff.insert_register_and_preload_employee(emp6_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
@@ -147,7 +153,7 @@ TurnStile.Repo.transaction(fn ->
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee6 | organization1.employees])
   {:ok, organization1} = TurnStile.Company.update_organization_changeset(org_with_emps)
 
-  # USERS
+  # USERS W ORG1
   user1 = %{
     first_name: "Joe",
     last_name: "Schmoe",
@@ -230,14 +236,14 @@ TurnStile.Repo.transaction(fn ->
 
 
   # # ORGANZIATION2
-  # org2_params = %{
-  #   email: "org2@test.com",
-  #   name: "Org2",
-  #   phone: "777777777",
-  #   slug: "org2"
-  # }
+  org2_params = %{
+    email: "org2@test.com",
+    name: "Org2",
+    phone: "777777777",
+    slug: "org2"
+  }
 
-  # {:ok, organization2} = TurnStile.Company.insert_and_preload_organization(org2_params)
+  {:ok, organization2} = TurnStile.Company.insert_and_preload_organization(org2_params)
   # # IO.inspect(organization2)
 
   # # EMPLOYEE3
