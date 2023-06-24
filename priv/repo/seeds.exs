@@ -26,9 +26,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("owner")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER"),
     timezone: "America/New_York"
   }
   {:ok, employee1} = TurnStile.Staff.insert_register_and_preload_employee(emp1_params, organization1)
@@ -47,9 +44,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("admin")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN"),
     timezone: "America/New_York"
   }
    {:ok, employee2} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization1)
@@ -66,9 +60,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("admin")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("ADMIN"),
     timezone: "America/New_York"
   }
    {:ok, employee7} = TurnStile.Staff.insert_register_and_preload_employee(emp7_params, organization1)
@@ -85,9 +76,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("editor")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("EDITOR"),
     timezone: "America/New_York"
   }
    {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization1)
@@ -104,9 +92,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("contributor")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR"),
     timezone: "America/New_York"
   }
    {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp4_params, organization1)
@@ -123,9 +108,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("contributor")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("CONTRIBUTOR"),
     timezone: "America/New_York"
   }
    {:ok, employee5} = TurnStile.Staff.insert_register_and_preload_employee(emp5_params, organization1)
@@ -142,9 +124,6 @@ TurnStile.Repo.transaction(fn ->
     password: "password",
     hashed_password: "password",
     current_organization_login_id: nil,
-    role_value_on_current_organization:
-      to_string(EmployeeRolesMap.get_permission_role_value("viewer")),
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("VIEWER"),
     timezone: "America/New_York"
   }
    {:ok, employee6} = TurnStile.Staff.insert_register_and_preload_employee(emp6_params, organization1)
@@ -254,10 +233,8 @@ TurnStile.Repo.transaction(fn ->
   #   first_name: "Test3",
   #   password: "password",
   #   hashed_password: "password",
-  #   current_organization_login_id: organization2.id,
-  #   role_value_on_current_organization:
-  #     to_string(EmployeeRolesMap.get_permission_role_value("OWNER")),
-  #   role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER")
+  #   current_organization_login_id: organization2.id,")),
+
   # }
 
   # {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization2)
@@ -280,10 +257,8 @@ TurnStile.Repo.transaction(fn ->
   #   first_name: "Test4",
   #   password: "password",
   #   hashed_password: "password",
-  #   current_organization_login_id: organization2.id,
-  #   role_value_on_current_organization:
-  #     to_string(EmployeeRolesMap.get_permission_role_value("EDITOR")),
-  #   role_on_current_organization: EmployeeRolesMap.get_permission_role("EDITOR")
+  #   current_organization_login_id: organization2.id,")),
+
   # }
 
   #  {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization2)

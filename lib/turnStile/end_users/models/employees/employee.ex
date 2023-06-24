@@ -13,16 +13,17 @@ defmodule TurnStile.Staff.Employee do
     field :confirmed_at, :naive_datetime
     # set these fields at login
     field :current_organization_login_id, :integer
-    field :role_value_on_current_organization, :string, default: nil
-    field :role_on_current_organization, :string, default: nil
+    # field :role_value_on_current_organization, :string, default: nil
+    # field :role_on_current_organization, :string, default: nil
     field :is_logged_in?, :boolean, default: false
     field :timezone, :string
     # org has many employees within the company; employees belongs to many orgs
     many_to_many :organizations, TurnStile.Company.Organization,
       join_through: "organization_employees"
 
-    # employee has one role for many orgs;
-    has_many :roles, TurnStile.Role, on_delete: :delete_all
+    # employee can have many roles; need limitation of one role per org
+    many_to_many :roles, TurnStile.Roles.Role,
+    join_through: "organization_employee_roles"
     # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
@@ -93,13 +94,13 @@ defmodule TurnStile.Staff.Employee do
 
   # reset field to nil; set when employee logs in
   defp remove_current_organization_login_id(changeset) do
-    IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
+    # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
 
     changeset =
       changeset
       |> put_change(:current_organization_login_id, nil)
 
-    IO.inspect(changeset, label: "changeset in remove_current_organization_login_id after")
+    # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id after")
   end
 
   @doc """
@@ -127,8 +128,6 @@ defmodule TurnStile.Staff.Employee do
       :hashed_password,
       :last_name,
       :first_name,
-      :role_value_on_current_organization,
-      :role_on_current_organization,
       :is_logged_in?,
       :current_organization_login_id,
       :timezone

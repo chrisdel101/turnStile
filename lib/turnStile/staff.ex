@@ -70,7 +70,7 @@ defmodule TurnStile.Staff do
       nil
     else
       q =
-        from r in TurnStile.Role,
+        from r in TurnStile.Roles.Role,
           where: r.organization_id == ^organization_id,
           where: r.employee_id == ^employee.id,
           select: r
@@ -95,21 +95,21 @@ defmodule TurnStile.Staff do
         Map.get(attrs, :role_on_current_organization)
 
     # build a Role
-    role = %TurnStile.Role{
+    role_struct = %TurnStile.Roles.Role{
       name: role_name,
       value: Map.get(attrs, "role_value_on_current_organization") || to_string(EmployeeRolesMap.get_permission_role_value(role_name)),
     }
 
     IO.inspect("role")
-    IO.inspect(role)
+    IO.inspect(role_struct)
 
     # assoc role with organization
-    role = Ecto.build_assoc(organization, :roles, role)
+    role = Ecto.build_assoc(organization, :roles, role_struct)
     # build employee and assoc the role
     emp_changeset =
       %Employee{}
       |> Employee.registration_changeset(attrs)
-      |> Ecto.Changeset.put_assoc(:roles, [role])
+      |> Ecto.Changeset.put_assoc(:roles, [role_struct])
 
     # IO.inspect("emp_changeset")
     # IO.inspect(emp_changeset)

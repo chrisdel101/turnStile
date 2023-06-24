@@ -1,12 +1,12 @@
-defmodule TurnStile.Role do
+defmodule TurnStile.Roles.Role do
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "roles" do
     field :name, :string
     field :value, :string
-    belongs_to :employee, TurnStile.Staff.Employee
-    belongs_to :organization, TurnStile.Company.Organization
+    many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employee_roles"
+    # belongs_to :organization, TurnStile.Company.Organization
 
     timestamps()
   end
