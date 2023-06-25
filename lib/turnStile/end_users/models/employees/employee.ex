@@ -13,8 +13,8 @@ defmodule TurnStile.Staff.Employee do
     field :confirmed_at, :naive_datetime
     # set these fields at login
     field :current_organization_login_id, :integer
-    # field :role_value_on_current_organization, :string, default: nil
-    # field :role_on_current_organization, :string, default: nil
+    field :role_value_on_current_organization, :string, default: nil
+    field :role_on_current_organization, :string, default: nil
     field :is_logged_in?, :boolean, default: false
     field :timezone, :string
     # org has many employees within the company; employees belongs to many orgs

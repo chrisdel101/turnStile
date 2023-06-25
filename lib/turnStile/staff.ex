@@ -89,41 +89,41 @@ defmodule TurnStile.Staff do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
     IO.inspect("attrs")
     IO.inspect(attrs)
+    IO.inspect(organization)
 
     role_name =
       Map.get(attrs, "role_on_current_organization") ||
         Map.get(attrs, :role_on_current_organization)
 
     # build a Role
-    role_struct = %TurnStile.Roles.Role{
-      name: role_name,
-      value: Map.get(attrs, "role_value_on_current_organization") || to_string(EmployeeRolesMap.get_permission_role_value(role_name)),
-    }
+    role_value = EmployeeRolesMap.get_permission_role_value(role_name)
+    role_struct = TurnStile.Roles.get_role(role_value)
 
-    IO.inspect("role")
-    IO.inspect(role_struct)
 
-    # assoc role with organization
-    role = Ecto.build_assoc(organization, :roles, role_struct)
-    # build employee and assoc the role
+    # IO.inspect("role")
+    # IO.inspect(role_struct)
+    # # assoc role with organization
+    # role_struct = Ecto.build_assoc(organization, :roles, role_struct)
+    #   IO.inspect(role_struct)
+    # # build employee and assoc the role
     emp_changeset =
       %Employee{}
       |> Employee.registration_changeset(attrs)
       |> Ecto.Changeset.put_assoc(:roles, [role_struct])
 
-    # IO.inspect("emp_changeset")
-    # IO.inspect(emp_changeset)
-    # IO.inspect(role)
-    # Repo.transaction(fn ->
-    # insert employee - auto insert role using associations
-    case Repo.insert(emp_changeset) do
-      {:ok, new_emp} ->
-        emp_preload =
-          new_emp
-          |> Repo.preload(:organizations)
-          |> Repo.preload(:roles)
-          |> Repo.preload(:users)
+      # IO.inspect(role)
+      # Repo.transaction(fn ->
+        # insert employee - auto insert role using associations
+        case Repo.insert(emp_changeset) do
+          {:ok, new_emp} ->
+            emp_preload =
+              new_emp
+              |> Repo.preload(:organizations)
+              |> Repo.preload(:roles)
+              |> Repo.preload(:users)
 
+        # IO.inspect("emp_preload")
+        # IO.inspect(emp_preload)
         {:ok, emp_preload}
 
       {:error, error} ->
