@@ -70,10 +70,11 @@ defmodule TurnStile.Staff do
       nil
     else
       q =
-        from r in TurnStile.Roles.Role,
+        from(r in TurnStile.Roles.Role,
           where: r.organization_id == ^organization_id,
           where: r.employee_id == ^employee.id,
           select: r
+        )
 
       Repo.one(q)
     end
@@ -85,34 +86,15 @@ defmodule TurnStile.Staff do
   # Registers a employee assocaited with organizatio and role
 
   """
-  def insert_register_and_preload_employee(attrs, organization) do
+  def insert_register_employee(attrs, organization) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
-    IO.inspect("attrs")
-    IO.inspect(attrs)
-    IO.inspect(organization)
-
-    role_name =
-      Map.get(attrs, "role_on_current_organization") ||
-        Map.get(attrs, :role_on_current_organization)
-
-    # build a Role
-    role_value = EmployeeRolesMap.get_permission_role_value(role_name)
-    role_struct = TurnStile.Roles.get_role(role_value)
-
-
-    # IO.inspect("role")
-    # IO.inspect(role_struct)
-    # # assoc role with organization
-    # role_struct = Ecto.build_assoc(organization, :roles, role_struct)
-    #   IO.inspect(role_struct)
+    # IO.inspect("attrs")
+    # IO.inspect(attrs)
+    # IO.inspect(organization)
     # # build employee and assoc the role
     emp_changeset =
       %Employee{}
       |> Employee.registration_changeset(attrs)
-      |> Ecto.Changeset.put_assoc(:roles, [role_struct])
-
-      # IO.inspect(role)
-      # Repo.transaction(fn ->
         # insert employee - auto insert role using associations
         case Repo.insert(emp_changeset) do
           {:ok, new_emp} ->
@@ -255,6 +237,7 @@ defmodule TurnStile.Staff do
   def change_employee_password(employee, attrs \\ %{}) do
     Employee.password_changeset(employee, attrs, hash_password: false)
   end
+
   # same as above but with hash_password: true
   def change_employee_password(employee, attrs, hash_password) do
     Employee.password_changeset(employee, attrs, hash_password: hash_password)
@@ -517,13 +500,14 @@ defmodule TurnStile.Staff do
       organization_id = TurnStile.Utils.convert_to_int(organization_id)
 
       q =
-        from o in "organization_employees",
+        from(o in "organization_employees",
           join: o1 in "organizations",
           on: o.organization_id == o1.id,
           join: e in "employees",
           on: o.employee_id == e.id,
           where: o1.id == ^organization_id,
           select: e.id
+        )
 
       Repo.all(q)
     end
@@ -541,9 +525,10 @@ defmodule TurnStile.Staff do
   def list_employees_by_ids(ids) do
     if not is_nil(ids) do
       q =
-        from e in Employee,
+        from(e in Employee,
           where: e.id in ^ids,
           select: e
+        )
 
       Repo.all(q) |> Repo.preload(:roles)
     else
@@ -553,15 +538,6 @@ defmodule TurnStile.Staff do
 
   @doc """
   Creates a employee.
-
-  ## Examples
-
-      iex> create_employee(%{field: value})
-      {:ok, %Employee{}}
-
-      iex> create_employee(%{field: bad_value})
-      {:error, ...}
-
   """
   def create_employee(%Employee{} = employee, attrs \\ %{}) do
     Employee.creation_form_changeset(employee, attrs)
@@ -638,9 +614,10 @@ defmodule TurnStile.Staff do
 
       if organization do
         q =
-          from o in "organization_employees",
+          from(o in "organization_employees",
             where: o.employee_id == ^employee_id and o.organization_id == ^organization_id,
             select: o.id
+          )
 
         Repo.one(q)
       end
@@ -695,7 +672,10 @@ defmodule TurnStile.Staff do
   # sets is_logged_in? employee flag to true
   # sets current_organization_login_id
   def set_is_logged_in(employee, organization_id) do
-    change_employee(employee, %{is_logged_in?: true, current_organization_login_id: organization_id})
+    change_employee(employee, %{
+      is_logged_in?: true,
+      current_organization_login_id: organization_id
+    })
     |> Repo.update()
   end
 

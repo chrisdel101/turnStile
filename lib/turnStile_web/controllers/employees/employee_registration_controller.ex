@@ -68,12 +68,12 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             |> put_flash(:error, "Invalid Permissions to create that user level")
             |> render("new.html", changeset: error_changeset, organization_id: organization_id)
           else
-            case Staff.insert_register_and_preload_employee(employee_params, organization) do
+            case Staff.insert_register_employee(employee_params, organization) do
               {:ok, employee} ->
                 IO.inspect("EEEEE")
                 IO.inspect(employee)
 
-                case Company.handle_new_employee_association_create(organization, employee) do
+                case Company.handle_add_assocs(organization, employee) do
                   {:ok, _updated_org} ->
                     IO.inspect("YYYYYY")
                     IO.inspect(employee)
@@ -165,7 +165,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         # IO.inspect("ZZZZZ")
         # IO.inspect(employee_params)
 
-        case Staff.insert_register_and_preload_employee(employee_params, organization) do
+        case Staff.insert_register_employee(employee_params, organization) do
           {:ok, employee} ->
             IO.inspect("YYYYYY")
             IO.inspect(employee)

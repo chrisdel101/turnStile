@@ -48,9 +48,9 @@ defmodule TurnStile.StaffTest do
     end
   end
 
-  describe "insert_register_and_preload_employee/1" do
+  describe "insert_register_employee/1" do
     test "requires email and password to be set" do
-      {:error, changeset} = Staff.insert_register_and_preload_employee(%{})
+      {:error, changeset} = Staff.insert_register_employee(%{})
 
       assert %{
                password: ["can't be blank"],
@@ -59,7 +59,7 @@ defmodule TurnStile.StaffTest do
     end
 
     test "validates email and password when given" do
-      {:error, changeset} = Staff.insert_register_and_preload_employee(%{email: "not valid", password: "not valid"})
+      {:error, changeset} = Staff.insert_register_employee(%{email: "not valid", password: "not valid"})
 
       assert %{
                email: ["must have the @ sign and no spaces"],
@@ -69,24 +69,24 @@ defmodule TurnStile.StaffTest do
 
     test "validates maximum values for email and password for security" do
       too_long = String.duplicate("db", 100)
-      {:error, changeset} = Staff.insert_register_and_preload_employee(%{email: too_long, password: too_long})
+      {:error, changeset} = Staff.insert_register_employee(%{email: too_long, password: too_long})
       assert "should be at most 160 character(s)" in errors_on(changeset).email
       assert "should be at most 72 character(s)" in errors_on(changeset).password
     end
 
     test "validates email uniqueness" do
       %{email: email} = employee_fixture()
-      {:error, changeset} = Staff.insert_register_and_preload_employee(%{email: email})
+      {:error, changeset} = Staff.insert_register_employee(%{email: email})
       assert "has already been taken" in errors_on(changeset).email
 
       # Now try with the upper cased email too, to check that email case is ignored.
-      {:error, changeset} = Staff.insert_register_and_preload_employee(%{email: String.upcase(email)})
+      {:error, changeset} = Staff.insert_register_employee(%{email: String.upcase(email)})
       assert "has already been taken" in errors_on(changeset).email
     end
 
     test "registers employees with a hashed password" do
       email = unique_employee_email()
-      {:ok, employee} = Staff.insert_register_and_preload_employee(merge_employee_attributes(email: email))
+      {:ok, employee} = Staff.insert_register_employee(merge_employee_attributes(email: email))
       assert employee.email == email
       assert is_binary(employee.hashed_password)
       assert is_nil(employee.confirmed_at)

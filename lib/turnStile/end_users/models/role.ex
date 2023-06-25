@@ -5,8 +5,8 @@ defmodule TurnStile.Roles.Role do
   schema "roles" do
     field :name, :string
     field :value, :string
-    many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employee_roles"
-    many_to_many :organizations, TurnStile.Company.Organization, join_through: "organization_employee_roles"
+    belongs_to :employee, TurnStile.Staff.Employee
+    belongs_to :organization, TurnStile.Company.Organization
     timestamps()
   end
 

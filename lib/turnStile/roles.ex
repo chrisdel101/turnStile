@@ -47,8 +47,16 @@ defmodule TurnStile.Roles do
       {:error, ...}
 
   """
-  def create_role(attrs \\ %{}) do
-    raise "TODO"
+  def create_role(%Role{} = role, attrs \\ %{}) do
+    Role.changeset(role, attrs)
+  end
+
+
+  def build_role(attrs) do
+    %Role{
+      name: attrs[:name] || attrs["name"],
+      value: attrs[:value] || attrs["value"]
+    }
   end
 
   @doc """

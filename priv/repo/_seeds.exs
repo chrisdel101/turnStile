@@ -28,7 +28,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-  {:ok, employee1} = TurnStile.Staff.insert_register_and_preload_employee(emp1_params, organization1)
+  {:ok, employee1} = TurnStile.Staff.insert_register_employee(emp1_params, organization1)
   #  IO.inspect(employee1)
    org_changeset = Ecto.Changeset.change(organization1)
   #  IO.inspect(org_changeset)
@@ -46,7 +46,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-   {:ok, employee2} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization1)
+   {:ok, employee2} = TurnStile.Staff.insert_register_employee(emp2_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee2 | organization1.employees])
@@ -62,7 +62,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-   {:ok, employee7} = TurnStile.Staff.insert_register_and_preload_employee(emp7_params, organization1)
+   {:ok, employee7} = TurnStile.Staff.insert_register_employee(emp7_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee7 | organization1.employees])
@@ -78,7 +78,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-   {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization1)
+   {:ok, employee3} = TurnStile.Staff.insert_register_employee(emp3_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee3 | organization1.employees])
@@ -94,7 +94,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-   {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp4_params, organization1)
+   {:ok, employee4} = TurnStile.Staff.insert_register_employee(emp4_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee4 | organization1.employees])
@@ -110,7 +110,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-   {:ok, employee5} = TurnStile.Staff.insert_register_and_preload_employee(emp5_params, organization1)
+   {:ok, employee5} = TurnStile.Staff.insert_register_employee(emp5_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee5 | organization1.employees])
@@ -126,7 +126,7 @@ TurnStile.Repo.transaction(fn ->
     current_organization_login_id: nil,
     timezone: "America/New_York"
   }
-   {:ok, employee6} = TurnStile.Staff.insert_register_and_preload_employee(emp6_params, organization1)
+   {:ok, employee6} = TurnStile.Staff.insert_register_employee(emp6_params, organization1)
   org_changeset2 = Ecto.Changeset.change(organization1)
   # put_assoc
   org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee6 | organization1.employees])
@@ -237,7 +237,7 @@ TurnStile.Repo.transaction(fn ->
 
   # }
 
-  # {:ok, employee3} = TurnStile.Staff.insert_register_and_preload_employee(emp3_params, organization2)
+  # {:ok, employee3} = TurnStile.Staff.insert_register_employee(emp3_params, organization2)
   # IO.inspect(employee3)
 
   # org_changeset = Ecto.Changeset.change(organization2)
@@ -261,7 +261,7 @@ TurnStile.Repo.transaction(fn ->
 
   # }
 
-  #  {:ok, employee4} = TurnStile.Staff.insert_register_and_preload_employee(emp2_params, organization2)
+  #  {:ok, employee4} = TurnStile.Staff.insert_register_employee(emp2_params, organization2)
   # IO.inspect(employee4)
 
   # org_changeset2 = Ecto.Changeset.change(organization2)

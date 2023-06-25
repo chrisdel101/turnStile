@@ -22,7 +22,7 @@ TurnStile.Repo.transaction(fn ->
     timezone: "America/New_York"
   }
   # insert emp w 3 preload
-  {:ok, employee1} = TurnStile.Staff.insert_register_and_preload_employee(ex2, organization1)
+  {:ok, employee1} = TurnStile.Staff.insert_register_employee(ex2, organization1)
 
   user_params = %{
     first_name: "Joe2",

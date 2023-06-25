@@ -10,8 +10,8 @@ defmodule TurnStile.Company.Organization do
     field :phone, :string
     field :timezone, :string, default: "Etc/UTC"
     # org has many employees; employees can belong to many organiztions
-    many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employees"
-    many_to_many :roles, TurnStile.Roles.Role, join_through: "organization_employee_roles"
+    many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employees", on_replace: :delete
+    has_many :roles, TurnStile.Roles.Role
     # has_many :roles, TurnStile.Roles.Role
     # org has many owners; owners can have many orgs
     many_to_many :owners, TurnStile.Staff.Owner, join_through: "organization_owners"

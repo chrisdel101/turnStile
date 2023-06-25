@@ -19,11 +19,10 @@ defmodule TurnStile.Staff.Employee do
     field :timezone, :string
     # org has many employees within the company; employees belongs to many orgs
     many_to_many :organizations, TurnStile.Company.Organization,
-      join_through: "organization_employees"
+      join_through: "organization_employees", on_replace: :delete
 
     # employee can have many roles; need limitation of one role per org
-    many_to_many :roles, TurnStile.Roles.Role,
-    join_through: "organization_employee_roles"
+    has_many :roles, TurnStile.Roles.Role
     # all users created by an employee
     has_many :users, TurnStile.Patients.User
     # all alerts created by an employee
