@@ -104,8 +104,8 @@ defmodule TurnStile.Staff do
               |> Repo.preload(:roles)
               |> Repo.preload(:users)
 
-        IO.inspect("emp_preload")
-        IO.inspect(emp_preload)
+        # IO.inspect("emp_preload")
+        # IO.inspect(emp_preload)
         {:ok, emp_preload}
 
       {:error, error} ->

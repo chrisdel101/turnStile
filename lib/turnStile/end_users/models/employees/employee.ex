@@ -68,13 +68,8 @@ defmodule TurnStile.Staff.Employee do
   """
   defp handle_timezone_insert(changeset) do
     IO.inspect(changeset, label: "changeset in handle_timezone")
-
-    # IO.inspect((!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)), label: "HERE")
     # if employee has not explieitly set timezone, use organization timezone
     # check no timezone ovrerride set on employee
-    x = changeset.changes
-    # IO.inspect(x, label: "x in handle_timezone")
-
     case !Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone) do
       true ->
         # check employee has an org
@@ -83,7 +78,6 @@ defmodule TurnStile.Staff.Employee do
             IO.puts(
               "Error: Staff.Employee handle_timezone_insert. current_organization_login_id cannot be nil when timezone is also nil"
             )
-
             raise "Error: handle_timezone_insert missing organization id"
 
           _ ->

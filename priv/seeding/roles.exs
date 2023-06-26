@@ -6,35 +6,64 @@ TurnStile.Repo.transaction(fn ->
     slug: "org1"
   }
 
-  # insert org w 3 preloads
   {:ok, organization1} = TurnStile.Company.insert_and_preload_organization(org1_params)
+  # IO.inspect(organization1)
 
-  ex2 = %{
-    email: "joe22@schmo.com",
-    email_confirmation: "joe22@schmo.com",
-    first_name: "Joe ",
-    last_name: "Schmo",
+  # EMPLOYEE1 - OWNER
+  emp1_params = %{
+    email: "sam1@jones.com",
+    email_confirmation: "sam1@jones.com",
+    last_name: "Jones1",
+    first_name: "Sam",
     password: "password",
+    hashed_password: "password",
     current_organization_login_id: nil,
-    password_confirmation: "password",
-    role_value_on_current_organization: nil,
-    role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER"),
     timezone: "America/New_York"
   }
-  {:ok, employee1} = TurnStile.Staff.insert_register_employee(ex2, [organization: organization1])
 
-  {:ok, updated_org} = TurnStile.Company.handle_add_assoc_employee(organization1, employee1)
+  {:ok, employee1} =
+    TurnStile.Staff.insert_register_employee(emp1_params, organization: organization1)
+
+  #  IO.inspect(employee1)
+  {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization1, employee1)
+
   role =
     TurnStile.Roles.build_role(%{
       name: EmployeeRolesMap.get_permission_role("OWNER"),
       value: to_string(EmployeeRolesMap.get_permission_role_value("OWNER"))
-      })
-    # add has_many role assocations
-    role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
-    role = TurnStile.Roles.assocaiate_role_with_employee(role, organization1)
+    })
 
-  TurnStile.Repo.insert(role)
+  # add has_many role assocations
+  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
+  role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-  TurnStile.Company.update_organization(updated_org)
+  TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
+  emp2_params = %{
+    email: "sam2@jones.com",
+    email_confirmation: "sam2@jones.com",
+    last_name: "Jones2",
+    first_name: "Sam",
+    password: "password",
+    hashed_password: "password",
+    current_organization_login_id: nil,
+    timezone: "America/New_York"
+  }
+
+  {:ok, employee2} =
+    TurnStile.Staff.insert_register_employee(emp2_params, organization: organization1)
+
+  {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization1, employee2)
+
+  role =
+    TurnStile.Roles.build_role(%{
+      name: EmployeeRolesMap.get_permission_role("ADMIN"),
+      value: to_string(EmployeeRolesMap.get_permission_role_value("ADMIN"))
+    })
+
+  # add has_many role assocations
+  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee2)
+  role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
+  TurnStile.Roles.insert_role(employee2.id, org_w_emps.id, role)
+
   TurnStile.Repo.rollback({:rolling_back})
 end)

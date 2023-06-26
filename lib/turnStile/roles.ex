@@ -35,6 +35,7 @@ defmodule TurnStile.Roles do
   def get_role(id) do
     Repo.get(Role, id)
   end
+
   @doc """
   Creates a role.
 
@@ -51,7 +52,6 @@ defmodule TurnStile.Roles do
     Role.changeset(role, attrs)
   end
 
-
   def build_role(attrs) do
     %Role{
       name: attrs[:name] || attrs["name"],
@@ -62,15 +62,79 @@ defmodule TurnStile.Roles do
   def assocaiate_role_with_employee(role, employee) do
     employee
     |> Ecto.build_assoc(:roles, role)
+    |> Repo.preload(:employee)
   end
 
   def assocaiate_role_with_organization(role, organization) do
     organization
     |> Ecto.build_assoc(:roles, role)
+    |> Repo.preload(:organization)
   end
 
-  def insert_role(role) do
-    Repo.insert(role)
+  # employee can have only 1 role per organization
+  def insert_role(employee_id, organization_id, role) do
+   if organization_employee_role_exists?(employee_id, organization_id) do
+    {:error, "Role already exists"}
+   else
+    case check_assoc_valid(employee_id, organization_id, role) do
+    {:ok, true} ->
+      Repo.insert(role)
+      {:error, error} -> {:error, error}
+    end
+   end
+  end
+
+  # employee can have only 1 role per organization
+  def check_assoc_valid(employee_id, organization_id, role) do
+    #  check ids match assocs; checks for invalid empl and orgs this way
+    cond do
+      # confirm employee preload
+      !Ecto.assoc_loaded?(role.employee) ->
+        error = "Error: Roles.validate_insert_role employee assoc is not loaded"
+        IO.puts(error)
+        {:error, error}
+
+      # confirm org preload
+      !Ecto.assoc_loaded?(role.organization) ->
+        error = "Error: Roles.validate_insert_role organization assoc is not loaded"
+        IO.puts(error)
+        {:error, error}
+
+      # confirm employee id matches preload
+      role.employee.id !== employee_id ->
+        error = "Error: Roles.validate_insert_role employee_id does not match role.employee.id"
+        IO.puts(error)
+        {:error, error}
+
+      # confirm org id matches preload
+      role.organization.id !== organization_id ->
+        error =
+          "Error: Roles.validate_insert_role organization_id does not match role.organization.id"
+        IO.puts(error)
+        {:error, error}
+
+      true ->
+        {:ok, true}
+    end
+  end
+
+  # check for role with both org & employee
+  def organization_employee_role_exists?(employee_id, organization_id) do
+    if not is_nil(employee_id) and not is_nil(organization_id) do
+      if not is_integer(employee_id) || not is_integer(organization_id) do
+        IO.puts(
+          "Error: Roles.organization_employee_role_exists invalid input. Inputs must be integers"
+        )
+
+        false
+      else
+        q =
+          from r in Role,
+            where: r.employee_id == ^employee_id and r.organization_id == ^organization_id
+
+        Repo.exists?(q)
+      end
+    end
   end
 
   @doc """

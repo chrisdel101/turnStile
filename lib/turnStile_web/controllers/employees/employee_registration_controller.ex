@@ -78,7 +78,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                 IO.inspect("EEEEE")
                 IO.inspect(employee)
 
-                case Company.handle_add_assoc_employee(organization, employee) do
+                case Company.update_employee_assoc(organization, employee) do
                   {:error, error} ->
                     {:error, error}
 

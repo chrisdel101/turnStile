@@ -83,7 +83,7 @@ defmodule TurnStile.Company do
   end
 
   # handle the many-many for new employee- on create
-  def handle_add_assoc_employee(organization_struct, employee_params) do
+  def update_employee_assoc(organization_struct, employee_params) do
     IO.inspect("organization_struct")
 
     organization_struct = Repo.preload(organization_struct, :employees)
