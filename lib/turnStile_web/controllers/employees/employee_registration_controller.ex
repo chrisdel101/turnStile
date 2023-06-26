@@ -68,12 +68,12 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             |> put_flash(:error, "Invalid Permissions to create that user level")
             |> render("new.html", changeset: error_changeset, organization_id: organization_id)
           else
-            case Staff.insert_register_employee(employee_params, organization) do
+            case Staff.insert_register_employee(employee_params) do
               {:ok, employee} ->
                 IO.inspect("EEEEE")
                 IO.inspect(employee)
 
-                case Company.handle_add_assocs(organization, employee) do
+                case Company.handle_add_assoc_employee(organization, employee) do
                   {:ok, _updated_org} ->
                     IO.inspect("YYYYYY")
                     IO.inspect(employee)
@@ -149,24 +149,26 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     organizations = Company.get_organization(organization_id)
     # check if org already exist
     if organizations do
-      # confirm exists but has no members yet
+      # double-confirm exists, but has no members yet
       members? = Company.organization_has_members?(organization_id)
-      # if member, send error
+      # if member, send error; cannot have members already
       if members? do
         error = "Organization setup error. Members already exist."
         {:error, error}
       else
-        # add organization_id, role; employee_params = employee_params syntax is required to persist
-        employee_params =
-          employee_params
-          |> Map.put("organization_id", organization_id)
-          |> Map.put("role_on_current_organization", EmployeeRolesMap.get_permission_role("OWNER"))
+        # add organization_id,
+        # employee_params =
+        #   employee_params
+        #   |> Map.put("organization_id", organization_id)
+        #   |> Map.put("role_on_current_organization", EmployeeRolesMap.get_permission_role("OWNER"))
 
         # IO.inspect("ZZZZZ")
-        # IO.inspect(employee_params)
+        # IO.inspect(employee_par`ams)
 
-        case Staff.insert_register_employee(employee_params, organization) do
+        case Staff.insert_register_employee(employee_params, organization: organization) do
           {:ok, employee} ->
+
+
             IO.inspect("YYYYYY")
             IO.inspect(employee)
             # require email account confirmation
@@ -182,8 +184,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
               case zz do
                 {:ok, _email_body} ->
-                  log_in = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
-                  {:ok, employee, log_in}
+                  log_in_setting = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
+                  {:ok, employee, log_in_setting}
 
                 {:error, error} ->
                   {:error, error}

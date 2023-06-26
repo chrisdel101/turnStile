@@ -59,6 +59,20 @@ defmodule TurnStile.Roles do
     }
   end
 
+  def assocaiate_role_with_employee(role, employee) do
+    employee
+    |> Ecto.build_assoc(:roles, role)
+  end
+
+  def assocaiate_role_with_organization(role, organization) do
+    organization
+    |> Ecto.build_assoc(:roles, role)
+  end
+
+  def insert_role(role) do
+    Repo.insert(role)
+  end
+
   @doc """
   Updates a role.
 

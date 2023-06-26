@@ -7,28 +7,31 @@
   <% end %>
 
   <h4>We'll start with the Organization Basics</h4>
-  <%= label f, :name %>
-  <%= text_input f, :name, placeholder: "Organization Name" %>
-  <%= error_tag f, :name %>
+  <%= label(f, :name) %>
+  <%= text_input(f, :name, placeholder: "Organization Name") %>
+  <%= error_tag(f, :name) %>
 
-  <%= label f,  "Email (Optional)" %>
-  <%= text_input f, :email, placeholder: "Company Email" %>
-  <%= error_tag f, :email %>
+  <%= label(f, "Email (Optional)") %>
+  <%= text_input(f, :email, placeholder: "Company Email") %>
+  <%= error_tag(f, :email) %>
 
-  <%= label f, "Phone (Optional)" %>
-  <%= text_input f, :phone, placeholder: "Company Phone" %>
-  <%= error_tag f, :phone %>
+  <%= label(f, "Phone (Optional)") %>
+  <%= text_input(f, :phone, placeholder: "Company Phone") %>
+  <%= error_tag(f, :phone) %>
 
-
-
-  <%= label f, "TimeZone (Default UTC)" %>
-  <%= select f, :timezone,Enum.map(Utils.fetch_timezones(), fn x -> x end), prompt: "Choose TimeZone"  %>
-  <%= error_tag f, :timezone %>
+  <%= label(f, "TimeZone (Default UTC)") %>
+  <%= select(f, :timezone, Enum.map(TurnStile.Utils.fetch_timezones(), fn x -> x end),
+    prompt: "Choose TimeZone"
+  ) %>
+  <%= error_tag(f, :timezone) %>
 
   <div>
-    <%= submit "Save" %>
+    <%= submit("Save") %>
   </div>
 </.form>
-  <div>
-    <%= link "Cancel", method: :get, to: Routes.page_path(@conn, :index, %{"emptyParams" => true, "paramsKey" => "org_params"})   %>
-  </div>
+<div>
+  <%= link("Cancel",
+    method: :get,
+    to: Routes.page_path(@conn, :index, %{"emptyParams" => true, "paramsKey" => "org_params"})
+  ) %>
+</div>

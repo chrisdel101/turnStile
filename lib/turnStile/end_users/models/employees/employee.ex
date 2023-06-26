@@ -57,30 +57,38 @@ defmodule TurnStile.Staff.Employee do
     |> hash_password(opts)
   end
 
+  @doc"""
+  handle_timezone_insert
   # use custome timezone, else add one from organization
+  -takes timezone from organization if employee has not set one
+  -employee can override organization timezone in settings(TODO)
+  -CLI use: current_organization_login_id must be set maually
+  """
   defp handle_timezone_insert(changeset) do
-    # IO.inspect(changeset, label: "changeset in handle_timezone")
+    IO.inspect(changeset, label: "changeset in handle_timezone")
     # IO.inspect((!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)), label: "HERE")
     # if employee has not explieitly set timezone, use organization timezone
     # check no timezone ovrerride set on employee
+    x = changeset.changes
+    IO.inspect(x, label: "x in handle_timezone")
     case !Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone) do
       true ->
         # check employee has an org
         case Map.get(changeset.changes, :current_organization_login_id) do
           nil ->
             IO.puts(
-              "Error: Staff.Employee handle_timezone_insert. ucurrent_organization_login_id cannot be nil when timezone is also nil"
+              "Error: Staff.Employee handle_timezone_insert. current_organization_login_id cannot be nil when timezone is also nil"
             )
 
             raise "Error: handle_timezone_insert missing organization id"
 
           _ ->
-            # IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
+            IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
             # get timefrom organization
             organization =
               Company.get_organization(changeset.changes.current_organization_login_id)
 
-            # IO.inspect(organization, label: "organization in handle_timezone")
+            IO.inspect(organization, label: "organization in handle_timezone")
             changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
             changeset
         end
@@ -90,7 +98,11 @@ defmodule TurnStile.Staff.Employee do
         changeset
     end
   end
-
+  @doc """
+  remove_current_organization_login_id
+  -on registration current_organization_login_id is used to set timezone
+  -after registration it is set back to nil unitl login
+  """
   # reset field to nil; set when employee logs in
   defp remove_current_organization_login_id(changeset) do
     # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
@@ -100,6 +112,16 @@ defmodule TurnStile.Staff.Employee do
       |> put_change(:current_organization_login_id, nil)
 
     # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id after")
+  end
+
+  def set_current_organization_login_id(changeset, organization_id) do
+    # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
+
+    changeset =
+      changeset
+      |> put_change(:current_organization_login_id, organization_id)
+
+    # IO.inspect(changeset, label: "changeset in set_current_organization_login_id after")
   end
 
   @doc """
@@ -120,6 +142,8 @@ defmodule TurnStile.Staff.Employee do
       Defaults to `true`.
   """
   def registration_changeset(employee, attrs, opts \\ []) do
+    IO.inspect(attrs, label: "opts in registration_changeset")
+
     employee
     |> cast(attrs, [
       :email,
@@ -135,8 +159,23 @@ defmodule TurnStile.Staff.Employee do
     |> validate_email()
     |> validate_password(opts)
     |> hash_password(opts)
+    |> set_current_organization_login_id(extract_current_organization_login_id(attrs, opts))
     |> handle_timezone_insert()
     |> remove_current_organization_login_id()
+  end
+
+  # param is set or can be passed in via opts; need logic to avoid dot operator on nil
+  defp extract_current_organization_login_id(attrs, opts) do
+    if Map.get(attrs, "current_organization_login_id") do
+      Map.get(attrs, "current_organization_login_id")
+    else
+      case Keyword.get(opts, :organization) do
+        nil ->
+          raise "Error: Staff.Employee extract_current_organization_login_id. current_organization_login_id is nil in both attrs and opts."
+        _ ->
+          Keyword.get(opts, :organization).id
+      end
+    end
   end
 
   defp validate_email(changeset) do

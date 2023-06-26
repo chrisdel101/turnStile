@@ -86,7 +86,7 @@ defmodule TurnStile.Staff do
   # Registers a employee assocaited with organizatio and role
 
   """
-  def insert_register_employee(attrs, organization) do
+  def insert_register_employee(attrs, opts \\ []) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
     # IO.inspect("attrs")
     # IO.inspect(attrs)
@@ -94,7 +94,7 @@ defmodule TurnStile.Staff do
     # # build employee and assoc the role
     emp_changeset =
       %Employee{}
-      |> Employee.registration_changeset(attrs)
+      |> Employee.registration_changeset(attrs, opts)
         # insert employee - auto insert role using associations
         case Repo.insert(emp_changeset) do
           {:ok, new_emp} ->
@@ -104,8 +104,8 @@ defmodule TurnStile.Staff do
               |> Repo.preload(:roles)
               |> Repo.preload(:users)
 
-        # IO.inspect("emp_preload")
-        # IO.inspect(emp_preload)
+        IO.inspect("emp_preload")
+        IO.inspect(emp_preload)
         {:ok, emp_preload}
 
       {:error, error} ->
@@ -120,12 +120,6 @@ defmodule TurnStile.Staff do
   Returns an `%Ecto.Changeset{}` for tracking employee registration changes.
   Used to change employees via register.
   -hash_password: false
-
-
-  ## Examples
-
-      iex> change_employee_registration(employee)
-      %Ecto.Changeset{data: %Employee{}}
 
   """
   def change_employee_registration(%Employee{} = employee, attrs \\ %{}) do

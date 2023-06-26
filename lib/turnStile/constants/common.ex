@@ -27,12 +27,12 @@ defmodule EmployeeRolesMap do
     - Used to determine access level by value
   """
   @permission_role_values %{
-    "owner" => 1,
-    "developer" => 2,
-    "admin" => 3,
-    "editor" => 4,
-    "contributor" => 5,
-    "viewer" => 6
+    "OWNER" => 1,
+    "DEVELOPER" => 2,
+    "ADMIN" => 3,
+    "EDITOR" => 4,
+    "CONTRIBUTOR" => 5,
+    "VIEWER" => 6
   }
   @permission_roles %{
     "OWNER" => "owner",
@@ -50,6 +50,7 @@ defmodule EmployeeRolesMap do
     @permission_roles
   end
 
+  @spec get_permission_role(any) :: any
   def get_permission_role(key) do
     Map.get(@permission_roles, key)
   end
