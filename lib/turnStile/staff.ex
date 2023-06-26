@@ -88,8 +88,8 @@ defmodule TurnStile.Staff do
   """
   def insert_register_employee(attrs, opts \\ []) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
-    IO.inspect("opts")
-    IO.inspect(opts)
+    # IO.inspect("opts")
+    # IO.inspect(opts)
     # IO.inspect(organization)
     # # build employee and assoc the role
     emp_changeset =

@@ -73,7 +73,7 @@ defmodule TurnStile.Staff.Employee do
     # if employee has not explieitly set timezone, use organization timezone
     # check no timezone ovrerride set on employee
     x = changeset.changes
-    IO.inspect(x, label: "x in handle_timezone")
+    # IO.inspect(x, label: "x in handle_timezone")
 
     case !Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone) do
       true ->
@@ -87,12 +87,12 @@ defmodule TurnStile.Staff.Employee do
             raise "Error: handle_timezone_insert missing organization id"
 
           _ ->
-            IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
+            # IO.inspect(changeset.changes, label: "changeset.changes in handle_timezone")
             # get timefrom organization
             organization =
               Company.get_organization(changeset.changes.current_organization_login_id)
 
-            IO.inspect(organization, label: "organization in handle_timezone")
+            # IO.inspect(organization, label: "organization in handle_timezone")
             changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
             changeset
         end
@@ -148,8 +148,8 @@ defmodule TurnStile.Staff.Employee do
       Defaults to `true`.
   """
   def registration_changeset(employee, attrs, opts \\ []) do
-    IO.inspect(attrs, label: "attrs in registration_changeset")
-    IO.inspect(opts, label: "opts in registration_changeset")
+    # IO.inspect(attrs, label: "attrs in registration_changeset")
+    # IO.inspect(opts, label: "opts in registration_changeset")
 
     employee
     |> cast(attrs, [

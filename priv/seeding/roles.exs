@@ -21,22 +21,18 @@ TurnStile.Repo.transaction(fn ->
     role_on_current_organization: EmployeeRolesMap.get_permission_role("OWNER"),
     timezone: "America/New_York"
   }
-
-  role =
-    TurnStile.Roles.build_role(
-      %{
-        name: ex2.role_on_current_organization,
-        value:
-          to_string(EmployeeRolesMap.get_permission_role_value(ex2.role_on_current_organization))
-      }
-    )
-
-  {:ok, employee1} = TurnStile.Staff.insert_register_employee(ex2, organization1)
-  role = Ecto.build_assoc(employee1, :roles, role)
+  {:ok, employee1} = TurnStile.Staff.insert_register_employee(ex2, [organization: organization1])
 
   {:ok, updated_org} = TurnStile.Company.handle_add_assoc_employee(organization1, employee1)
-  role = Ecto.build_assoc(employee1, :roles, role)
-  role = Ecto.build_assoc(updated_org, :roles, role)
+  role =
+    TurnStile.Roles.build_role(%{
+      name: EmployeeRolesMap.get_permission_role("OWNER"),
+      value: to_string(EmployeeRolesMap.get_permission_role_value("OWNER"))
+      })
+    # add has_many role assocations
+    role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
+    role = TurnStile.Roles.assocaiate_role_with_employee(role, organization1)
+
   TurnStile.Repo.insert(role)
 
   TurnStile.Company.update_organization(updated_org)
