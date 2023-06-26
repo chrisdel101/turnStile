@@ -6,8 +6,11 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   alias TurnStile.Company
 
   def new(conn, _params) do
-    changeset = Staff.change_employee_registration(%Employee{})
     organization_id = conn.path_params["id"]
+
+    changeset =
+      Staff.change_employee_registration(%Employee{}, %{}, organization_id: organization_id)
+
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
 
@@ -54,13 +57,15 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
           IO.inspect("ZZZZZ employee_params")
           IO.inspect(employee_params)
 
-          x =
-            TurnStileWeb.EmployeeAuth.has_employee_register_permissions?(conn, employee_params)
+          x = TurnStileWeb.EmployeeAuth.has_employee_register_permissions?(conn, employee_params)
 
           IO.inspect("HERE")
           IO.inspect(x)
           # Invalid permission - reload page
-          error_changeset = Staff.change_employee_registration(%Employee{}, employee_params)
+          error_changeset =
+            Staff.change_employee_registration(%Employee{}, employee_params,
+              organization_id: organization_id
+            )
 
           if !x do
             conn
@@ -68,71 +73,113 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             |> put_flash(:error, "Invalid Permissions to create that user level")
             |> render("new.html", changeset: error_changeset, organization_id: organization_id)
           else
-            case Staff.insert_register_employee(employee_params) do
+            case Staff.insert_register_employee(employee_params, organization_id: organization_id) do
               {:ok, employee} ->
                 IO.inspect("EEEEE")
                 IO.inspect(employee)
 
                 case Company.handle_add_assoc_employee(organization, employee) do
-                  {:ok, _updated_org} ->
-                    IO.inspect("YYYYYY")
-                    IO.inspect(employee)
-                    # require email account confirmation
-                    cond do
-                      System.get_env("EMPLOYEE_CREATE_SETUP_IS_REQUIRED") === "false" ->
-                        # just send welcomemail; no setup required
-                        case Staff.deliver_init_employee_welcome_email(employee) do
-                          {:ok, _email_body} ->
-                            conn
-                            |> put_flash(:info, "Employee created successfully.")
-                            |> redirect(
-                              to: Routes.employee_registration_path(conn, :new, organization_id)
-                            )
-                          {:error, error} ->
-                            {:error, error}
-                        end
+                  {:error, error} ->
+                    {:error, error}
 
-                      # default case - send setup email
-                      true ->
-                        zz =
-                          Staff.deliver_employee_setup_email(
-                            employee,
-                            &Routes.employee_confirmation_url(conn, :setup, organization_id, &1)
+                  {:ok, updated_org} ->
+                    IO.inspect("updated_org")
+                    IO.inspect(updated_org)
+                    # add employee/org role
+                    role =
+                      TurnStile.Roles.build_role(%{
+                        name:
+                          EmployeeRolesMap.get_permission_role(
+                            String.upcase(
+                              employee_params["role_on_current_organization"] ||
+                                employee_params[:role_on_current_organization] || ""
+                            )
+                          ),
+                        value:
+                          to_string(
+                            EmployeeRolesMap.get_permission_role_value(
+                              String.upcase(
+                                employee_params["role_on_current_organization"] ||
+                                  employee_params[:role_on_current_organization] || ""
+                              )
+                            )
                           )
-                          # IO.inspect(zz)
-                          case zz do
-                            {:ok, email_body} ->
-                              if Mix.env() == :test do
-                                IO.inspect(email_body)
-                              end
-                            conn
-                            |> put_flash(
-                              :info,
-                              "Employee created successfully. A confirmation email was sent to the new employee."
-                            )
-                            |> redirect(
-                              to: Routes.employee_registration_path(conn, :new, organization_id)
-                            )
+                      })
 
-                          {:error, error} ->
-                            IO.inspect("error")
-                            IO.inspect(error)
-                            {:error, error}
+                    role = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
+                    role = TurnStile.Roles.assocaiate_role_with_employee(role, updated_org)
+
+                    case TurnStile.Roles.insert_role(role) do
+                      {:error, error} ->
+                        {:error, error}
+
+                      {:ok, role} ->
+                        IO.inspect("YYYYYY")
+                        IO.inspect(employee)
+                        # require email account confirmation
+                        cond do
+                          System.get_env("EMPLOYEE_CREATE_SETUP_IS_REQUIRED") === "false" ->
+                            # just send welcomemail; no setup required
+                            case Staff.deliver_init_employee_welcome_email(employee) do
+                              {:ok, _email_body} ->
+                                conn
+                                |> put_flash(:info, "Employee created successfully.")
+                                |> redirect(
+                                  to:
+                                    Routes.employee_registration_path(conn, :new, organization_id)
+                                )
+
+                              {:error, error} ->
+                                {:error, error}
+                            end
+
+                          # default case - send setup email
+                          true ->
+                            zz =
+                              Staff.deliver_employee_setup_email(
+                                employee,
+                                &Routes.employee_confirmation_url(
+                                  conn,
+                                  :setup,
+                                  organization_id,
+                                  &1
+                                )
+                              )
+
+                            # IO.inspect(zz)
+                            case zz do
+                              {:ok, email_body} ->
+                                if Mix.env() == :test do
+                                  IO.inspect(email_body)
+                                end
+
+                                conn
+                                |> put_flash(
+                                  :info,
+                                  "Employee created successfully. A confirmation email was sent to the new employee."
+                                )
+                                |> redirect(
+                                  to:
+                                    Routes.employee_registration_path(conn, :new, organization_id)
+                                )
+
+                              {:error, error} ->
+                                IO.inspect("error")
+                                IO.inspect(error)
+                                {:error, error}
+                            end
                         end
                     end
-
-                  {:error, %Ecto.Changeset{} = changeset} ->
-                    render(conn, "new.html",
-                      changeset: changeset,
-                      organization_id: organization_id
-                    )
                 end
 
               {:error, %Ecto.Changeset{} = changeset} ->
-                render(conn, "new.html", changeset: changeset, organization_id: organization_id)
+                render(conn, "new.html",
+                  changeset: changeset,
+                  organization_id: organization_id
+                )
+              end
             end
           end
-        end
       end
     end
   end
@@ -156,19 +203,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
         error = "Organization setup error. Members already exist."
         {:error, error}
       else
-        # add organization_id,
-        # employee_params =
-        #   employee_params
-        #   |> Map.put("organization_id", organization_id)
-        #   |> Map.put("role_on_current_organization", EmployeeRolesMap.get_permission_role("OWNER"))
-
-        # IO.inspect("ZZZZZ")
-        # IO.inspect(employee_par`ams)
-
         case Staff.insert_register_employee(employee_params, organization: organization) do
           {:ok, employee} ->
-
-
             IO.inspect("YYYYYY")
             IO.inspect(employee)
             # require email account confirmation

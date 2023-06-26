@@ -4,31 +4,33 @@ defmodule TurnStile.Staff.Employee do
   alias TurnStile.Company
 
   schema "employees" do
-    field :first_name, :string
-    field :last_name, :string
-    field :client_type, :string
-    field :email, :string
-    field :password, :string, virtual: true, redact: true
-    field :hashed_password, :string, redact: true
-    field :confirmed_at, :naive_datetime
+    field(:first_name, :string)
+    field(:last_name, :string)
+    field(:client_type, :string)
+    field(:email, :string)
+    field(:password, :string, virtual: true, redact: true)
+    field(:hashed_password, :string, redact: true)
+    field(:confirmed_at, :naive_datetime)
     # set these fields at login
-    field :current_organization_login_id, :integer
-    field :role_value_on_current_organization, :string, default: nil
-    field :role_on_current_organization, :string, default: nil
-    field :is_logged_in?, :boolean, default: false
-    field :timezone, :string
+    field(:current_organization_login_id, :integer)
+    field(:role_value_on_current_organization, :string, default: nil)
+    field(:role_on_current_organization, :string, default: nil)
+    field(:is_logged_in?, :boolean, default: false)
+    field(:timezone, :string)
     # org has many employees within the company; employees belongs to many orgs
-    many_to_many :organizations, TurnStile.Company.Organization,
-      join_through: "organization_employees", on_replace: :delete
+    many_to_many(:organizations, TurnStile.Company.Organization,
+      join_through: "organization_employees",
+      on_replace: :delete
+    )
 
     # employee can have many roles; need limitation of one role per org
-    has_many :roles, TurnStile.Roles.Role
+    has_many(:roles, TurnStile.Roles.Role)
     # all users created by an employee
-    has_many :users, TurnStile.Patients.User
+    has_many(:users, TurnStile.Patients.User)
     # all alerts created by an employee
-    has_many :alerts, TurnStile.Alerts.Alert
+    has_many(:alerts, TurnStile.Alerts.Alert)
     # any employees that is an owner
-    has_one :owner, TurnStile.Staff.Owner
+    has_one(:owner, TurnStile.Staff.Owner)
     timestamps()
   end
 
@@ -57,7 +59,7 @@ defmodule TurnStile.Staff.Employee do
     |> hash_password(opts)
   end
 
-  @doc"""
+  @doc """
   handle_timezone_insert
   # use custome timezone, else add one from organization
   -takes timezone from organization if employee has not set one
@@ -66,11 +68,13 @@ defmodule TurnStile.Staff.Employee do
   """
   defp handle_timezone_insert(changeset) do
     IO.inspect(changeset, label: "changeset in handle_timezone")
+
     # IO.inspect((!Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone)), label: "HERE")
     # if employee has not explieitly set timezone, use organization timezone
     # check no timezone ovrerride set on employee
     x = changeset.changes
     IO.inspect(x, label: "x in handle_timezone")
+
     case !Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone) do
       true ->
         # check employee has an org
@@ -92,12 +96,14 @@ defmodule TurnStile.Staff.Employee do
             changeset = Ecto.Changeset.put_change(changeset, :timezone, organization.timezone)
             changeset
         end
+
       false ->
         # IO.inspect(changeset, label: "changeset in handle_timezone")
         # add timezone override
         changeset
     end
   end
+
   @doc """
   remove_current_organization_login_id
   -on registration current_organization_login_id is used to set timezone
@@ -142,7 +148,8 @@ defmodule TurnStile.Staff.Employee do
       Defaults to `true`.
   """
   def registration_changeset(employee, attrs, opts \\ []) do
-    IO.inspect(attrs, label: "opts in registration_changeset")
+    IO.inspect(attrs, label: "attrs in registration_changeset")
+    IO.inspect(opts, label: "opts in registration_changeset")
 
     employee
     |> cast(attrs, [
@@ -169,11 +176,18 @@ defmodule TurnStile.Staff.Employee do
     if Map.get(attrs, "current_organization_login_id") do
       Map.get(attrs, "current_organization_login_id")
     else
-      case Keyword.get(opts, :organization) do
-        nil ->
-          raise "Error: Staff.Employee extract_current_organization_login_id. current_organization_login_id is nil in both attrs and opts."
-        _ ->
+      # takes opts params
+      cond do
+        Keyword.get(opts, :organization) !==
+            nil ->
+              # extact if no nil
           Keyword.get(opts, :organization).id
+
+        Keyword.get(opts, :organization_id) !== nil ->
+          Keyword.get(opts, :organization_id)
+
+        true ->
+          raise "Error: Staff.Employee extract_current_organization_login_id. current_organization_login_id is nil in both attrs and opts."
       end
     end
   end

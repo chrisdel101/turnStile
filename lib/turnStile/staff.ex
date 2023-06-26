@@ -88,8 +88,8 @@ defmodule TurnStile.Staff do
   """
   def insert_register_employee(attrs, opts \\ []) do
     # https://elixirforum.com/t/confussed-with-build-assoc-vs-put-assoc-vs-cast-assoc/29116
-    # IO.inspect("attrs")
-    # IO.inspect(attrs)
+    IO.inspect("opts")
+    IO.inspect(opts)
     # IO.inspect(organization)
     # # build employee and assoc the role
     emp_changeset =
@@ -122,8 +122,12 @@ defmodule TurnStile.Staff do
   -hash_password: false
 
   """
-  def change_employee_registration(%Employee{} = employee, attrs \\ %{}) do
-    Employee.registration_changeset(employee, attrs, hash_password: false)
+  def change_employee_registration(%Employee{} = employee, attrs \\ %{} ) do
+    Employee.registration_changeset(employee, attrs, [hash_password: false])
+  end
+  # same above but with differnt opts param
+  def change_employee_registration(%Employee{} = employee, attrs, opts) do
+    Employee.registration_changeset(employee, attrs, [hash_password: false, organization_id: Keyword.get(opts, :organization_id)])
   end
 
   ## Settings
@@ -606,11 +610,13 @@ defmodule TurnStile.Staff do
       employee_id =
         TurnStile.Utils.convert_to_int(Map.get(employee, :id) || Map.get(employee, "id"))
 
+        IO.inspect(employee_id)
       if organization do
+        # check for both ids match, return org_id
         q =
           from(o in "organization_employees",
             where: o.employee_id == ^employee_id and o.organization_id == ^organization_id,
-            select: o.id
+            select: o.organization_id
           )
 
         Repo.one(q)

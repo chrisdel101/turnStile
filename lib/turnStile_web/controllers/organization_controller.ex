@@ -46,6 +46,7 @@ defmodule TurnStileWeb.OrganizationController do
         {:error, %Ecto.Changeset{} = changeset} = Ecto.Changeset.apply_action(changeset, :insert)
         # re-render "new" again
         render(conn, "new.html", changeset: changeset)
+
       # when valid name field
       _ ->
         # extract name
@@ -97,166 +98,186 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def create(conn, employee_params) do
+    IO.inspect("HERE")
+    IO.inspect(employee_params)
     # extract params from session
     current_employee = conn.assigns[:current_employee]
     org_params = Map.get(get_session(conn), "org_params")
-    role =
-      TurnStile.Roles.build_role(
-        %{
-          name: EmployeeRolesMap.get_permission_role("OWNER"),
-          value:
-            to_string(EmployeeRolesMap.get_permission_role_value("OWNER"))
-        }
-      )
-    # add organization
-    case Company.insert_and_preload_organization(org_params) do
-      {:ok, organization} ->
-        IO.inspect("ORG HERE")
-        IO.inspect(organization)
 
-        if !current_employee do
-          x =
-            EmployeeRegistrationController.create_initial_owner(
-              conn,
-              organization,
-              employee_params
-            )
+      # add organization
+      case Company.insert_and_preload_organization(org_params) do
+        {:ok, organization} ->
+          IO.inspect("ORG HERE")
+          IO.inspect(organization)
 
-          IO.inspect("X HERE")
-          IO.inspect(x)
+          if !current_employee do
+            role =
+              TurnStile.Roles.build_role(%{
+                name: EmployeeRolesMap.get_permission_role("OWNER"),
+                value: to_string(EmployeeRolesMap.get_permission_role_value("OWNER"))
+              })
+            case EmployeeRegistrationController.create_initial_owner(
+                   conn,
+                   organization,
+                   employee_params
+                 ) do
+              {:error, error} ->
+                # delete any organization just saved
+                Company.delete_organization(organization)
+                # TurnStile.Repo.rollback({:undo_organization_insert})
+                IO.inspect("ERROR in create orgnization_controller")
+                # conn = assign(conn, :org_form_submitted, true)
+                conn = track_form_stage(conn, nil, true)
 
-          case x do
-            {:error, error} ->
-              # delete any organization just saved
-              Company.delete_organization(organization)
-              # TurnStile.Repo.rollback({:undo_organization_insert})
-              IO.inspect("ERROR in create orgnization_controller")
-              # conn = assign(conn, :org_form_submitted, true)
-              conn = track_form_stage(conn, nil, true)
-              conn
-              |> assign(:org_form_submitted, true)
-              |> put_flash(:error, "Error in Employee creation. Try again.")
-              |> render("new.html", changeset: error)
+                conn
+                |> assign(:org_form_submitted, true)
+                |> put_flash(:error, "Error in Employee creation. Try again.")
+                |> render("new.html", changeset: error)
 
-            # create_initial_owner returns employee, log_in_setting bool
-            {:ok, employee, log_in_setting} ->
-              IO.inspect("OK2222")
-              IO.inspect(employee)
-              # build instance changeset
-              org_changeset = Ecto.Changeset.change(organization)
-              # put_assoc - many-many association
-              # TODO: move to Company
-              org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
-              IO.inspect(org_with_emps)
-              case Company.update_organization_changeset(org_with_emps) do
-                # add role assocations
-                {:ok, updated_org} ->
-                  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
-                  role = TurnStile.Roles.assocaiate_role_with_employee(role, updated_org)
-                  IO.inspect("log_in_setting")
+              # create_initial_owner returns employee, log_in_setting bool
+              {:ok, employee, log_in_setting} ->
+                # IO.inspect("OK2222")
+                # IO.inspect(employee)
+                # build instance changeset.change
+                org_changeset = Ecto.Changeset.change(organization)
+                # put_assoc - add many-many association
+                # TODO: move to Company
+                org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee])
+                IO.inspect(org_with_emps)
 
-                  IO.inspect(role, label: "ROLE")
-                  case TurnStile.Roles.insert_role(role) do
-                    {:error, error} ->
-                      {:error, error}
-                    {:ok, role} ->
-                      IO.inspect(role, label: "ROLE2")
-                      IO.inspect(log_in_setting)
+                case Company.update_organization_changeset(org_with_emps) do
+                  {:ok, updated_org} ->
+                    # add has_many role assocations
+                    role = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
+                    role = TurnStile.Roles.assocaiate_role_with_employee(role, updated_org)
+                    # IO.inspect("log_in_setting")
 
-                      if log_in_setting === "true" do
-                        IO.inspect("OK TRUE")
-                        params = %{flash: "Organization Successfully created"}
+                    # IO.inspect(role, label: "ROLE")
 
-                        EmployeeAuth.log_in_employee_on_create(
-                          conn,
-                          employee,
-                          Map.get(organization, "id") || Map.get(organization, :id),
-                          Routes.organization_path(conn, :show, organization.id, %{
-                            "emptyParams" => true,
-                            "paramsKey" => "org_params"
-                          }),
-                          params
-                        )
-                      else
-                        IO.inspect("OK FALSE")
-                        # IO.inspect(updated_org)
-                        conn
-                        |> put_flash(
-                          :info,
-                          "An email was sent you your account. Please check your email to confirm your account. "
-                        )
-                        |> redirect(
-                          to:
+                    case TurnStile.Roles.insert_role(role) do
+                      {:error, error} ->
+                        {:error, error}
+
+                      {:ok, role} ->
+                        IO.inspect(role, label: "ROLE2")
+                        IO.inspect(log_in_setting)
+
+                        if log_in_setting === "true" do
+                          IO.inspect("OK TRUE")
+                          params = %{flash: "Organization Successfully created"}
+
+                          EmployeeAuth.log_in_employee_on_create(
+                            conn,
+                            employee,
+                            Map.get(organization, "id") || Map.get(organization, :id),
                             Routes.organization_path(conn, :show, organization.id, %{
                               "emptyParams" => true,
                               "paramsKey" => "org_params"
-                            })
-                        )
-                      end
+                            }),
+                            params
+                          )
+                        else
+                          IO.inspect("OK FALSE")
+                          # IO.inspect(updated_org)
+                          conn
+                          |> put_flash(
+                            :info,
+                            "An email was sent you your account. Please check your email to confirm your account. "
+                          )
+                          |> redirect(
+                            to:
+                              Routes.organization_path(conn, :show, organization.id, %{
+                                "emptyParams" => true,
+                                "paramsKey" => "org_params"
+                              })
+                          )
+                        end
+                    end
 
-                    {:error, error} ->
-                      IO.inspect("ERROR")
+                  {:error, error} ->
+                    IO.inspect("ERROR")
 
-                      conn
-                      |> assign(:org_form_submitted, true)
-                      |> put_flash(:error, "Employee not created. Try again.")
-                      |> render("new.html", changeset: error)
+                    conn
+                    |> assign(:org_form_submitted, true)
+                    |> put_flash(:error, "Employee not created. Try again.")
+                    |> render("new.html", changeset: error)
+                end
 
-                  end
-              end
-          #  default case; if runtime or unknown error, etc
-            _ ->
-              # delete any organization just saved
-              Company.delete_organization(organization)
+              #  default case; if runtime or unknown error, etc
+              _ ->
+                # delete any organization just saved
+                Company.delete_organization(organization)
 
-              error_msg = "ERROR in create orgnization_controller default case"
-              IO.inspect(error_msg)
-              # conn = assign(conn, :org_form_submitted, true)
-              conn
-              |> track_form_stage(nil, true)
-              |> put_flash(:error, error_msg)
-              |> render("new.html",
-                changeset: Employee.registration_changeset(%Staff.Employee{}, %{})
-              )
+                error_msg = "ERROR in create orgnization_controller default case"
+                IO.inspect(error_msg)
+                # conn = assign(conn, :org_form_submitted, true)
+                conn
+                |> track_form_stage(nil, true)
+                |> put_flash(:error, error_msg)
+                |> render("new.html",
+                  changeset: Employee.registration_changeset(%Staff.Employee{}, %{})
+                )
+            end
+
+        # adding existing employee to new org
+        # TODO: feature untested
+          else
+            role =
+              TurnStile.Roles.build_role(%{
+                name: EmployeeRolesMap.get_permission_role("OWNER"),
+                value: to_string(EmployeeRolesMap.get_permission_role_value("OWNER"))
+              })
+            # IO.inspect("OK2222")
+            # IO.inspect(employee)
+            # build instance changeset
+            org_changeset = Ecto.Changeset.change(organization)
+            # put_assoc
+            org_with_emps =
+              Ecto.Changeset.put_assoc(org_changeset, :employees, [current_employee])
+
+            IO.inspect(org_with_emps)
+
+            case Company.update_organization_changeset(org_with_emps) do
+              {:ok, updated_org} ->
+                # add has_many role assocations
+                role = TurnStile.Roles.assocaiate_role_with_employee(role, current_employee)
+                role = TurnStile.Roles.assocaiate_role_with_employee(role, updated_org)
+                IO.inspect("log_in_setting")
+
+                case TurnStile.Roles.insert_role(role) do
+                  {:error, error} ->
+                    {:error, error}
+
+                  {:ok, role} ->
+                    IO.inspect(role, label: "ROLE")
+                    # IO.inspect("OK")
+                    # IO.inspect(updated_org)
+                    conn
+                    |> put_flash(:info, "Organization Successfully created.")
+                    |> redirect(
+                      to:
+                        Routes.organization_path(conn, :show, organization.id, %{
+                          "emptyParams" => true,
+                          "paramsKey" => "org_params"
+                        })
+                    )
+                end
+
+              {:error, error} ->
+                IO.inspect("ERROR")
+
+                conn
+                |> track_form_stage(nil, true)
+                |> put_flash(:error, "Employee not created. Try again.")
+                |> render("new.html", changeset: error)
+            end
           end
-        else
-          # IO.inspect("OK2222")
-          # IO.inspect(employee)
-          # build instance changeset
-          org_changeset = Ecto.Changeset.change(organization)
-          # put_assoc
-          org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [current_employee])
-          IO.inspect(org_with_emps)
 
-          case Company.update_organization_changeset(org_with_emps) do
-            {:ok, _updated_org} ->
-              # IO.inspect("OK")
-              # IO.inspect(updated_org)
-              conn
-              |> put_flash(:info, "Organization Successfully created.")
-              |> redirect(
-                to:
-                  Routes.organization_path(conn, :show, organization.id, %{
-                    "emptyParams" => true,
-                    "paramsKey" => "org_params"
-                  })
-              )
-
-            {:error, error} ->
-              IO.inspect("ERROR")
-
-              conn
-              |>  track_form_stage(nil, true)
-              |> put_flash(:error, "Employee not created. Try again.")
-              |> render("new.html", changeset: error)
-          end
-        end
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect("CREATE ERROR")
-        IO.inspect(changeset)
-        render(conn, "new.html", changeset: changeset)
-    end
+        {:error, %Ecto.Changeset{} = changeset} ->
+          IO.inspect("CREATE ERROR")
+          IO.inspect(changeset)
+          render(conn, "new.html", changeset: changeset)
+      end
   end
 
   def show(conn, %{"id" => id}) do
@@ -311,7 +332,6 @@ defmodule TurnStileWeb.OrganizationController do
     |> redirect(to: Routes.organization_path(conn, :index))
   end
 
-
   # display search bar for organizations
   def search_get(conn, _params) do
     changeset = Company.change_organization(%Organization{})
@@ -339,9 +359,9 @@ defmodule TurnStileWeb.OrganizationController do
   # sets flag to false unless manulally set to true
   defp track_form_stage(conn, _opts, bool \\ false) do
     IO.inspect(bool, label: "bool")
+
     conn =
       conn
-    |> assign(:org_form_submitted, bool)
+      |> assign(:org_form_submitted, bool)
   end
-
 end

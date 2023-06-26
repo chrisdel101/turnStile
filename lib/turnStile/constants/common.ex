@@ -32,7 +32,8 @@ defmodule EmployeeRolesMap do
     "ADMIN" => 3,
     "EDITOR" => 4,
     "CONTRIBUTOR" => 5,
-    "VIEWER" => 6
+    "VIEWER" => 6,
+      "" => 7
   }
   @permission_roles %{
     "OWNER" => "owner",
@@ -40,7 +41,8 @@ defmodule EmployeeRolesMap do
     "ADMIN" => "admin",
     "EDITOR" => "editor",
     "CONTRIBUTOR" => "contributor",
-    "VIEWER" => "viewer"
+    "VIEWER" => "viewer",
+    "" => "none"
   }
   def get_permission_role_values do
     @permission_role_values
