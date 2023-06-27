@@ -69,7 +69,7 @@ TurnStile.Repo.transaction(fn ->
   TurnStile.Roles.insert_role(employee2.id, org_w_emps.id, role)
 
   # EMPLOYEE2 - admin
-  emp7_params = %{
+  emp8_params = %{
     email: "sam7@jones.com",
     email_confirmation: "sam7@jones.com",
     last_name: "Jones7",
@@ -78,7 +78,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   {:ok, employee7} =
-    TurnStile.Staff.insert_register_employee(emp7_params, organization: organization1)
+    TurnStile.Staff.insert_register_employee(emp8_params, organization: organization1)
 
   {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization1, employee7)
   role =
@@ -216,7 +216,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe3@schmoe.com",
     phone: "777777777",
-    health_card_num: 9010
+    health_card_num: 9101
   }
 
   # user w/ emp and org assocs
@@ -227,7 +227,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe4@schmoe.com",
     phone: "777777777",
-    health_card_num: 1112
+    health_card_num: 1121
   }
 
   # user w/ emp and org assocs
@@ -279,7 +279,7 @@ TurnStile.Repo.transaction(fn ->
   {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a3)
   TurnStile.Alerts.insert_alert(alert)
 
-    # # ORGANZIATION2
+    ############# ORGANZIATION2 ############
     org2_params = %{
       email: "org2@test.com",
       name: "Org2",
@@ -291,48 +291,144 @@ TurnStile.Repo.transaction(fn ->
 
   # # IO.inspect(organization2)
 
-  # # EMPLOYEE3
-  emp1_02_params = %{
-    email: "employee3@test.com",
-    email_confirmation: "employee3@test.com",
-    last_name: "Employee3",
-    first_name: "Test3",
+  emp9_params = %{
+    email: "sam9@jones.com",
+    email_confirmation: "sam9@jones.com",
+    last_name: "Jones9",
+    first_name: "Sam",
     password: "password",
   }
 
-  # {:ok, employee3} = TurnStile.Staff.insert_register_employee(emp3_params, organization2)
-  # IO.inspect(employee3)
+  {:ok, employee9} =
+    TurnStile.Staff.insert_register_employee(emp9_params, organization: organization2)
 
-  # org_changeset = Ecto.Changeset.change(organization2)
-  # # put_assoc
-  # org_with_emps = Ecto.Changeset.put_assoc(org_changeset, :employees, [employee3])
-  # # IO.inspect(org_with_emps)
+  {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization2, employee9)
 
-  # {:ok, organization2} = TurnStile.Company.update_organization_changeset(org_with_emps)
-  # # IO.inspect(organization2)
-  # # IO.inspect(updated_org)
+  role =
+    TurnStile.Roles.build_role(%{
+      name: EmployeeRolesMap.get_permission_role("OWNER"),
+      value: to_string(EmployeeRolesMap.get_permission_role_value("OWNER"))
+    })
 
-  # # EMPLOYEE4
-  # emp2_params = %{
-  #   email: "employee4@test.com",
-  #   email_confirmation: "employee4@test.com",
-  #   last_name: "Employee4",
-  #   first_name: "Test4",
-  #   password: "password",
-  #   hashed_password: "password",
-  #   current_organization_login_id: organization2.id,")),
+  # add has_many role assocations
+  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee9)
+  role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-  # }
+  TurnStile.Roles.insert_role(employee9.id, org_w_emps.id, role)
 
-  #  {:ok, employee4} = TurnStile.Staff.insert_register_employee(emp2_params, organization2)
-  # IO.inspect(employee4)
+  emp10_params = %{
+    email: "sam10@jones.com",
+    email_confirmation: "sam10@jones.com",
+    last_name: "Jones10",
+    first_name: "Sam",
+    password: "password",
+  }
 
-  # org_changeset2 = Ecto.Changeset.change(organization2)
-  # # put_assoc
-  # # IO.inspect(organization2)
-  # org_with_emps = Ecto.Changeset.put_assoc(org_changeset2, :employees, [employee4 | organization2.employees])
-  # # IO.inspect(org_with_emps)
-  # {:ok, organization2} = TurnStile.Company.update_organization_changeset(org_with_emps)
+  {:ok, employee10} =
+    TurnStile.Staff.insert_register_employee(emp10_params, organization: organization2)
 
-  # TurnStile.Repo.rollback({:rolling_back})
+  {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization2, employee10)
+
+  role =
+    TurnStile.Roles.build_role(%{
+      name: EmployeeRolesMap.get_permission_role("CONTRIBUTOR"),
+      value: to_string(EmployeeRolesMap.get_permission_role_value("CONTRIBUTOR"))
+    })
+
+  # add has_many role assocations
+  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee10)
+  role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
+
+  TurnStile.Roles.insert_role(employee10.id, org_w_emps.id, role)
+
+  # ADD EXISTING EMPLOYEE TO ORG2
+  {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization2, employee1)
+
+  role =
+    TurnStile.Roles.build_role(%{
+      name: EmployeeRolesMap.get_permission_role("CONTRIBUTOR"),
+      value: to_string(EmployeeRolesMap.get_permission_role_value("CONTRIBUTOR"))
+    })
+
+  # add has_many role assocations
+  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
+  role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
+
+  # TurnStile.Roles.insert_role(employee11.id, org_w_emps.id, role)
+
+  emp11_params = %{
+    email: "sam11@jones.com",
+    email_confirmation: "sam11@jones.com",
+    last_name: "Jones11",
+    first_name: "Sam",
+    password: "password",
+  }
+
+  {:ok, employee11} =
+    TurnStile.Staff.insert_register_employee(emp11_params, organization: organization2)
+
+  {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization2, employee11)
+
+  role =
+    TurnStile.Roles.build_role(%{
+      name: EmployeeRolesMap.get_permission_role("VIEWER"),
+      value: to_string(EmployeeRolesMap.get_permission_role_value("VIEWER"))
+    })
+
+  # add has_many role assocations
+  role = TurnStile.Roles.assocaiate_role_with_employee(role, employee11)
+  role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
+
+
+  TurnStile.Roles.insert_role(employee11.id, org_w_emps.id, role)
+
+
+  # USERS W ORG1
+  user5 = %{
+    first_name: "Joe5",
+    last_name: "Schmoe",
+    email: "joe5@schmoe.com",
+    phone: "777777777",
+    health_card_num: 3141
+  }
+
+  # user w/ emp and org assocs
+  {:ok, user5} = TurnStile.Patients.create_user_w_assocs(employee10, user5, organization2)
+
+  user6 = %{
+    first_name: "Joe6",
+    last_name: "Schmoe",
+    email: "joe6@schmoe.com",
+    phone: "777777777",
+    health_card_num: 5161
+  }
+
+  # user w/ emp and org assocs
+  {:ok, user6} = TurnStile.Patients.create_user_w_assocs(employee1, user6, organization2)
+
+  user7 = %{
+    first_name: "Joe7",
+    last_name: "Schmoe",
+    email: "joe8@schmoe.com",
+    phone: "777777777",
+    health_card_num: 7181
+  }
+
+  # user w/ emp and org assocs
+  {:ok, user7} = TurnStile.Patients.create_user_w_assocs(employee9, user7, organization2)
+
+  user8 = %{
+    first_name: "Joe9",
+    last_name: "Schmoe",
+    email: "joe9@schmoe.com",
+    phone: "777777777",
+    health_card_num: 8191
+  }
+  {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, organization2)
+
+  {:ok, user5} = TurnStile.Repo.insert(user5)
+  {:ok, user6} = TurnStile.Repo.insert(user6)
+  {:ok, user7} = TurnStile.Repo.insert(user7)
+  {:ok, user8} = TurnStile.Repo.insert(user8)
+  TurnStile.Repo.rollback({:rolling_back})
 end)

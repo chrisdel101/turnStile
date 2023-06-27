@@ -73,15 +73,17 @@ defmodule TurnStile.Roles do
 
   # employee can have only 1 role per organization
   def insert_role(employee_id, organization_id, role) do
-   if organization_employee_role_exists?(employee_id, organization_id) do
-    {:error, "Role already exists"}
-   else
-    case check_assoc_valid(employee_id, organization_id, role) do
-    {:ok, true} ->
-      Repo.insert(role)
-      {:error, error} -> {:error, error}
+    if organization_employee_role_exists?(employee_id, organization_id) do
+      {:error, "Role already exists"}
+    else
+      case check_assoc_valid(employee_id, organization_id, role) do
+        {:ok, true} ->
+          Repo.insert(role)
+
+        {:error, error} ->
+          {:error, error}
+      end
     end
-   end
   end
 
   # employee can have only 1 role per organization
@@ -110,6 +112,7 @@ defmodule TurnStile.Roles do
       role.organization.id !== organization_id ->
         error =
           "Error: Roles.validate_insert_role organization_id does not match role.organization.id"
+
         IO.puts(error)
         {:error, error}
 
@@ -129,11 +132,22 @@ defmodule TurnStile.Roles do
         false
       else
         q =
-          from r in Role,
+          from(r in Role,
             where: r.employee_id == ^employee_id and r.organization_id == ^organization_id
+          )
 
         Repo.exists?(q)
       end
+    end
+  end
+
+  def role_value_has_add_user?(role_struct) do
+    role_value = role_struct.value
+    if TurnStile.Utils.convert_to_int(role_value) <=
+         EmployeePermissionThresholds.add_user_permissions_threshold() do
+      true
+    else
+      false
     end
   end
 

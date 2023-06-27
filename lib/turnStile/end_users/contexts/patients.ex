@@ -5,8 +5,9 @@ defmodule TurnStile.Patients do
 
   import Ecto.Query, warn: false
   alias TurnStile.Repo
-
   alias TurnStile.Patients.User
+  alias TurnStile.Roles.Role
+  alias TurnStile.Roles
 
   @doc """
   Returns the list of users.
@@ -62,8 +63,21 @@ defmodule TurnStile.Patients do
     |> User.changeset(attrs)
     |> Repo.insert()
   end
-# handle the one-many for new user-to-employee on create
-  def create_user_w_assocs(employee_struct, user_params, organization_struct \\ nil) do
+  @doc"""
+  create_user_w_assocs
+    handles the one-many for new user-to-employee
+  -needs organization struct OR current_organization_login_id
+  -needs to check employee role is valid and sufficient
+  """
+  def create_user_w_assocs(employee_struct, user_params, org_employee_role, organization_struct \\ nil) do
+
+    # IO.inspect(org_employee_role, label: "org_employee_role")
+
+    # IO.inspect(TurnStile.Roles.check_assoc_valid(employee_struct.id, organization_struct.id, role), label: "check_assoc_valid")
+
+  #  IO.inspect(Roles.has, label: "JHERE")
+
+
     # IO.inspect(user_params, label: "user_params")
     # IO.inspect(organization_struct, label: "organization_struct")
     # build user struct from map
@@ -74,9 +88,11 @@ defmodule TurnStile.Patients do
       phone: user_params["phone"] || user_params.phone,
       health_card_num: TurnStile.Utils.convert_to_int(user_params["health_card_num"]) || TurnStile.Utils.convert_to_int(user_params.health_card_num)
     }
-    IO.inspect(employee_struct, label: "employee_struct")
+    # IO.inspect(employee_struct, label: "employee_struct22")
     # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
     # IO.inspect(user, label: "user")
+
+
     # add employee assoc
     user_struct = Ecto.build_assoc(employee_struct, :users, user)
     # add organization assoc
@@ -89,20 +105,42 @@ defmodule TurnStile.Patients do
             IO.puts(error)
             {:error, error}
           _ ->
-              # add org assoc
-            user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
-            {:ok, user_struct}
-            # IO.inspect(user_struct, label: "organization struct")
-            # insert_user(user_struct)
+            case TurnStile.Roles.check_assoc_valid(employee_struct.id, organization_struct.id, org_employee_role) do
+              {:error, error} ->
+                IO.puts(error)
+                {:error, error}
+              {:ok,_} ->
+                if Roles.role_value_has_add_user?(org_employee_role) do
+                  # add org assoc
+                  user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
+                  IO.inspect(user_struct, label: "user struct123")
+                  insert_user(user_struct)
+                  {:ok, user_struct}
+                else
+                  {:error, "Employee lacks permissions to add users"}
+
+                end
+            end
+          # end
         end
         # if logged-in user
       _ ->
         organization_id = employee_struct.current_organization_login_id
-        organization_struct = TurnStile.Company.get_organization(organization_id)
-        user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
-        # IO.inspect(user_struct, label: "organization struct123")
-        {:ok, user_struct}
-        # insert_user(user_struct)
+        case Roles.role_value_has_add_user?(org_employee_role) do
+          {:error, error} ->
+            IO.puts(error)
+            {:error, error}
+          {:ok,_} ->
+            if Roles.has do
+              organization_struct = TurnStile.Company.get_organization(organization_id)
+              user_struct = Ecto.build_assoc(organization_struct, :users, organization_struct)
+              # IO.inspect(user_struct, label: "organization struct123")
+              {:ok, user_struct}
+            else
+              {:error, "Employee lacks permissions to add users"}
+            end
+        end
+      # end
       end
   end
 
