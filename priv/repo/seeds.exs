@@ -24,9 +24,6 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Jones1",
     first_name: "Sam",
     password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
   }
 
   {:ok, employee1} =
@@ -52,11 +49,8 @@ TurnStile.Repo.transaction(fn ->
     email_confirmation: "sam2@jones.com",
     last_name: "Jones2",
     first_name: "Sam",
-    password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
-  }
+    password: "password"
+    }
 
   {:ok, employee2} =
     TurnStile.Staff.insert_register_employee(emp2_params, organization: organization1)
@@ -81,9 +75,6 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Jones7",
     first_name: "Sam",
     password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
   }
 
   {:ok, employee7} =
@@ -108,9 +99,6 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Jones3",
     first_name: "Sam",
     password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
   }
 
   {:ok, employee3} =
@@ -135,10 +123,7 @@ TurnStile.Repo.transaction(fn ->
     email_confirmation: "sam4@jones.com",
     last_name: "Jones4",
     first_name: "Sam",
-    password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
+    password: "password"
   }
 
   {:ok, employee4} =
@@ -162,10 +147,7 @@ TurnStile.Repo.transaction(fn ->
     email_confirmation: "sam5@jones.com",
     last_name: "Jones5",
     first_name: "Sam",
-    password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
+    password: "password"
   }
 
   {:ok, employee5} =
@@ -188,10 +170,7 @@ TurnStile.Repo.transaction(fn ->
     email_confirmation: "sam6@jones.com",
     last_name: "Jones6",
     first_name: "Sam",
-    password: "password",
-    hashed_password: "password",
-    current_organization_login_id: nil,
-    timezone: "America/New_York"
+    password: "password"
   }
 
   {:ok, employee6} =
@@ -300,28 +279,26 @@ TurnStile.Repo.transaction(fn ->
   {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a3)
   TurnStile.Alerts.insert_alert(alert)
 
-  #   # # ORGANZIATION2
-  #   org2_params = %{
-  #     email: "org2@test.com",
-  #     name: "Org2",
-  #     phone: "777777777",
-  #     slug: "org2"
-  #   }
+    # # ORGANZIATION2
+    org2_params = %{
+      email: "org2@test.com",
+      name: "Org2",
+      phone: "777777777",
+      slug: "org2"
+    }
 
-  # {:ok, organization2} = TurnStile.Company.insert_and_preload_organization(org2_params)
+  {:ok, organization2} = TurnStile.Company.insert_and_preload_organization(org2_params)
+
   # # IO.inspect(organization2)
 
   # # EMPLOYEE3
-  # emp3_params = %{
-  #   email: "employee3@test.com",
-  #   email_confirmation: "employee3@test.com",
-  #   last_name: "Employee3",
-  #   first_name: "Test3",
-  #   password: "password",
-  #   hashed_password: "password",
-  #   current_organization_login_id: organization2.id,")),
-
-  # }
+  emp1_02_params = %{
+    email: "employee3@test.com",
+    email_confirmation: "employee3@test.com",
+    last_name: "Employee3",
+    first_name: "Test3",
+    password: "password",
+  }
 
   # {:ok, employee3} = TurnStile.Staff.insert_register_employee(emp3_params, organization2)
   # IO.inspect(employee3)

@@ -59,14 +59,14 @@ defmodule TurnStile.Staff do
   """
   def get_employee(id), do: Repo.get(Employee, id) |> Repo.preload(:roles)
 
-  @doc """
+  @doc"""
   Gets role on current organization.
 
   """
 
-  def get_organization_role(employee, organization_id) do
+  defp get_organization_employee_role(employee, organization_id) do
     if is_nil(employee) || is_nil(organization_id) do
-      IO.puts("get_organization_role: nil input")
+      IO.puts("get_organization_employee_role: nil input")
       nil
     else
       q =
@@ -75,6 +75,7 @@ defmodule TurnStile.Staff do
           where: r.employee_id == ^employee.id,
           select: r
         )
+
 
       Repo.one(q)
     end
@@ -590,7 +591,7 @@ defmodule TurnStile.Staff do
 
   """
   def change_employee(%Employee{} = employee, attrs \\ %{}) do
-    Employee.changeset(employee, attrs, hashed_password: false)
+    Employee.changeset(employee, attrs, [hashed_password: false])
   end
 
   @doc """
@@ -629,9 +630,9 @@ defmodule TurnStile.Staff do
 
   # sets the role fields when employee is logged in
   def set_employee_role(employee, organization_id) do
-    # IO.inspect(employee)
-    # IO.inspect(organization_id)
-    role = get_organization_role(employee, organization_id)
+    # IO.inspect(employee, label: "employee")
+    # IO.inspect(organization_id, label: "organization_id")
+    role = get_organization_employee_role(employee, organization_id)
     # IO.inspect(role)
     # IO.inspect(role.name)
     # enum types need ints as strings

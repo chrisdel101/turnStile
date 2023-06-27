@@ -50,22 +50,29 @@ defmodule TurnStileWeb.EmployeeAuth do
 
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
-
-    conn
-    |> renew_session()
-    |> put_session(:employee_token, token)
-    |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
-    |> put_session(:current_organization_id_str, organization_id)
-    |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: "/organizations/#{organization_id}" || employee_return_to)
+    # set these params in DB
+    case set_employee_login_params(employee, organization_id) do
+      {:ok, _employee} ->
+        conn
+        |> renew_session()
+        |> put_session(:employee_token, token)
+        |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
+        |> put_session(:current_organization_id_str, organization_id)
+        |> maybe_write_remember_me_cookie(token, params)
+        |> redirect(to: "/organizations/#{organization_id}" || employee_return_to)
+      {:error, error} ->
+        conn
+        |> put_flash(:error, error)
+        |> redirect(to: "/organizations/#{organization_id}")
+    end
   end
 
   # logs in directly after being created - TODO diff to above
   def log_in_employee_on_create(conn, employee, organization_id, redirect_path, params \\ %{}) do
     # get org id from url
     # organization_id = Map.get(organization, "id") || Map.get(organization, :id)
-    IO.puts("organization_id")
-    IO.inspect(organization_id)
+    # IO.puts("organization_id")
+    # IO.inspect(organization_id)
     # IO.inspect(organization)
     if !organization_id do
       conn
@@ -73,16 +80,21 @@ defmodule TurnStileWeb.EmployeeAuth do
       |> put_flash(:error, "An auto-login error occured. Please click login to manually login")
       |> redirect(to: Routes.page_path(conn, :index))
     end
+    organization = TurnStile.Company.get_organization(organization_id)
+    # stop login on non-existent organization
+    if !organization do
+      conn
+      |> put_flash(:info, "That Organization doesn't exist. Try again.")
+      |> redirect(to: Routes.organization_path(conn, :index))
+    end
 
     token = Staff.generate_employee_session_token(employee)
     employee_return_to = get_session(conn, :employee_return_to)
 
-    case Staff.set_employee_role(employee, organization_id) do
+    case set_employee_login_params(employee, organization_id) do
       {:ok, employee} ->
         IO.puts("employee")
         IO.inspect(employee)
-        Staff.set_is_logged_in(employee, organization_id)
-
         conn
         |> renew_session()
         |> put_session(:employee_token, token)
@@ -97,8 +109,22 @@ defmodule TurnStileWeb.EmployeeAuth do
         IO.inspect(error)
 
         conn
-        |> put_flash(:error, "Account created but login failed. Manual login reuqired.")
-        |> redirect(to: "organizations/#{organization_id}" || employee_return_to)
+        |> put_flash(:error, "Account created but login failed. Manual login reuqired")
+        |> redirect(to: "organizations/#{organization_id}")
+    end
+  end
+# group login settig calls together into one function
+  defp set_employee_login_params(employee, organization_id) do
+    case Staff.set_employee_role(employee, organization_id) do
+      {:ok, employee} ->
+        case Staff.set_is_logged_in(employee, organization_id) do
+          {:ok, employee} ->
+            {:ok, employee}
+          {:error, error} ->
+            {:error, error}
+        end
+      {:error, error} ->
+        {:error, error}
     end
   end
 

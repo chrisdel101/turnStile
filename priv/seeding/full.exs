@@ -7,10 +7,10 @@ TurnStile.Repo.transaction(fn ->
   }
   {:ok, organization1} = TurnStile.Company.insert_and_preload_organization(org1_params)
   em1 = %{
-    email: "joe1@schmo.com",
-    email_confirmation: "joe1@schmo.com",
-    first_name: "Joe ",
-    last_name: "Schmo",
+    email: "sam1@jones.com",
+    email_confirmation: "sam1@jones.com",
+    last_name: "Jones1",
+    first_name: "Sam",
     password: "password",
     password_confirmation: "password"
   }
@@ -27,10 +27,10 @@ TurnStile.Repo.transaction(fn ->
   TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
 
   em2 = %{
-    email: "joe2@schmo.com",
-    email_confirmation: "joe2@schmo.com",
-    first_name: "Joe",
-    last_name: "Schmo2",
+    email: "sam2@jones.com",
+    email_confirmation: "sam2@jones.com",
+    last_name: "Jones2",
+    first_name: "Sam",
     password: "password",
     password_confirmation: "password"
   }

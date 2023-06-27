@@ -190,6 +190,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   """
   def create_initial_owner(conn, organization, %{"employee" => employee_params}) do
     # extract org id
+
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     IO.inspect(organization)
     # check if org already exist - it was just created
@@ -220,8 +221,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
               case zz do
                 {:ok, _email_body} ->
-                  log_in_setting = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
-                  {:ok, employee, log_in_setting}
+                  log_in? = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
+                  {:ok, employee, log_in?}
 
                 {:error, error} ->
                   {:error, error}
