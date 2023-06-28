@@ -76,7 +76,7 @@ defmodule TurnStile.Roles do
     if organization_employee_role_exists?(employee_id, organization_id) do
       {:error, "Role already exists"}
     else
-      case check_assoc_valid(employee_id, organization_id, role) do
+      case check_role_has_employee_org_assoc(employee_id, organization_id, role) do
         {:ok, true} ->
           Repo.insert(role)
 
@@ -86,8 +86,9 @@ defmodule TurnStile.Roles do
     end
   end
 
-  # employee can have only 1 role per organization
-  def check_assoc_valid(employee_id, organization_id, role) do
+  # confirm that both struct items are on the role
+  # confirm that both stuct items are the the correct ones for this role
+  def check_role_has_employee_org_assoc(employee_id, organization_id, role) do
     #  check ids match assocs; checks for invalid empl and orgs this way
     cond do
       # confirm employee preload
@@ -120,6 +121,26 @@ defmodule TurnStile.Roles do
         {:ok, true}
     end
   end
+  # confirm that both struct items are on the role
+  # confirm that both stuct items are the the correct ones for this role
+  # third param (assoc_check_function) is a function call to
+  # params are extracted and used
+  def check_role_has_employee_org_user_assoc(user_id, assoc_check_function)
+    when is_function(assoc_check_function) do
+      {employee_id, organization_id, role} = assoc_check_function
+      case assoc_check_function do
+        {:ok, true} ->
+          "hello"
+          # cond do
+
+          # end
+
+        {:error, error} ->
+          {:error, error}
+      end
+    # else
+    #   {:error, "third param must be a function call"}
+end
 
   # check for role with both org & employee
   def organization_employee_role_exists?(employee_id, organization_id) do
@@ -145,6 +166,16 @@ defmodule TurnStile.Roles do
     role_value = role_struct.value
     if TurnStile.Utils.convert_to_int(role_value) <=
          EmployeePermissionThresholds.add_user_permissions_threshold() do
+      true
+    else
+      false
+    end
+  end
+
+  def role_value_has_add_alert?(role_struct) do
+    role_value = role_struct.value
+    if TurnStile.Utils.convert_to_int(role_value) <=
+         EmployeePermissionThresholds.send_alert_permissions_threshold() do
       true
     else
       false

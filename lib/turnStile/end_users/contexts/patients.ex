@@ -73,13 +73,14 @@ defmodule TurnStile.Patients do
 
     # IO.inspect(org_employee_role, label: "org_employee_role")
 
-    # IO.inspect(TurnStile.Roles.check_assoc_valid(employee_struct.id, organization_struct.id, role), label: "check_assoc_valid")
+    # IO.inspect(TurnStile.Roles.check_role_has_employee_org_assoc(employee_struct.id, organization_struct.id, role), label: "check_role_has_employee_org_assoc")
 
   #  IO.inspect(Roles.has, label: "JHERE")
 
 
     # IO.inspect(user_params, label: "user_params")
-    # IO.inspect(organization_struct, label: "organization_struct")
+    IO.inspect("organization_struct")
+    IO.inspect(organization_struct)
     # build user struct from map
     user = %User{
       first_name: user_params["first_name"] || user_params.first_name,
@@ -105,7 +106,7 @@ defmodule TurnStile.Patients do
             IO.puts(error)
             {:error, error}
           _ ->
-            case TurnStile.Roles.check_assoc_valid(employee_struct.id, organization_struct.id, org_employee_role) do
+            case TurnStile.Roles.check_role_has_employee_org_assoc(employee_struct.id, organization_struct.id, org_employee_role) do
               {:error, error} ->
                 IO.puts(error)
                 {:error, error}
@@ -140,14 +141,20 @@ defmodule TurnStile.Patients do
               {:error, "Employee lacks permissions to add users"}
             end
         end
-      # end
       end
   end
 
   def insert_user(user) do
-     # user = Ecto.build_assoc(employee_struct, :users, user)
-    #  IO.inspect(user, label: "insert_user")
-    Repo.insert(user)
+   case  Repo.insert(user) do
+     {:ok, user} ->
+      {:ok, user
+      |> Repo.preload(:employee)
+      |> Repo.preload(:organization)
+      |> Repo.preload(:alerts)
+     }
+     {:error, error} ->
+       {:error, error}
+   end
   end
 
   @doc """

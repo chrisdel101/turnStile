@@ -58,8 +58,8 @@ defmodule TurnStile.Alerts do
   create_alert_w_assoc
   Creates new alert with 3 assoc
   """
-  def create_alert_w_assoc(employee_struct, user_struct, attrs) do
-    organization = TurnStile.Company.get_organization(user_struct.organization_id)
+  def create_alert_w_assoc(employee_struct, user_struct, attrs, role, organization_struct \\ %{}) do
+    user_organization = TurnStile.Company.get_organization(user_struct.organization_id)
     # build alert instance
     alert = %Alert{
       alert_category: attrs["alert_category"] || attrs.alert_category,
@@ -68,17 +68,81 @@ defmodule TurnStile.Alerts do
       title: attrs["title"] || attrs.title
     }
 
-      # build_assoc user, emp, org
-      alert_struct = Ecto.build_assoc(user_struct, :alerts, alert)
-      alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
-      alert_struct = Ecto.build_assoc(organization, :alerts, alert_struct)
-      alert_struct
-      {:ok, alert_struct}
+    # build_assoc user, emp, org
+    alert_struct = Ecto.build_assoc(user_struct, :alerts, alert)
+    #  check employee organization_struct
+    case employee_struct.current_organization_login_id do
+      # check employee has org_id, or ir org struct passed in
+      nil ->
+        case organization_struct do
+          nil ->
+            error =
+              "Error: create_alert_w_assoc: User.organization struct && organization params cannot BOTH be nil. Organization is required."
+
+            IO.puts(error)
+            {:error, error}
+
+          _ ->
+            # check all assocs are okay
+            case TurnStile.Roles.check_role_has_employee_org_user_assoc(
+                   user_struct.id,
+                   TurnStile.Roles.check_role_has_employee_org_assoc(
+                     employee_struct.id,
+                     organization_struct.id,
+                     role
+                   )
+                 ) do
+              {:error, error} ->
+                IO.puts(error)
+                {:error, error}
+
+              # check employee as permissions
+              {:ok, _} ->
+                if Roles.role_value_has_add_alert?(role) do
+                  alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
+                  alert_struct = Ecto.build_assoc(organization_struct, :alerts, alert_struct)
+                  alert_struct
+                  {:ok, alert_struct}
+                else
+                  {:error, "Employee lacks permissions to add alerts"}
+                end
+            end
+
+          # if logged-in user
+          _ ->
+            organization_id = employee_struct.current_organization_login_id
+
+            case TurnStile.Roles.check_role_has_employee_org_user_assoc(
+                   user_struct.id,
+                   TurnStile.Roles.check_role_has_employee_org_assoc(
+                     employee_struct.id,
+                     organization_id,
+                     role
+                   )
+                 ) do
+              {:error, error} ->
+                IO.puts(error)
+                {:error, error}
+
+              # check employee as permissions
+              {:ok, _} ->
+                if Roles.role_value_has_add_alert?(role) do
+                  alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
+                  alert_struct = Ecto.build_assoc(organization_struct, :alerts, alert_struct)
+                  alert_struct
+                  {:ok, alert_struct}
+                else
+                  {:error, "Employee lacks permissions to add alerts"}
+                end
+            end
+        end
+    end
   end
 
   def insert_alert(alert) do
     Repo.insert(alert)
   end
+
   @doc """
   insert_alert_w_assoc
    Creates new alert changset with assoc to user & employee.

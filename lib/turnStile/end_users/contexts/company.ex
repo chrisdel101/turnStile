@@ -86,7 +86,7 @@ defmodule TurnStile.Company do
   def update_employee_assoc(organization_struct, employee_params) do
     IO.inspect("organization_struct")
 
-    organization_struct = Repo.preload(organization_struct, :employees)
+    # organization_struct = Repo.preload(organization_struct, :employees)
     # load employee on organization
     org_changeset = Ecto.Changeset.change(organization_struct)
     # put_assoc employee/organization
