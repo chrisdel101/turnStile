@@ -121,26 +121,38 @@ defmodule TurnStile.Roles do
         {:ok, true}
     end
   end
-  # confirm that both struct items are on the role
-  # confirm that both stuct items are the the correct ones for this role
-  # third param (assoc_check_function) is a function call to
+
+  # confirm prev emp/org assoc hold
+  # confirm user is
   # params are extracted and used
-  def check_role_has_employee_org_user_assoc(user_id, assoc_check_function)
-    when is_function(assoc_check_function) do
-      {employee_id, organization_id, role} = assoc_check_function
-      case assoc_check_function do
-        {:ok, true} ->
-          "hello"
-          # cond do
+  def check_role_has_employee_org_user_assoc(
+        employee_id,
+        organization_id,
+        user_struct,
+        role
+      ) do
+    case check_role_has_employee_org_assoc(employee_id, organization_id, role) do
+      {:ok, _} ->
+        # make sure user is associated with organization
+        cond do
+          !Ecto.assoc_loaded?(user_struct.organization) ->
+            error =
+              "Error: Roles.check_role_has_employee_org_user_assoc user organization is not loaded"
+              IO.puts(error)
+              {:error, error}
+            user_struct.organization.id !== organization_id ->
+              error =
+                "Error: Roles.check_role_has_employee_org_user_assoc user organization id does not match"
+            IO.puts(error)
+            {:error, error}
+          true ->
+            {:ok, true}
+        end
 
-          # end
-
-        {:error, error} ->
-          {:error, error}
-      end
-    # else
-    #   {:error, "third param must be a function call"}
-end
+      {:error, error} ->
+        {:error, error}
+    end
+  end
 
   # check for role with both org & employee
   def organization_employee_role_exists?(employee_id, organization_id) do
@@ -164,6 +176,7 @@ end
 
   def role_value_has_add_user?(role_struct) do
     role_value = role_struct.value
+
     if TurnStile.Utils.convert_to_int(role_value) <=
          EmployeePermissionThresholds.add_user_permissions_threshold() do
       true
@@ -174,6 +187,7 @@ end
 
   def role_value_has_add_alert?(role_struct) do
     role_value = role_struct.value
+
     if TurnStile.Utils.convert_to_int(role_value) <=
          EmployeePermissionThresholds.send_alert_permissions_threshold() do
       true
