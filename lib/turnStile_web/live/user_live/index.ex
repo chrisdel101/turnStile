@@ -13,12 +13,13 @@ defmodule TurnStileWeb.UserLive.Index do
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
+    organization_id = current_employee.current_organization_login_id
     # IO.inspect(panel, label: "mount on index")
 
     {:ok,
      assign(
        socket,
-       users: list_active_users(),
+       users: list_active_users(organization_id),
        current_employee: current_employee
      )}
   end
@@ -70,12 +71,12 @@ defmodule TurnStileWeb.UserLive.Index do
       socket =
         socket
         |> put_flash(:info, "User deleted successfully.")
-        {:noreply, assign(socket, :users, list_active_users())}
+        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
     else
       socket =
         socket
         |> put_flash(:error, "Insuffient permissions to perform user delete")
-        {:noreply, assign(socket, :users, list_active_users())}
+        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
     end
   end
   def handle_event("remove", %{"id" => id}, socket) do
@@ -88,12 +89,12 @@ defmodule TurnStileWeb.UserLive.Index do
       socket =
         socket
         |> put_flash(:info, "User inactivated.")
-        {:noreply, assign(socket, :users, list_active_users())}
+        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
     else
       socket =
         socket
         |> put_flash(:error, "Insuffient permissions to perform user remove")
-        {:noreply, assign(socket, :users, list_active_users())}
+        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
     end
 
   end
@@ -123,8 +124,8 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user, nil)
   end
 
-  defp list_active_users do
-    Patients.list_active_users()
+  defp list_active_users(organization_id) do
+    Patients.list_active_users(organization_id)
   end
 
   defp send_alert(socket, %{"employee_id" => employee_id, "user_id" => user_id}) do

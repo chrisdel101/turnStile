@@ -22,11 +22,13 @@ defmodule TurnStile.Patients do
     Repo.all(User)
   end
 
-  def list_active_users do
-    q = from(u in User,
-      where: u.is_active? == true,
-      order_by: [desc: u.inserted_at]
-    )
+  def list_active_users(organization_id) do
+    q =
+      from(u in User,
+        where: u.organization_id == ^organization_id,
+        where: u.is_active? == true,
+        order_by: [desc: u.inserted_at]
+      )
     Repo.all(q)
   end
 
@@ -63,20 +65,24 @@ defmodule TurnStile.Patients do
     |> User.changeset(attrs)
     |> Repo.insert()
   end
-  @doc"""
+
+  @doc """
   create_user_w_assocs
     handles the one-many for new user-to-employee
   -needs organization struct OR current_organization_login_id
   -needs to check employee role is valid and sufficient
   """
-  def create_user_w_assocs(employee_struct, user_params, org_employee_role, organization_struct \\ nil) do
-
+  def create_user_w_assocs(
+        employee_struct,
+        user_params,
+        org_employee_role,
+        organization_struct \\ nil
+      ) do
     # IO.inspect(org_employee_role, label: "org_employee_role")
 
     # IO.inspect(TurnStile.Roles.check_role_has_employee_org_assoc(employee_struct.id, organization_struct.id, role), label: "check_role_has_employee_org_assoc")
 
-  #  IO.inspect(Roles.has, label: "JHERE")
-
+    #  IO.inspect(Roles.has, label: "JHERE")
 
     # IO.inspect(user_params, label: "user_params")
     IO.inspect("organization_struct")
@@ -87,12 +93,14 @@ defmodule TurnStile.Patients do
       last_name: user_params["last_name"] || user_params.last_name,
       email: user_params["email"] || user_params.email,
       phone: user_params["phone"] || user_params.phone,
-      health_card_num: TurnStile.Utils.convert_to_int(user_params["health_card_num"]) || TurnStile.Utils.convert_to_int(user_params.health_card_num)
+      health_card_num:
+        TurnStile.Utils.convert_to_int(user_params["health_card_num"]) ||
+          TurnStile.Utils.convert_to_int(user_params.health_card_num)
     }
+
     # IO.inspect(employee_struct, label: "employee_struct22")
     # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
     # IO.inspect(user, label: "user")
-
 
     # add employee assoc
     user_struct = Ecto.build_assoc(employee_struct, :users, user)
@@ -102,59 +110,62 @@ defmodule TurnStile.Patients do
       nil ->
         case organization_struct do
           nil ->
-            error = "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
+            error =
+              "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
+
             IO.puts(error)
             {:error, error}
+
           _ ->
-            case TurnStile.Roles.check_role_has_employee_org_assoc(employee_struct.id, organization_struct.id, org_employee_role) do
+            case TurnStile.Roles.check_role_has_employee_org_assoc(
+                   employee_struct.id,
+                   organization_struct.id,
+                   org_employee_role
+                 ) do
               {:error, error} ->
                 IO.puts(error)
                 {:error, error}
-              {:ok,_} ->
+
+              {:ok, _} ->
                 if Roles.role_value_has_add_user?(org_employee_role) do
                   # add org assoc
                   user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
-                  IO.inspect(user_struct, label: "user struct123")
-                  insert_user(user_struct)
+                  # IO.inspect(user_struct, label: "user struct123")
                   {:ok, user_struct}
                 else
                   {:error, "Employee lacks permissions to add users"}
-
                 end
             end
-          # end
+
+            # end
         end
-        # if logged-in user
+
+      # if logged-in user
       _ ->
         organization_id = employee_struct.current_organization_login_id
-        case Roles.role_value_has_add_user?(org_employee_role) do
-          {:error, error} ->
-            IO.puts(error)
-            {:error, error}
-          {:ok,_} ->
-            if Roles.has do
-              organization_struct = TurnStile.Company.get_organization(organization_id)
-              user_struct = Ecto.build_assoc(organization_struct, :users, organization_struct)
-              # IO.inspect(user_struct, label: "organization struct123")
-              {:ok, user_struct}
-            else
-              {:error, "Employee lacks permissions to add users"}
-            end
+        if Roles.role_value_has_add_user?(org_employee_role) do
+          organization_struct = TurnStile.Company.get_organization(organization_id)
+          user_struct = Ecto.build_assoc(organization_struct, :users, organization_struct)
+          # IO.inspect(user_struct, label: "organization struct123")
+          {:ok, user_struct}
+        else
+          {:error, "Employee lacks permissions to add users"}
         end
-      end
+    end
   end
 
   def insert_user(user) do
-   case  Repo.insert(user) do
-     {:ok, user} ->
-      {:ok, user
-      |> Repo.preload(:employee)
-      |> Repo.preload(:organization)
-      |> Repo.preload(:alerts)
-     }
-     {:error, error} ->
-       {:error, error}
-   end
+    case Repo.insert(user) do
+      {:ok, user} ->
+        {:ok,
+         user
+         |> Repo.preload(:employee)
+         |> Repo.preload(:organization)
+         |> Repo.preload(:alerts)}
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   @doc """
@@ -191,13 +202,13 @@ defmodule TurnStile.Patients do
     Repo.delete(user)
   end
 
-
   def deactivate_user(%User{} = user) do
     IO.inspect(user, label: "user")
     # new_user = change_user(user, %{is_active?: false})
     {:ok, new_user} = update_user(user, %{is_active?: false})
     IO.inspect(new_user, label: "new_user")
   end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 

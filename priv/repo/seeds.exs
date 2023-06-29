@@ -42,7 +42,8 @@ TurnStile.Repo.transaction(fn ->
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-  TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
+
+  {:ok, role1} = TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
   # EMPLOYEE2 - admin
   emp2_params = %{
     email: "sam2@jones.com",
@@ -66,10 +67,10 @@ TurnStile.Repo.transaction(fn ->
   # add has_many role assocations
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee2)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
-  TurnStile.Roles.insert_role(employee2.id, org_w_emps.id, role)
+  {:ok, role2} =TurnStile.Roles.insert_role(employee2.id, org_w_emps.id, role)
 
   # EMPLOYEE2 - admin
-  emp8_params = %{
+  emp7_params = %{
     email: "sam7@jones.com",
     email_confirmation: "sam7@jones.com",
     last_name: "Jones7",
@@ -78,7 +79,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   {:ok, employee7} =
-    TurnStile.Staff.insert_register_employee(emp8_params, organization: organization1)
+    TurnStile.Staff.insert_register_employee(emp7_params, organization: organization1)
 
   {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization1, employee7)
   role =
@@ -90,7 +91,7 @@ TurnStile.Repo.transaction(fn ->
   # add has_many role assocations
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee7)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
-  TurnStile.Roles.insert_role(employee7.id, org_w_emps.id, role)
+  {:ok, role7} = TurnStile.Roles.insert_role(employee7.id, org_w_emps.id, role)
 
   # EMPLOYEE3 - EDITOR
   emp3_params = %{
@@ -115,7 +116,7 @@ TurnStile.Repo.transaction(fn ->
   # add has_many role assocations
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee3)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
-  TurnStile.Roles.insert_role(employee3.id, org_w_emps.id, role)
+  {:ok, role3} = TurnStile.Roles.insert_role(employee3.id, org_w_emps.id, role)
 
   # EMPLOYEE4 - CONTRIBUTOR
   emp4_params = %{
@@ -140,7 +141,7 @@ TurnStile.Repo.transaction(fn ->
   # add has_many role assocations
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee4)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
-  TurnStile.Roles.insert_role(employee4.id, org_w_emps.id, role)
+  {:ok, role4} = TurnStile.Roles.insert_role(employee4.id, org_w_emps.id, role)
   # EMPLOYEE5 - CONTRIBUTOR
   emp5_params = %{
     email: "sam5@jones.com",
@@ -163,7 +164,7 @@ TurnStile.Repo.transaction(fn ->
   # add has_many role assocations
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee5)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
-  TurnStile.Roles.insert_role(employee5.id, org_w_emps.id, role)
+  {:ok, role5} = TurnStile.Roles.insert_role(employee5.id, org_w_emps.id, role)
   # EMPLOYEE6 - VIEWER
   emp6_params = %{
     email: "sam6@jones.com",
@@ -186,7 +187,7 @@ TurnStile.Repo.transaction(fn ->
   # add has_many role assocations
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee6)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
-  TurnStile.Roles.insert_role(employee6.id, org_w_emps.id, role)
+  {:ok, role6} = TurnStile.Roles.insert_role(employee6.id, org_w_emps.id, role)
 
   # USERS W ORG1
   user1 = %{
@@ -198,7 +199,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user1} = TurnStile.Patients.create_user_w_assocs(employee1, user1, organization1)
+  {:ok, user1} = TurnStile.Patients.create_user_w_assocs(employee1, user1, role1, organization1)
 
   user2 = %{
     first_name: "Joe2",
@@ -209,7 +210,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user2} = TurnStile.Patients.create_user_w_assocs(employee1, user2, organization1)
+  {:ok, user2} = TurnStile.Patients.create_user_w_assocs(employee2, user2, role2, organization1)
 
   user3 = %{
     first_name: "Joe3",
@@ -220,7 +221,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user3} = TurnStile.Patients.create_user_w_assocs(employee1, user3, organization1)
+  {:ok, user3} = TurnStile.Patients.create_user_w_assocs(employee1, user3, role1, organization1)
 
   user4 = %{
     first_name: "Joe4",
@@ -231,12 +232,12 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user4} = TurnStile.Patients.create_user_w_assocs(employee1, user4, organization1)
+  {:ok, user4} = TurnStile.Patients.create_user_w_assocs(employee4, user4, role4, organization1)
 
-  {:ok, user1} = TurnStile.Repo.insert(user1)
-  {:ok, user2} = TurnStile.Repo.insert(user2)
-  {:ok, user3} = TurnStile.Repo.insert(user3)
-  {:ok, user4} = TurnStile.Repo.insert(user4)
+  {:ok, user1} = TurnStile.Patients.insert_user(user1)
+  {:ok, user2} = TurnStile.Patients.insert_user(user2)
+  {:ok, user3} = TurnStile.Patients.insert_user(user3)
+  {:ok, user4} = TurnStile.Patients.insert_user(user4)
 
   # ALERTS
   a1 = %{
@@ -246,7 +247,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert1"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a1)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a1, role1, organization1)
   TurnStile.Alerts.insert_alert(alert)
 
   a4 = %{
@@ -256,7 +257,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert4"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a4)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a4, role1, organization1)
   TurnStile.Alerts.insert_alert(alert)
 
   a2 = %{
@@ -266,7 +267,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert2"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a2)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a2, role1, organization1)
   TurnStile.Alerts.insert_alert(alert)
 
   a3 = %{
@@ -276,10 +277,10 @@ TurnStile.Repo.transaction(fn ->
     title: "alert3"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a3)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a3, role1, organization1)
   TurnStile.Alerts.insert_alert(alert)
 
-    ############# ORGANZIATION2 ############
+  #   ############# ORGANZIATION2 ############
     org2_params = %{
       email: "org2@test.com",
       name: "Org2",
@@ -314,7 +315,7 @@ TurnStile.Repo.transaction(fn ->
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee9)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-  TurnStile.Roles.insert_role(employee9.id, org_w_emps.id, role)
+  {:ok, role9} =TurnStile.Roles.insert_role(employee9.id, org_w_emps.id, role)
 
   emp10_params = %{
     email: "sam10@jones.com",
@@ -339,7 +340,7 @@ TurnStile.Repo.transaction(fn ->
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee10)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-  TurnStile.Roles.insert_role(employee10.id, org_w_emps.id, role)
+  {:ok, role10} = TurnStile.Roles.insert_role(employee10.id, org_w_emps.id, role)
 
   # ADD EXISTING EMPLOYEE TO ORG2
   {:ok, org_w_emps} = TurnStile.Company.update_employee_assoc(organization2, employee1)
@@ -354,7 +355,8 @@ TurnStile.Repo.transaction(fn ->
   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-  # TurnStile.Roles.insert_role(employee11.id, org_w_emps.id, role)
+  {:ok, rolexy} = TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
+
 
   emp11_params = %{
     email: "sam11@jones.com",
@@ -380,7 +382,8 @@ TurnStile.Repo.transaction(fn ->
   role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
 
-  TurnStile.Roles.insert_role(employee11.id, org_w_emps.id, role)
+  {:ok, role11} = TurnStile.Roles.insert_role(employee11.id, org_w_emps.id, role)
+
 
 
   # USERS W ORG1
@@ -393,7 +396,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user5} = TurnStile.Patients.create_user_w_assocs(employee10, user5, organization2)
+  {:ok, user5} = TurnStile.Patients.create_user_w_assocs(employee10, user5, role10, organization2)
 
   user6 = %{
     first_name: "Joe6",
@@ -404,7 +407,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user6} = TurnStile.Patients.create_user_w_assocs(employee1, user6, organization2)
+  {:ok, user6} = TurnStile.Patients.create_user_w_assocs(employee1, user6, rolexy, organization2)
 
   user7 = %{
     first_name: "Joe7",
@@ -415,7 +418,7 @@ TurnStile.Repo.transaction(fn ->
   }
 
   # user w/ emp and org assocs
-  {:ok, user7} = TurnStile.Patients.create_user_w_assocs(employee9, user7, organization2)
+  {:ok, user7} = TurnStile.Patients.create_user_w_assocs(employee9, user7, role9, organization2)
 
   user8 = %{
     first_name: "Joe9",
@@ -424,11 +427,52 @@ TurnStile.Repo.transaction(fn ->
     phone: "777777777",
     health_card_num: 8191
   }
-  {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, organization2)
+  {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, role9, organization2)
 
-  {:ok, user5} = TurnStile.Repo.insert(user5)
-  {:ok, user6} = TurnStile.Repo.insert(user6)
-  {:ok, user7} = TurnStile.Repo.insert(user7)
-  {:ok, user8} = TurnStile.Repo.insert(user8)
-  TurnStile.Repo.rollback({:rolling_back})
+  {:ok, user5} = TurnStile.Patients.insert_user(user5)
+  {:ok, user6} = TurnStile.Patients.insert_user(user6)
+  {:ok, user7} = TurnStile.Patients.insert_user(user7)
+  {:ok, user8} = TurnStile.Patients.insert_user(user8)
+
+  # ALERTS
+  a5 = %{
+    alert_category: "initial",
+    alert_format: "sms",
+    body: "some body1",
+    title: "alert1"
+  }
+
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee9, user5, a5, role9, organization2)
+  TurnStile.Alerts.insert_alert(alert)
+
+  a6 = %{
+    alert_category: "confirmation",
+    alert_format: "sms",
+    body: "some body4",
+    title: "alert4"
+  }
+
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user6, a6, rolexy, organization2)
+  TurnStile.Alerts.insert_alert(alert)
+
+  a7 = %{
+    alert_category: "initial",
+    alert_format: "sms",
+    body: "some body2",
+    title: "alert2"
+  }
+
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee10, user7, a7, role10, organization2)
+  TurnStile.Alerts.insert_alert(alert)
+
+  a8 = %{
+    alert_category: "initial",
+    alert_format: "sms",
+    body: "some body3",
+    title: "alert3"
+  }
+
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee10, user8, a8, role10, organization2)
+  TurnStile.Alerts.insert_alert(alert)
+  # TurnStile.Repo.rollback({:rolling_back})
 end)
