@@ -36,6 +36,17 @@ defmodule TurnStile.Roles do
     Repo.get(Role, id)
   end
 
+  def get_role(employee_id, organization_id) do
+    q =
+      from(r in Role,
+        where: r.employee_id == ^employee_id,
+        where: r.organization_id == ^organization_id,
+        preload: [:employee, :organization]
+      )
+
+    Repo.one(q)
+  end
+
   @doc """
   Creates a role.
 
@@ -78,7 +89,16 @@ defmodule TurnStile.Roles do
     else
       case check_role_has_employee_org_assoc(employee_id, organization_id, role) do
         {:ok, true} ->
-          Repo.insert(role)
+          case Repo.insert(role) do
+            {:ok, role} ->
+              {:ok,
+               role
+               |> Repo.preload(:employee)
+               |> Repo.preload(:organization)}
+
+            {:error, error} ->
+              {:error, error}
+          end
 
         {:error, error} ->
           {:error, error}
@@ -138,13 +158,17 @@ defmodule TurnStile.Roles do
           !Ecto.assoc_loaded?(user_struct.organization) ->
             error =
               "Error: Roles.check_role_has_employee_org_user_assoc user organization is not loaded"
-              IO.puts(error)
-              {:error, error}
-            user_struct.organization.id !== organization_id ->
-              error =
-                "Error: Roles.check_role_has_employee_org_user_assoc user organization id does not match"
+
             IO.puts(error)
             {:error, error}
+
+          user_struct.organization.id !== organization_id ->
+            error =
+              "Error: Roles.check_role_has_employee_org_user_assoc user organization id does not match"
+
+            IO.puts(error)
+            {:error, error}
+
           true ->
             {:ok, true}
         end

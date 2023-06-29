@@ -18,10 +18,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         AlertCategoryTypesMap.get_alert("CUSTOM"),
         AlertFormatTypesMap.get_alert("SMS")
       )
-
-    changeset = Alerts.create_alert_w_assoc(current_employee, user, sms_attrs)
-
-    IO.inspect(changeset, label: "HELLO")
+    role = TurnStile.Roles.get_role(current_employee.id, current_employee.current_organization_login_id)
+    changeset = Alerts.create_alert_w_assoc(current_employee, user, sms_attrs, role)
 
     {:ok,
      socket
