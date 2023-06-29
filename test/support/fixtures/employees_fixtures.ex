@@ -46,7 +46,7 @@ defmodule TurnStile.EmployeeFixtures do
     employee =
       attrs
       |> merge_employee_attributes()
-      IO.inspect(employee)
+      # IO.inspect(employee)
     employee
   end
 

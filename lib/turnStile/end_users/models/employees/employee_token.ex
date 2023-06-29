@@ -172,7 +172,7 @@ defmodule TurnStile.Staff.EmployeeToken do
   def employee_and_contexts_query(employee, :all) do
     if !is_nil(employee) && !is_nil(employee.id) do
       query = from t in EmployeeToken, where: t.employee_id == ^employee.id
-      IO.inspect(query, label: "Generated Query")
+      # IO.inspect(query, label: "Generated Query")
       query
     end
   end

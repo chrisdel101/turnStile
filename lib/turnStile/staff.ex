@@ -258,19 +258,19 @@ defmodule TurnStile.Staff do
 
   """
   def update_employee_password(employee, current_password, attrs) do
-    IO.inspect('EMP')
-    IO.inspect(employee)
-    IO.inspect(current_password)
-    IO.inspect(attrs)
+    # IO.inspect('EMP')
+    # IO.inspect(employee)
+    # IO.inspect(current_password)
+    # IO.inspect(attrs)
 
     changeset =
       employee
       |> Employee.password_changeset(attrs)
       |> Employee.validate_current_password(current_password)
 
-    IO.inspect('EMP2')
-    IO.inspect(employee)
-    IO.inspect(changeset)
+    # IO.inspect('EMP2')
+    # IO.inspect(employee)
+    # IO.inspect(changeset)
 
     if changeset.valid? do
       Ecto.Multi.new()
@@ -380,8 +380,8 @@ defmodule TurnStile.Staff do
   and the token is deleted.
   """
   def confirm_employee(token) do
-    IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
-    IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
+    # IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
+    # IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
 
     with {:ok, query} <- EmployeeToken.verify_email_token_query(token, "confirm"),
          %Employee{} = employee <- Repo.one(query),
@@ -611,7 +611,7 @@ defmodule TurnStile.Staff do
       employee_id =
         TurnStile.Utils.convert_to_int(Map.get(employee, :id) || Map.get(employee, "id"))
 
-        IO.inspect(employee_id)
+        # IO.inspect(employee_id)
       if organization do
         # check for both ids match, return org_id
         q =
@@ -623,7 +623,7 @@ defmodule TurnStile.Staff do
         Repo.one(q)
       end
     else
-      IO.inspect("Error in check_employee_is_in_organization. Inputs are nil")
+      IO.puts("Error in check_employee_is_in_organization. Inputs are nil")
       nil
     end
   end

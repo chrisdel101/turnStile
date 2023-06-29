@@ -20,7 +20,7 @@ defmodule TurnStileWeb.UserController do
     current_employee = conn.assigns[:current_employee]
     # manually add employee_id
     user_params = Map.put(user_params, "employee_id", current_employee.id)
-    IO.inspect(user_params)
+    IO.inspect(user_params, label: "user_params")
     conn
     |> maybe_employee_exists()
     case Patients.create_user(user_params) do

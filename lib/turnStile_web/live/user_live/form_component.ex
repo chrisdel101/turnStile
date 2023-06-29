@@ -8,7 +8,7 @@ defmodule TurnStileWeb.UserLive.FormComponent do
   @impl true
   def update(%{user: user} = assigns, socket) do
     changeset = Patients.change_user(user)
-
+    # IO.inspect(changeset, label: "changeset")
     {:ok,
      socket
      |> assign(assigns)
@@ -30,6 +30,7 @@ defmodule TurnStileWeb.UserLive.FormComponent do
       socket.assigns.user
       |> Patients.change_user(user_params)
       |> Map.put(:action, :validate)
+      IO.inspect("changeset", label: "VALIDATE")
 
     {:noreply, assign(socket, :changeset, changeset)}
   end

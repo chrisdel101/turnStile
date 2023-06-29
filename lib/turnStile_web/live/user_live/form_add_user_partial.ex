@@ -5,7 +5,6 @@ defmodule AddUserPartialComponet do
 
   def render(assigns) do
     f = assigns.f
-    IO.inspect(assigns, label: "flash")
     ~H"""
     <h2>Add New User</h2>
     <%= label f, :first_name %>

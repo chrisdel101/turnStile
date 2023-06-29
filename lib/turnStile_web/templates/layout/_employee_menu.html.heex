@@ -2,7 +2,6 @@
   <li><%= link("Home", to: "/") %></li>
   <%= if @conn.assigns.route_type === RouteTypesMap.get_route_type_value("NON-ADMIN")  do %>
     <%= if @current_employee do %>
-      <% IO.inspect(@current_employee) %>
       <!--employee level can register new 
         staff -->
       <li>

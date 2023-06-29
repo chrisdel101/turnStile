@@ -84,7 +84,7 @@ defmodule TurnStile.Company do
 
   # handle the many-many for new employee- on create
   def update_employee_assoc(organization_struct, employee_params) do
-    IO.inspect("organization_struct")
+    # IO.inspect("organization_struct")
 
     # organization_struct = Repo.preload(organization_struct, :employees)
     # load employee on organization
@@ -96,8 +96,8 @@ defmodule TurnStile.Company do
         employee_params | organization_struct.employees
       ])
 
-    IO.inspect("org_with_emps")
-    IO.inspect(org_with_emps)
+    # IO.inspect("org_with_emps")
+    # IO.inspect(org_with_emps)
 
     case TurnStile.Company.update_organization_changeset(org_with_emps) do
       {:ok, updated_org} ->
@@ -130,7 +130,6 @@ defmodule TurnStile.Company do
   def update_organization(organization) do
     u_organization = Ecto.Changeset.change(organization)
     u = Repo.update(u_organization)
-    IO.inspect(u)
   end
 
   # takes a formed changeset and updates table

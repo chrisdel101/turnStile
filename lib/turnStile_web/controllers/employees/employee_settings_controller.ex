@@ -20,8 +20,8 @@ defmodule TurnStileWeb.EmployeeSettingsController do
   def update(conn, %{"action" => "update_name"} = params) do
     %{"employee" => employee_params} = params
     current_employee = conn.assigns[:current_employee]
-    IO.inspect(employee_params)
-    IO.inspect(current_employee)
+    IO.inspect(employee_params, label: "Employee.update")
+    IO.inspect(current_employee, label: "Employee.update")
     case Staff.update_employee(current_employee, employee_params) do
       {:ok, _applied_employee} ->
         conn

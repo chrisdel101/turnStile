@@ -38,8 +38,7 @@ defmodule TurnStileWeb.EmployeeAuth do
 
     # confirm this employee is in the correct organization
     is_in_organization? = Staff.check_employee_is_in_organization(employee, organization_id)
-    IO.inspect("is_in_organization")
-    IO.inspect(is_in_organization?)
+    IO.inspect(is_in_organization?, label: "is_in_organization?")
 
     if !is_in_organization? do
       conn
@@ -93,8 +92,7 @@ defmodule TurnStileWeb.EmployeeAuth do
 
     case set_employee_login_params(employee, organization_id) do
       {:ok, employee} ->
-        IO.puts("employee")
-        IO.inspect(employee)
+        IO.inspect(employee, label: "employee")
         conn
         |> renew_session()
         |> put_session(:employee_token, token)

@@ -29,8 +29,6 @@ defmodule TurnStileWeb.TestController do
       |> System.halt()
     end
 
-    IO.inspect(last_employee_added)
-
     e = %{
       "employee" => %{
         "email" => "joe#{last_employee_added.id + 1}@schmo.com",

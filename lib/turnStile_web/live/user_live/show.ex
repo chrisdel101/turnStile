@@ -5,13 +5,13 @@ defmodule TurnStileWeb.UserLive.Show do
 
   @impl true
   def mount(params, session, socket) do
-    IO.inspect(params)
+    # IO.inspect(params)
 
     # get token from session
     employee_token = session["employee_token"]
     # use to get logged in user
     current_employee = TurnStile.Staff.get_employee_by_session_token(employee_token)
-    IO.inspect(socket, label: "sss")
+    # IO.inspect(socket, label: "sss")
 
     {:ok,
      assign(

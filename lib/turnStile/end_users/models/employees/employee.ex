@@ -67,7 +67,7 @@ defmodule TurnStile.Staff.Employee do
   -CLI use: current_organization_login_id must be set maually
   """
   defp handle_timezone_insert(changeset) do
-    IO.inspect(changeset, label: "changeset in handle_timezone")
+    # IO.inspect(changeset, label: "changeset in handle_timezone")
     # if employee has not explieitly set timezone, use organization timezone
     # check no timezone ovrerride set on employee
     case !Map.get(changeset.changes, "timezone") && !Map.get(changeset.changes, :timezone) do

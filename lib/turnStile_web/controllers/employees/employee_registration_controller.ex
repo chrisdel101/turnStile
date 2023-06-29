@@ -192,7 +192,6 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     # extract org id
 
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
-    IO.inspect(organization)
     # check if org already exist - it was just created
     organizations = Company.get_organization(organization_id)
     # check if org already exist

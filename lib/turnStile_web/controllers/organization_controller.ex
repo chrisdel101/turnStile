@@ -98,8 +98,7 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def create(conn, employee_params) do
-    IO.inspect("HERE")
-    IO.inspect(employee_params)
+    IO.inspect(employee_params, label: "employee_params")
     # extract params from session
     current_employee = conn.assigns[:current_employee]
     org_params = Map.get(get_session(conn), "org_params")
@@ -107,8 +106,7 @@ defmodule TurnStileWeb.OrganizationController do
     # add organization
     case Company.insert_and_preload_organization(org_params) do
       {:ok, organization} ->
-        IO.inspect("insert_and_preload_organization")
-        IO.inspect(organization)
+        IO.inspect(organization, label: "insert_and_preload_organization")
         # creating initial employee
         if !current_employee do
           role =
@@ -140,7 +138,6 @@ defmodule TurnStileWeb.OrganizationController do
                   # add has_many role assocations
                   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
                   role = TurnStile.Roles.assocaiate_role_with_organization(role, updated_org)
-                  # IO.inspect("log_in?")
 
                   IO.inspect(employee, label: "employee")
                   IO.inspect(updated_org, label: "updated_org")
@@ -173,7 +170,6 @@ defmodule TurnStileWeb.OrganizationController do
                           params
                         )
                       else
-                        IO.inspect("OK FALSE")
                         # IO.inspect(updated_org)
                         conn
                         |> put_flash(

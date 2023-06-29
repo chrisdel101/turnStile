@@ -151,6 +151,7 @@ defmodule TurnStile.Roles do
         user_struct,
         role
       ) do
+    # IO.inspect(user_struct, label: "user_struct")
     case check_role_has_employee_org_assoc(employee_id, organization_id, role) do
       {:ok, _} ->
         # make sure user is associated with organization
@@ -159,14 +160,14 @@ defmodule TurnStile.Roles do
             error =
               "Error: Roles.check_role_has_employee_org_user_assoc user organization is not loaded"
 
-            IO.puts(error)
+            # IO.puts(error)
             {:error, error}
 
           user_struct.organization.id !== organization_id ->
             error =
               "Error: Roles.check_role_has_employee_org_user_assoc user organization id does not match"
 
-            IO.puts(error)
+            # IO.puts(error)
             {:error, error}
 
           true ->

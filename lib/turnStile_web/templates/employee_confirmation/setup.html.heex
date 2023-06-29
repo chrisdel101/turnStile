@@ -6,7 +6,7 @@
       <p>Oops, something went wrong! Please check the errors below.</p>
     </div>
   <% end %>
-  <% IO.inspect(@changeset) %>
+  <%!-- <% IO.inspect(@changeset) %> --%>
   <%= label f, :password, "New password" %>
   <%= password_input f, :password, required: true %>
   <%= error_tag f, :password %>

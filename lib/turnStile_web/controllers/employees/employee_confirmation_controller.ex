@@ -84,7 +84,6 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
              }) do
           {:ok, employee} ->
             if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
-              IO.inspect("YYYYYY")
               params = %{flash: "Account confirmed."}
 
               conn
@@ -100,7 +99,6 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
 
               # require manual login
             else
-              IO.inspect("XXXXXXX")
 
               conn
               |> put_flash(:info, "Employee confirmed successfully.")

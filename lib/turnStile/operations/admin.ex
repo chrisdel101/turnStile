@@ -34,8 +34,8 @@ defmodule TurnStile.Operations.Admin do
       Defaults to `true`.
   """
   def registration_changeset(admin, attrs, opts \\ []) do
-    IO.inspect(attrs)
-    IO.inspect(to_string(EmployeeRolesMap.get_permission_role_value(attrs["role"])))
+    # IO.inspect(attrs)
+    # IO.inspect(to_string(EmployeeRolesMap.get_permission_role_value(attrs["role"])))
     admin
     |> cast(attrs, [:email, :password,:hashed_password, :last_name, :first_name, :role, :client_type])
     |> validate_email()
