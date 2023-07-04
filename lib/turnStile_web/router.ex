@@ -5,7 +5,6 @@ defmodule TurnStileWeb.Router do
 
   import TurnStileWeb.TestController
   import TurnStileWeb.EmployeeAuth
-  import TurnStileWeb.OrganizationController
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -20,7 +19,6 @@ defmodule TurnStileWeb.Router do
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
     plug TurnStileWeb.Plugs.EmptyParams
-    plug :fetch_current_organization
     plug :set_test_current_employee
 
   end
@@ -100,6 +98,7 @@ defmodule TurnStileWeb.Router do
     get "/employees/settings", EmployeeSettingsController, :edit
     put "/employees/settings", EmployeeSettingsController, :update
     get "/employees/settings/confirm_email/:token", EmployeeSettingsController, :confirm_email
+
   end
 
   scope "/organizations/:id", TurnStileWeb do
@@ -116,7 +115,6 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser]
 
     delete "/employees/log_out", EmployeeSessionController, :delete
-    get "/employees/confirm", EmployeeConfirmationController, :new
     post "/employees/confirm", EmployeeConfirmationController, :create
     get "/employees/setup/:token", EmployeeConfirmationController, :setup
     get "/employees/confirm/:token", EmployeeConfirmationController, :confirm
@@ -128,7 +126,8 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :require_authenticated_employee]
 
     resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do
-      resources "/employees", EmployeeController, except: [:new, :edit, :update, :index]
+      # show, delete
+      resources "/employees", EmployeeController, except: [:new, :edit, :update, :index, :show]
     end
 
     live "/organizations/:organization_id/employees/:employee_id/users/", UserLive.Index, :index
@@ -158,25 +157,16 @@ defmodule TurnStileWeb.Router do
         # )
   end
 
-  # scope "/", TurnStileWeb do
-  #   pipe_through [:browser, :require_authenticated_admin]
-  #   live "/alerts", AlertLive.Index, :index
-  #   live "/alerts/new", AlertLive.Index, :new
-  #   live "/alerts/:id/edit", AlertLive.Index, :edit
-
-  #   live "/alerts/:id", AlertLive.Show, :show
-  #   live "/alerts/:id/show/edit", AlertLive.Show, :edit
-  # end
-
   # employee edit and update req write access
   scope "/organizations/:organization_id/employees/:id", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_employee, :require_edit_access_employee]
+    pipe_through [:browser,
+    :require_authenticated_employee, :require_edit_access_employee]
 
     get "/edit", EmployeeController, :edit
     put "/edit", EmployeeController, :update
   end
 
-  # /employees
+  # /employees AUTHENCIATED
   scope "/organizations/:organization_id/", TurnStileWeb do
     pipe_through [
       :browser,
@@ -187,7 +177,19 @@ defmodule TurnStileWeb.Router do
     get "/employees", EmployeeController, :index, as: :organization_employee
   end
 
-  # /organizations non_authenciated
+  scope "/organizations/:organization_id/employees/:id", TurnStileWeb do
+    pipe_through [
+      :browser,
+      :require_authenticated_employee,
+      :require_is_admin_employee
+    ]
+  # show to employee admin and up only
+    get "/", EmployeeController, :show, as: :organization_employee
+
+    get "/employees/confirm", EmployeeConfirmationController, :new
+  end
+
+  # /organizations NON_AUTHENCIATED
   scope "/organizations", TurnStileWeb do
     pipe_through :browser
 
@@ -201,13 +203,24 @@ defmodule TurnStileWeb.Router do
     get "/:id", OrganizationController, :show
   end
 
+  ## Admin routes
+
   scope "/organizations", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_admin]
     # only admins can see all organizations
     get "/", OrganizationController, :index
   end
 
-  ## Admin Authentication routes
+
+  # scope "/", TurnStileWeb do
+  #   pipe_through [:browser, :require_authenticated_admin]
+  #   live "/alerts", AlertLive.Index, :index
+  #   live "/alerts/new", AlertLive.Index, :new
+  #   live "/alerts/:id/edit", AlertLive.Index, :edit
+
+  #   live "/alerts/:id", AlertLive.Show, :show
+  #   live "/alerts/:id/show/edit", AlertLive.Show, :edit
+  # end
 
   scope "/", TurnStileWeb do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]

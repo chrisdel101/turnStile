@@ -58,7 +58,6 @@ defmodule TurnStileWeb.TestController do
     if Mix.env() == :test &&
          conn.assigns[:route_type] === RouteTypesMap.get_route_type_value("TEST") do
       conn = assign(conn, :current_employee, current_employee)
-      conn = assign(conn, :current_organization_id_str, "1")
       # IO.inspect(conn)
       conn
     else

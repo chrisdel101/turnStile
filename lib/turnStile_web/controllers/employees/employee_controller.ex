@@ -3,8 +3,10 @@ defmodule TurnStileWeb.EmployeeController do
 
   alias TurnStile.Staff
 
-  # def new - removed: Use /employess/register instead
+  # note: new func does is not implemented. Use register instead
 
+  # lists all employees in an organization
+  # all-acccess
   def index(conn, _params) do
     organization_id = conn.params["organization_id"]
 
@@ -20,24 +22,26 @@ defmodule TurnStileWeb.EmployeeController do
 
     # lookup all those ids
     employees = Staff.list_employees_by_ids(employee_ids)
-    render(conn, "index.html", employees: employees, organization_id: organization_id)
+    render(conn, "index.html", employees: employees, organization_id: organization_id, page_title: "Listing Employees")
   end
 
   def show(conn, %{"id" => id, "organization_id" => organization_id}) do
     show_validate_employee_id(conn, id)
-    # confirm employee is assoc with this org
+    # get employee to look up
     employee = Staff.get_employee(id)
+    # confirm employee is assoc with this org
     employee_in_org? = Staff.check_employee_is_in_organization(employee, organization_id)
 
     if !!employee_in_org? do
       render(conn, "show.html", employee: employee)
     else
       conn
-      |> put_flash(:error, "Invalid employee association.")
+      |> put_flash(:error, "Invalid employee association. That employee is not in this organization or another error occurred.")
       |> redirect(to: Routes.organization_path(conn, :show, organization_id))
     end
   end
-
+  # handle invalid url params in employee_id slot
+  # TODO: make better error handling
   defp show_validate_employee_id(conn, id) do
     case TurnStile.Utils.is_digit(id) do
       true ->
@@ -66,15 +70,14 @@ defmodule TurnStileWeb.EmployeeController do
   Updates organization-only related fields
   - require_authenticated_employee
   - require_edit_access_employee
-  - current_employee_can_edit?
-
   """
   def update(conn, %{"id" => id, "employee" => employee_params}) do
+    current_employee = conn.assigns[:current_employee]
     # look up employee that is being edited
     employee_to_update = Staff.get_employee(id)
     # IO.inspect(employee_to_update)
-
-    if !TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(conn, employee_to_update) do
+    # check current_employee can edit THIS employee
+    if TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(conn, employee_to_update) do
       conn
       |> put_flash(:error, "Error in employee edit. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))
@@ -88,7 +91,7 @@ defmodule TurnStileWeb.EmployeeController do
               Routes.organization_employee_path(
                 conn,
                 :show,
-                Map.get(get_session(conn), "current_organization_id_str"),
+                current_employee.current_organization_login_id,
                 employee_to_update.id
               )
           )

@@ -1,6 +1,6 @@
 <h1>Resend confirmation instructions</h1>
 
-<.form let={f} for={:employee} action={Routes.employee_registration_path(@conn, :create, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"))}>
+<.form let={f} for={:employee} action={Routes.employee_registration_path(@conn, :create, @current_employee.current_organization_login_id)}>
   <%= label f, :email %>
   <%= email_input f, :email, required: true %>
 
@@ -10,6 +10,6 @@
 </.form>
 
 <p>
-  <%= link "Register", to: Routes.employee_registration_path(@conn, :new, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str")) %> |
-  <%= link "Log in", to: Routes.employee_session_path(@conn, :new,Routes.employee_registration_path(@conn, :new, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"))) %>
+  <%= link "Register", to: Routes.employee_registration_path(@conn, :new, @current_employee.current_organization_login_id) %> |
+  <%= link "Log in", to: Routes.employee_session_path(@conn, :new,Routes.employee_registration_path(@conn, :new, @current_employee.current_organization_login_id)) %>
 </p>

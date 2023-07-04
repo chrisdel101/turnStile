@@ -56,7 +56,6 @@ defmodule TurnStileWeb.EmployeeAuth do
         |> renew_session()
         |> put_session(:employee_token, token)
         |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
-        |> put_session(:current_organization_id_str, organization_id)
         |> maybe_write_remember_me_cookie(token, params)
         |> redirect(to: "/organizations/#{organization_id}" || employee_return_to)
       {:error, error} ->
@@ -97,7 +96,6 @@ defmodule TurnStileWeb.EmployeeAuth do
         |> renew_session()
         |> put_session(:employee_token, token)
         |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
-        |> put_session(:current_organization_id_str, organization_id)
         |> maybe_write_remember_me_cookie(token, params)
         |> put_flash(:success, "#{params.flash}. You have been automatically logged in.")
         |> redirect(to: redirect_path || employee_return_to)
@@ -190,22 +188,6 @@ defmodule TurnStileWeb.EmployeeAuth do
     employee_token
   end
 
-  # gets signed in org from sessions, adds to conn each req
-  def fetch_current_organization(conn, _opts) do
-    # IO.inspect("fetch_current_organization")
-    current_organization_id_str =
-      get_session(conn, :current_organization_id_str) ||
-        get_session(conn, "current_organization_id_str")
-
-    # IO.inspect(current_organization_id_str)
-    conn = assign(conn, :current_organization_id_str, current_organization_id_str)
-    # IO.inspect("fetch_current_organization")
-    # IO.inspect(conn)
-    # IO.inspect("session")
-    # IO.inspect(get_session(conn))
-    conn
-  end
-
   defp ensure_employee_token(conn) do
     if employee_token = get_session(conn, :employee_token) do
       {employee_token, conn}
@@ -221,26 +203,18 @@ defmodule TurnStileWeb.EmployeeAuth do
   end
 
   @doc """
-  Used for routes that require the employee to not be authenticated.
+  Used for routes that require the employee to NOT be authenticated.
   """
   def redirect_if_employee_is_authenticated(conn, _opts) do
     # if logged in
     current_employee = conn.assigns[:current_employee]
-    current_organization_id_str = conn.assigns[:current_organization_id_str]
 
     if current_employee do
-      # if owner/employee - don't redirect from registartion
-      # if (current_employee.role != "OWNER" or current_employee.role != "employee") and
-      #      List.last(conn.path_info) != "register" do
       conn
       |> redirect(
-        to: "/organizations/#{current_organization_id_str}/employees/#{current_employee.id}/users"
+        to: "/organizations/#{current_employee.current_organization_login_id}/employees/#{current_employee.id}/users"
       )
       |> halt()
-
-      # else
-      # conn
-      # end
     else
       conn
     end
@@ -328,6 +302,33 @@ defmodule TurnStileWeb.EmployeeAuth do
       end
     end
   end
+  @doc """
+  require_is_admin_employee
+  PLUG used in router
+  Used for routes that require employee to be admin or greater
+
+  -checks if current_employee is above is_admin_employee_threshold; can visit pages that require it
+  -used for employee show pages
+  """
+  def require_is_admin_employee(conn, _params) do
+    current_employee = conn.assigns[:current_employee]
+    IO.puts("require_is_admin_employee")
+    IO.inspect(current_employee)
+
+    if !current_employee do
+      handle_missing_employee(conn)
+    else
+      # conver role_value digit to int
+      role_value = Utils.convert_to_int(current_employee.role_value_on_current_organization)
+
+      if role_value && (role_value <= EmployeePermissionThresholds.is_admin_employee_threshold()) do
+        IO.puts("require_is_admin_employee: is_admin access")
+        conn
+      else
+        handle_insufficent_access(conn)
+      end
+    end
+  end
 
   # check current employee has greater-equal persmissions to register
   def has_employee_register_permissions?(conn, employee_params_to_register) do
@@ -360,13 +361,10 @@ defmodule TurnStileWeb.EmployeeAuth do
   end
 
   @doc """
-  Check if current_employee has persmission to edit other employee
-  Must has lower level role to edit
-  similiar to above register but
-  - takes employee_struct
-  - can only edit lower roles, not same
+  check current employee has greater-equal persmissions to edit
+  -used in employee controller: update
   """
-  def has_employee_edit_permissions?(conn, employee_struct) do
+  def has_employee_edit_permissions?(conn, employee_struct, params \\ %{}) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
     # IO.inspect(employee_struct)
@@ -381,10 +379,11 @@ defmodule TurnStileWeb.EmployeeAuth do
       else
         current_user_permission = current_employee.role_value_on_current_organization
 
-        registrant_role_value = employee_struct.role_value_on_current_organization
-        # IO.inspect(current_user_permission, label: "current_user_permission")
+        registrant_role_value = handle_get_role_value(conn, employee_struct)
 
-        # IO.inspect(registrant_role_value, label: "registrant_role_value")
+        IO.inspect(current_user_permission, label: "current_user_permission")
+
+        IO.inspect(registrant_role_value, label: "registrant_role_value")
         # current must be equal to register; both are digit strings
         if current_user_permission <
              registrant_role_value do
@@ -503,6 +502,29 @@ defmodule TurnStileWeb.EmployeeAuth do
     |> maybe_store_return_to()
     |> redirect(to: Routes.organization_employee_path(conn, :index, nil))
     |> halt()
+  end
+
+  defp handle_get_role_value(conn, employee) do
+    current_employee = conn.assigns[:current_employee]
+
+    # IO.inspect(employee, label: "handle_role _ahandle_get_role_value: employee")
+    # check if role_value
+    cond do
+      Map.get(employee, :role_value_on_current_organization) ->
+          employee.role_value_on_current_organization
+      Map.get(employee, :role_on_current_organization) ->
+          role = employee.role_on_current_organization
+          EmployeeRolesMap.EmployeeRolesMap.get_permission_role_value(String.upcase(role))
+      true ->
+        role = TurnStile.Roles.get_role(employee.id, current_employee.current_organization_login_id)
+        if role do
+          role.value
+        else
+          IO.puts("handle_get_role_value: error getting role")
+          nil
+        end
+    end
+
   end
 
   defp handle_insufficent_access(conn) do
