@@ -1,14 +1,14 @@
 <div>
   <h2><%= @page_title %></h2>
   <main class="container">
-    <p class="alert alert-info" role="alert" phx-click="lv:clear-flash" phx-value-key="info">
-      <%= live_flash(@flash, :info) %>
-    </p>
+      <p class="alert alert-info" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
 
-    <p class="alert alert-danger" role="alert" phx-click="lv:clear-flash" phx-value-key="error">
-      <%= live_flash(@flash, :error) %>
-    </p>
-  </main>
+      <p class="alert alert-danger" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+    </main>
   <% IO.inspect(@changeset, label: "changeset") %>
   <div class="alert-panel-nav">
     <span>
@@ -43,13 +43,13 @@
     <div>
       <h3><%= @title %></h3>
       <.form
-        let={f}
-        for={@changeset}
-        id="alert-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
+    let={f}
+    for={@changeset}
+    id="alert-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+    >
         <table>
           <thead>
             <tr>
