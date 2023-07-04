@@ -33,7 +33,7 @@ defmodule TurnStile.Roles do
 
   """
   def get_role(id) do
-    Repo.get(Role, id)
+    Repo.get(Role, id) |> Repo.preload([:employee, :organization])
   end
 
   def get_role(employee_id, organization_id) do
@@ -109,6 +109,9 @@ defmodule TurnStile.Roles do
   # confirm that both struct items are on the role
   # confirm that both stuct items are the the correct ones for this role
   def check_role_has_employee_org_assoc(employee_id, organization_id, role) do
+    # IO.inspect(role, label: "Role")
+    # IO.inspect(employee_id, label: "employee_id")
+    # IO.inspect(organization_id, label: "organization_id")
     #  check ids match assocs; checks for invalid empl and orgs this way
     cond do
       # confirm employee preload

@@ -14,12 +14,11 @@ defmodule TurnStileWeb.UserLive.Index do
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
     organization_id = current_employee.current_organization_login_id
-    # IO.inspect(panel, label: "mount on index")
 
     {:ok,
      assign(
        socket,
-       users: list_active_users(organization_id),
+       users:  Patients.list_active_users(organization_id),
        current_employee: current_employee
      )}
   end
@@ -71,12 +70,12 @@ defmodule TurnStileWeb.UserLive.Index do
       socket =
         socket
         |> put_flash(:info, "User deleted successfully.")
-        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
+        {:noreply, assign(socket, :users,  Patients.list_active_users(current_employee.current_organization_login_id))}
     else
       socket =
         socket
         |> put_flash(:error, "Insuffient permissions to perform user delete")
-        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
+        {:noreply, assign(socket, :users,  Patients.list_active_users(current_employee.current_organization_login_id))}
     end
   end
   def handle_event("remove", %{"id" => id}, socket) do
@@ -89,18 +88,19 @@ defmodule TurnStileWeb.UserLive.Index do
       socket =
         socket
         |> put_flash(:info, "User inactivated.")
-        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
+        {:noreply, assign(socket, :users,  Patients.list_active_users(current_employee.current_organization_login_id))}
     else
       socket =
         socket
         |> put_flash(:error, "Insuffient permissions to perform user remove")
-        {:noreply, assign(socket, :users, list_active_users(current_employee.current_organization_login_id))}
+        {:noreply, assign(socket, :users,  Patients.list_active_users(current_employee.current_organization_login_id))}
     end
 
   end
 
   defp apply_action(socket, :alerts, params) do
     %{"id" => user_id} = params
+    # IO.inspect(Patients.get_user!(user_id), label: "user_id")
     socket
     |> assign(:page_title, "User Alerts")
     |> assign(:user, Patients.get_user!(user_id))
@@ -111,7 +111,7 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:page_title, "Edit User")
     |> assign(:user, Patients.get_user!(id))
   end
-
+  # assigns individual user changset on :new
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New User")
@@ -119,13 +119,10 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   defp apply_action(socket, :index, _params) do
+    IO.inspect("index", label: "apply_action on index")
     socket
     |> assign(:page_title, "Listing Users")
     |> assign(:user, nil)
-  end
-
-  defp list_active_users(organization_id) do
-    Patients.list_active_users(organization_id)
   end
 
   defp send_alert(socket, %{"employee_id" => employee_id, "user_id" => user_id}) do

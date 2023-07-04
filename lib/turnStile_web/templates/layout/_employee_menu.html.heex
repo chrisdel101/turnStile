@@ -32,7 +32,7 @@
             Routes.employee_settings_path(
               @conn,
               :edit,
-              @conn.assigns[:current_organization_id_str]
+              @current_employee.current_organization_login_id
             )
         ) %>
       </li>

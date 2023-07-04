@@ -2,7 +2,6 @@
 <%!-- remove this line later if saftey no needed --%>
 <%= if @current_employee do %>
   <%= if @live_action in [:new, :edit_all] do %>
-  <%!-- <% IO.inspect(@user, label: "in view") %> --%>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
       <.live_component
         module={TurnStileWeb.UserLive.FormComponent}
@@ -16,6 +15,7 @@
     <% end %>
     <%= if @live_action in [:alerts] do %> 
      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
+     
       <.live_component
         module={TurnStileWeb.AlertDisplayLive.PanelComponent}
         id={@user.id || :new}~

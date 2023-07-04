@@ -9,17 +9,17 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     # IO.inspect(socket, label: "socket")
 
     %{id: user_id, current_employee: current_employee, user: user} = props
+
     alerts = Alerts.get_alerts_for_user(user_id)
     # IO.inspect(alerts, label: "alerts")
-    # build SMS alert to start
+    # build SMS alert as default
     sms_attrs =
       Alerts.build_alert_attrs(
         user,
         AlertCategoryTypesMap.get_alert("CUSTOM"),
         AlertFormatTypesMap.get_alert("SMS")
       )
-    role = TurnStile.Roles.get_role(current_employee.id, current_employee.current_organization_login_id)
-    changeset = Alerts.create_alert_w_assoc(current_employee, user, sms_attrs, role)
+    changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
 
     {:ok,
      socket
@@ -99,26 +99,62 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     # IO.inspect(socket, label: "socket")
   end
 
+  # displays the custom alert form
   def handle_event("dispatch", params, socket) do
-    IO.inspect(params, label: "params")
+    # IO.inspect(params, label: "params")
     changeset = %Alert{}
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save", %{"alert" => alert_params}, socket) do
-    save_alert(socket, socket.assigns.action, alert_params)
+    # IO.inspect(alert_params, label: "alert_params")
+    save_alert(socket, alert_params)
   end
 
-  defp save_alert(socket, :edit, alert_params) do
-    case Alerts.update_alert(socket.assigns.alert, alert_params) do
-      {:ok, _alert} ->
+  # defp save_alert(socket, :edit, alert_params) do
+  #   case Alerts.update_alert(socket.assigns.alert, alert_params) do
+  #     {:ok, _alert} ->
+  #       {:noreply,
+  #        socket
+  #        |> put_flash(:info, "Alert updated successfully")
+  #        |> push_redirect(to: socket.assigns.return_to)}
+
+  #     {:error, %Ecto.Changeset{} = changeset} ->
+  #       {:noreply, assign(socket, :changeset, changeset)}
+  #   end
+  # end
+
+  defp save_alert(socket, alert_params) do
+    current_employee = Kernel.get_in(socket.assigns, [:current_employee])
+    user = Kernel.get_in(socket.assigns, [:user])
+    IO.inspect(socket, label: "current_employee")
+
+    if !current_employee || !user do
+      IO.puts('INNMMMMMMMMMM')
+      {:noreply,
+      socket
+      |> put_flash(:error, "Error: Data loss occured on form submission. Please try again.")
+      |> push_redirect(to: socket.assigns.return_to)}
+    else
+
+      IO.inspect(socket.assigns.changeset, label: "changeset")
+
+      role =
+        TurnStile.Roles.get_role(
+          current_employee.id,
+          current_employee.current_organization_login_id
+        )
+
+      #   # IO.inspect(user, label: "user")
+      case Alerts.create_alert_w_assoc(current_employee, user, alert_params, role) do
+        {:ok, alert_struct} ->
+          IO.inspect(alert_struct, label: "alert_struct")
         {:noreply,
          socket
-         |> put_flash(:info, "Alert updated successfully")
+           |> put_flash(:info, "Alert created successfully")
          |> push_redirect(to: socket.assigns.return_to)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+      end
     end
   end
 
@@ -127,19 +163,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       "Alert History"
     else
       "Alert Dispatch"
-    end
-  end
-
-  defp save_alert(socket, :new, alert_params) do
-    case Alerts.create_alert(alert_params) do
-      {:ok, _alert} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Alert created successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, changeset: changeset)}
     end
   end
 end

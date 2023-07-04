@@ -9,6 +9,7 @@ defmodule TurnStile.Alerts do
   alias TurnStile.Alerts.Alert
   alias TurnStile.Patients
   alias TurnStile.Staff
+  alias TurnStile.Roles
 
   @doc """
   Returns the list of alerts.
@@ -34,7 +35,9 @@ defmodule TurnStile.Alerts do
       %Alert{}
 
   """
-  def get_alert!(id), do: raise("TODO")
+  def get_alert(id) do
+    Repo.get(Alert, id)
+  end
 
   def get_alerts_for_user(user_id) do
     query =
@@ -56,7 +59,7 @@ defmodule TurnStile.Alerts do
 
   @doc """
   create_alert_w_assoc
-  Creates new alert with 3 assoc
+  -forms a new alert changeset
   """
   def create_alert_w_assoc(employee_struct, user_struct, attrs, role, organization_struct \\ nil) do
     # build alert instance
@@ -66,7 +69,6 @@ defmodule TurnStile.Alerts do
       body: attrs["body"] || attrs.body,
       title: attrs["title"] || attrs.title
     }
-
     # build_alert assoc
     alert_struct = Ecto.build_assoc(user_struct, :alerts, alert)
     #  check employee organization_struct
@@ -83,7 +85,7 @@ defmodule TurnStile.Alerts do
 
           _ ->
             # check all assocs are okay
-            case TurnStile.Roles.check_role_has_employee_org_user_assoc(
+            case Roles.check_role_has_employee_org_user_assoc(
                    employee_struct.id,
                    organization_struct.id,
                    user_struct,
@@ -95,10 +97,10 @@ defmodule TurnStile.Alerts do
 
               # check employee as permissions
               {:ok, _} ->
-                if TurnStile.Roles.role_value_has_add_alert?(role) do
+                if Roles.role_value_has_add_alert?(role) do
                   alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
                   alert_struct = Ecto.build_assoc(organization_struct, :alerts, alert_struct)
-                  alert_struct
+                  # alert_struct
                   {:ok, alert_struct}
                 else
                   {:error, "Employee lacks permissions to add alerts"}
@@ -109,8 +111,9 @@ defmodule TurnStile.Alerts do
       # if logged-in user
       _ ->
         organization_id = employee_struct.current_organization_login_id
+        organization_struct = TurnStile.Company.get_organization(organization_id)
 
-        case TurnStile.Roles.check_role_has_employee_org_user_assoc(
+        case Roles.check_role_has_employee_org_user_assoc(
                employee_struct.id,
                organization_id,
                user_struct,
@@ -122,10 +125,10 @@ defmodule TurnStile.Alerts do
 
           # check employee as permissions
           {:ok, _} ->
-            if TurnStile.Roles.role_value_has_add_alert?(role) do
+            if Roles.role_value_has_add_alert?(role) do
               alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
               alert_struct = Ecto.build_assoc(organization_struct, :alerts, alert_struct)
-              alert_struct
+              # alert_struct
               {:ok, alert_struct}
             else
               {:error, "Employee lacks permissions to add alerts"}

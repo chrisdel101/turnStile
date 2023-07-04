@@ -36,8 +36,17 @@ defmodule TurnStile.Company do
       ** (Ecto.NoResultsError)
 
   """
-  def get_organization(id) do
-    Repo.get(Organization, id)
+  def get_organization(id, preload? \\ false) do
+    query = from(o in Organization, where: o.id == ^id)
+
+    query =
+      if preload? do
+        query |> Ecto.Query.preload([:employees])
+      else
+        query
+      end
+
+    Repo.one(query)
   end
 
   def get_organization_by_name(slug) do

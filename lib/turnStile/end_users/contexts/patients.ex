@@ -27,6 +27,7 @@ defmodule TurnStile.Patients do
       from(u in User,
         where: u.organization_id == ^organization_id,
         where: u.is_active? == true,
+        preload: [:employee, :organization],
         order_by: [desc: u.inserted_at]
       )
     Repo.all(q)
@@ -46,7 +47,9 @@ defmodule TurnStile.Patients do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+   Repo.get!(User, id) |> Repo.preload([:employee, :organization])
+  end
 
   @doc """
   Creates a user.

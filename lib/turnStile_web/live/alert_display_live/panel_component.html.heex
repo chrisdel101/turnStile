@@ -1,5 +1,15 @@
 <div>
   <h2><%= @page_title %></h2>
+  <main class="container">
+    <p class="alert alert-info" role="alert" phx-click="lv:clear-flash" phx-value-key="info">
+      <%= live_flash(@flash, :info) %>
+    </p>
+
+    <p class="alert alert-danger" role="alert" phx-click="lv:clear-flash" phx-value-key="error">
+      <%= live_flash(@flash, :error) %>
+    </p>
+  </main>
+  <% IO.inspect(@changeset, label: "changeset") %>
   <div class="alert-panel-nav">
     <span>
       <%= live_patch("Dispatch",
@@ -57,7 +67,7 @@
                 <%= radio_button(f, :alert_format, :email) %>
               </td>
               <%!-- <% IO.inspect(@changeset.changes.alert_format) %> --%>
-              <%= if @changeset.changes.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do %>
+              <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("EMAIL") do %>
                 <td>
                   <%= label(f, :to) %>
                   <%= text_input(f, :to, value: @user.email) %>
@@ -72,7 +82,7 @@
                   <%= error_tag(f, :body) %>
                 </td>
               <% end %>
-              <%= if @changeset.changes.alert_format === AlertFormatTypesMap.get_alert("SMS") do %>
+              <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("SMS") do %>
                 <td>
                   <%= label(f, :to) %>
                   <%= text_input(f, :to, value: @changeset.changes.to) %>
