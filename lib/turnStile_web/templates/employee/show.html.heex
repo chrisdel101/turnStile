@@ -3,8 +3,8 @@
     <li>Email: <%= @employee.email %></li>
    
     <li>Role: <%= @employee.role_on_current_organization %></li>
-    <li>Org ID: <%= assigns.current_organization_id_str %></li>
+    <li>Org ID: <%= @current_employee.current_organization_login_id %></li>
 </ul>
 
-<span><%= link "Edit", to: Routes.employee_path(@conn, :edit,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"),@current_employee.id) %></span> |
-<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str")) %></span>
+<span><%= link "Edit", to: Routes.employee_path(@conn, :edit,  @current_employee.current_organization_login_id,@current_employee.id) %></span> |
+<span><%= link "Back", to: Routes.organization_employee_path(@conn,:index,  @current_employee.current_organization_login_id) %></span>

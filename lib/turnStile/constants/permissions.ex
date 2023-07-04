@@ -93,7 +93,8 @@ defmodule EmployeePermissionThresholds do
     "contributor" => 5,
     "viewer" => 6
   }
-  # all values GE (including) have write permissions
+  # all values <= (GT_E) have write permissions
+  @is_admin_employee_threshold 3
   @edit_employee_permissions_threshold 3
   @register_employee_permissions_threshold 3
   @add_user_permissions_threshold 5
@@ -106,6 +107,7 @@ defmodule EmployeePermissionThresholds do
   end
 
   def permissions, do: @permissions
+  def is_admin_employee_threshold, do: @is_admin_employee_threshold
   def edit_employee_permissions_threshold, do: @edit_employee_permissions_threshold
   def delete_user_permissions_threshold, do: @delete_user_permissions_threshold
   def register_employee_permissions_threshold, do: @register_employee_permissions_threshold

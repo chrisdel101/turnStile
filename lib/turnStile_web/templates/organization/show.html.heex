@@ -36,9 +36,11 @@
   <%= if (TurnStile.Utils.convert_to_int(@current_employee.role_value_on_current_organization)) <= (EmployeePermissionThresholds.edit_employee_permissions_threshold()) do %>
 
     <span><%= link "Edit", to: Routes.organization_path(@conn, :edit, @organization_id) %></span> |
+    <% end %>
+  <%= if (TurnStile.Utils.convert_to_int(@current_employee.role_value_on_current_organization)) <= (EmployeePermissionThresholds.is_admin_employee_threshold()) do %>
 
     <span><%= link "Employees List", to: Routes.organization_employee_path(@conn, :index, @organization_id) %></span> |
-    
     <% end %>
+    
 <% end %>
 

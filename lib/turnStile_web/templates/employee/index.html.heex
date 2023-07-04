@@ -1,37 +1,71 @@
-<h1>Listing Employees</h1>
+<%!-- Requires authenticated employee --%>
+<h1><%= @page_title || "Employee Index" %></h1>
 
 <table>
   <thead>
     <tr>
-
       <th></th>
     </tr>
   </thead>
+    <%= for employee <- @employees do %>
+    <%!-- don't show self --%>
+      <%= if employee.id !== @current_employee.id do %>
   <tbody>
-<%= for employee <- @employees do %>
-    <tr>
-      <td>
-      <span>
-        <%= employee.first_name %>
-      </span>
-      <span>
-        <%= employee.last_name %>
-        |
-      </span>
-      <%!-- <%IO.inspect(employee) %> --%>
-      <%!-- <%IO.inspect(@current_employee) %> --%>
-      <%= if employee.id === @current_employee.id ||  !TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(@conn, employee) do %>
-        <span>Show</span>
-        <span>Edit</span>
-        <span>Delete</span>
-      <% else %>
-        <span><%= link "Show", to: Routes.organization_employee_path(@conn, :show, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"), employee.id) %></span>
-        <span><%= link "Edit", to: Routes.employee_path(@conn, :edit, Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"), employee.id) %></span>
-        <span><%= link "Delete", to: Routes.organization_employee_path(@conn, :delete,  Map.get(Plug.Conn.get_session(@conn), "current_organization_id_str"), employee.id), method: :delete, data: [confirm: "Are you sure?"] %></span>
-
-      <% end %>
-      </td>
-    </tr>
-<% end %>
+      
+      <tr>
+        <td>
+          <span>
+            <%= employee.first_name %>
+          </span>
+          <span>
+            <%= employee.last_name %> |
+          </span>
+          <%IO.inspect("HERE") %>
+          <%IO.inspect(TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(@conn, employee)) %>
+          <%= if !TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(@conn, employee) do %>
+            <span>Show</span>
+            <span>Edit</span>
+            <span>Delete</span>
+          <% else %>
+            <span>
+              <%= link("Show",
+                to:
+                  Routes.organization_employee_path(
+                    @conn,
+                    :show,
+                    @current_employee.current_organization_login_id,
+                    employee.id
+                  )
+              ) %>
+            </span>
+            <span>
+              <%= link("Edit",
+                to:
+                  Routes.employee_path(
+                    @conn,
+                    :edit,
+                    @current_employee.current_organization_login_id,
+                    employee.id
+                  )
+              ) %>
+            </span>
+            <span>
+              <%= link("Delete",
+                to:
+                  Routes.organization_employee_path(
+                    @conn,
+                    :delete,
+                    @current_employee.current_organization_login_id,
+                    employee.id
+                  ),
+                method: :delete,
+                data: [confirm: "Are you sure?"]
+              ) %>
+            </span>
+          <% end %>
+        </td>
+      </tr>
   </tbody>
+    <% end %>
+  <% end %>
 </table>
