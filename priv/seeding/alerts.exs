@@ -55,7 +55,7 @@ TurnStile.Repo.transaction(fn ->
     body: "some body1",
     title: "alert1"
   }
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user_insert, a1)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user_insert, a1)
   IO.inspect(alert)
   TurnStile.Alerts.insert_alert(alert)
 

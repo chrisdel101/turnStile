@@ -64,7 +64,7 @@ defmodule TurnStileWeb.UserLive.Index do
     current_employee = socket.assigns.current_employee
 
     if EmployeeAuth.has_user_delete_permissions?(socket, current_employee) do
-      user = Patients.get_user!(id)
+      user = Patients.get_user(id)
       {:ok, _} = Patients.delete_user(user)
 
       socket =
@@ -82,7 +82,7 @@ defmodule TurnStileWeb.UserLive.Index do
     current_employee = socket.assigns.current_employee
 
     if EmployeeAuth.has_user_remove_permissions?(socket, current_employee) do
-      user = Patients.get_user!(id)
+      user = Patients.get_user(id)
       Patients.deactivate_user(user)
 
       socket =
@@ -100,16 +100,16 @@ defmodule TurnStileWeb.UserLive.Index do
 
   defp apply_action(socket, :alerts, params) do
     %{"id" => user_id} = params
-    # IO.inspect(Patients.get_user!(user_id), label: "user_id")
+    # IO.inspect(Patients.get_user(user_id), label: "user_id")
     socket
     |> assign(:page_title, "User Alerts")
-    |> assign(:user, Patients.get_user!(user_id))
+    |> assign(:user, Patients.get_user(user_id))
   end
 
   defp apply_action(socket, :edit_all, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit User")
-    |> assign(:user, Patients.get_user!(id))
+    |> assign(:user, Patients.get_user(id))
   end
   # assigns individual user changset on :new
   defp apply_action(socket, :new, _params) do

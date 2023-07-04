@@ -121,7 +121,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert1"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a1)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a1)
   TurnStile.Alerts.insert_alert(alert)
 
   a4 = %{
@@ -131,7 +131,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert4"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee2, user1, a4)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee2, user1, a4)
   TurnStile.Alerts.insert_alert(alert)
 
   a2 = %{
@@ -141,7 +141,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert2"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a2)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a2)
   TurnStile.Alerts.insert_alert(alert)
 
   a3 = %{
@@ -151,7 +151,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert3"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user1, a3)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a3)
   TurnStile.Alerts.insert_alert(alert)
 
   # ORG 2
@@ -250,7 +250,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert1"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user5, a1)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user5, a1)
   TurnStile.Alerts.insert_alert(alert)
 
   a4 = %{
@@ -260,7 +260,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert4"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee1, user5, a4)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user5, a4)
   TurnStile.Alerts.insert_alert(alert)
 
   a2 = %{
@@ -270,7 +270,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert2"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee2, user6, a2)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee2, user6, a2)
   TurnStile.Alerts.insert_alert(alert)
 
   a3 = %{
@@ -280,7 +280,7 @@ TurnStile.Repo.transaction(fn ->
     title: "alert3"
   }
 
-  {:ok, alert} = TurnStile.Alerts.create_alert_w_assoc(employee2, user8, a3)
+  {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee2, user8, a3)
   TurnStile.Alerts.insert_alert(alert)
 
 

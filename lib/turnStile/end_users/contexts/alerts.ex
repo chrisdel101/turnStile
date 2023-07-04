@@ -58,10 +58,18 @@ defmodule TurnStile.Alerts do
   end
 
   @doc """
-  create_alert_w_assoc
-  -forms a new alert changeset
+  create_alert_w_build_assoc
+  -takes an alert struct
+  -uses build_assoc adding assocs
+  -returns alert_struct w assocs
   """
-  def create_alert_w_assoc(employee_struct, user_struct, attrs, role, organization_struct \\ nil) do
+  def create_alert_w_build_assoc(
+        employee_struct,
+        user_struct,
+        attrs,
+        role,
+        organization_struct \\ nil
+      ) do
     # build alert instance
     alert = %Alert{
       alert_category: attrs["alert_category"] || attrs.alert_category,
@@ -69,6 +77,7 @@ defmodule TurnStile.Alerts do
       body: attrs["body"] || attrs.body,
       title: attrs["title"] || attrs.title
     }
+
     # build_alert assoc
     alert_struct = Ecto.build_assoc(user_struct, :alerts, alert)
     #  check employee organization_struct
@@ -78,7 +87,7 @@ defmodule TurnStile.Alerts do
         case organization_struct do
           nil ->
             error =
-              "Error: create_alert_w_assoc: User.organization struct && organization params cannot BOTH be nil. Organization is required."
+              "Error: create_alert_w_build_assoc: User.organization struct && organization params cannot BOTH be nil. Organization is required."
 
             IO.puts(error)
             {:error, error}
@@ -137,6 +146,110 @@ defmodule TurnStile.Alerts do
     end
   end
 
+  @doc """
+  create_alert_w_build_assoc
+  -takes alert_attrs
+  -builds sets of changeset with put_assoc
+  -returns formed changeset
+  """
+  def create_alert_w_put_assoc(
+        alert_attrs,
+        employee_struct,
+        user_struct,
+        role,
+        opts \\ []
+        # alattrs,
+        # organization_struct \\ nil
+      ) do
+    # build_alert assoc
+    alert = Alert.changeset(%Alert{}, alert_attrs)
+    IO.inspect(alert)
+    # user_changeset = TurnStile.Patients.User.changeset(%TurnStile.Patients.User{}, user_struct)
+    changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
+
+    #  check employee organization_struct
+    case employee_struct.current_organization_login_id do
+      # check employee has org_id, or ir org struct passed in
+      nil ->
+        organization_struct = Keyword.get(opts, :organization_struct)
+        case organization_struct do
+          nil ->
+            error =
+              "Error: cast_alert_changeset: User.organization struct && organization params cannot BOTH be nil. Organization is required."
+
+            IO.puts(error)
+            {:error, error}
+
+          _ ->
+            # check all assocs are okay
+            case Roles.check_role_has_employee_org_user_assoc(
+                   employee_struct.id,
+                   organization_struct.id,
+                   user_struct,
+                   role
+                 ) do
+              {:error, error} ->
+                IO.puts(error)
+                {:error, error}
+
+              # check employee as permissions
+              {:ok, _} ->
+                if Roles.role_value_has_add_alert?(role) do
+                  changeset_with_employee =
+                    Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
+
+                  changeset_with_organization =
+                    Ecto.Changeset.put_assoc(
+                      changeset_with_employee,
+                      :organization,
+                      organization_struct
+                    )
+
+                  # alert_struct
+                  {:ok, changeset_with_organization}
+                else
+                  {:error, "Employee lacks permissions to add alerts"}
+                end
+            end
+        end
+
+      # if logged-in user
+      _ ->
+        organization_id = employee_struct.current_organization_login_id
+        organization_struct = TurnStile.Company.get_organization(organization_id)
+
+        case Roles.check_role_has_employee_org_user_assoc(
+               employee_struct.id,
+               organization_id,
+               user_struct,
+               role
+             ) do
+          {:error, error} ->
+            IO.puts(error)
+            {:error, error}
+
+          # check employee as permissions
+          {:ok, _} ->
+            if Roles.role_value_has_add_alert?(role) do
+              changeset_with_employee =
+                Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
+
+              changeset_with_organization =
+                Ecto.Changeset.put_assoc(
+                  changeset_with_employee,
+                  :organization,
+                  organization_struct
+                )
+
+              # alert_struct
+              {:ok, changeset_with_organization}
+            else
+              {:error, "Employee lacks permissions to add alerts"}
+            end
+        end
+    end
+  end
+
   def insert_alert(alert) do
     Repo.insert(alert)
   end
@@ -147,7 +260,7 @@ defmodule TurnStile.Alerts do
    DB insertion
   """
   def insert_alert_w_assoc(employee_id, user_id, attrs) do
-    user = Patients.get_user!(user_id)
+    user = Patients.get_user(user_id)
     employee = Staff.get_employee(employee_id)
 
     if !user || !employee do

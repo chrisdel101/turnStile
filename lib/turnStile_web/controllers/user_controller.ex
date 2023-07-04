@@ -35,18 +35,18 @@ defmodule TurnStileWeb.UserController do
   end
 
   def show(conn, %{"id" => id}) do
-    user = Patients.get_user!(id)
+    user = Patients.get_user(id)
     render(conn, "show.html", user: user)
   end
 
   def edit(conn, %{"id" => id}) do
-    user = Patients.get_user!(id)
+    user = Patients.get_user(id)
     changeset = Patients.change_user(user)
     render(conn, "edit.html", user: user, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "user" => user_params}) do
-    user = Patients.get_user!(id)
+    user = Patients.get_user(id)
     current_employee = conn.assigns[:current_employee]
     conn
     |> maybe_employee_exists()
@@ -62,7 +62,7 @@ defmodule TurnStileWeb.UserController do
   end
 
   def delete(conn, %{"id" => id}) do
-    user = Patients.get_user!(id)
+    user = Patients.get_user(id)
     current_employee = conn.assigns[:current_employee]
     conn
     |> maybe_employee_exists()

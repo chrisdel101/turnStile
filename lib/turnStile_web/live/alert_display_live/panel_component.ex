@@ -20,7 +20,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         AlertFormatTypesMap.get_alert("SMS")
       )
     changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
-
+    # IO.inspect(changeset, label: "changeset")
     {:ok,
      socket
      |> assign(props)
@@ -127,7 +127,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   defp save_alert(socket, alert_params) do
     current_employee = Kernel.get_in(socket.assigns, [:current_employee])
     user = Kernel.get_in(socket.assigns, [:user])
-    IO.inspect(socket, label: "current_employee")
 
     if !current_employee || !user do
       IO.puts('INNMMMMMMMMMM')
@@ -136,23 +135,24 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       |> put_flash(:error, "Error: Data loss occured on form submission. Please try again.")
       |> push_redirect(to: socket.assigns.return_to)}
     else
-
-      IO.inspect(socket.assigns.changeset, label: "changeset")
-
       role =
         TurnStile.Roles.get_role(
           current_employee.id,
           current_employee.current_organization_login_id
         )
-
       #   # IO.inspect(user, label: "user")
-      case Alerts.create_alert_w_assoc(current_employee, user, alert_params, role) do
-        {:ok, alert_struct} ->
-          IO.inspect(alert_struct, label: "alert_struct")
-        {:noreply,
-         socket
-           |> put_flash(:info, "Alert created successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
+      case Alerts.create_alert_w_put_assoc(alert_params, current_employee, user, role) do
+        {:ok, alert_changeset} ->
+          IO.inspect(alert_changeset, label: "alert_changeset")
+          {:noreply,
+          socket
+            |> put_flash(:info, "Alert created successfully")
+          |> push_redirect(to: socket.assigns.return_to)}
+        _ ->
+          IO.puts("ERROR")
+          {:noreply,
+        socket
+          |> put_flash(:error, "Alert Not created successfully")}
 
       end
     end

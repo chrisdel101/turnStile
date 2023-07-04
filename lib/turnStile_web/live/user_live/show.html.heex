@@ -8,6 +8,7 @@
       title={@page_title}
       action={@live_action}
       user={@user}
+      current_employee={@current_employee}
       return_to={Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, @user)}
     />
   </.modal>

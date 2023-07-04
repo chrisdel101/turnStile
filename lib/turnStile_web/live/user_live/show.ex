@@ -23,11 +23,10 @@ defmodule TurnStileWeb.UserLive.Show do
 
   @impl true
   def handle_params(%{"employee_id" => employee_id, "organization_id" => organization_id, "id" => user_id}, _, socket) do
-    IO.puts("HERE2")
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:user, Patients.get_user!(user_id))
+     |> assign(:user, Patients.get_user(user_id))
      |> assign(employee_id: employee_id, organization_id: organization_id)}
   end
 
