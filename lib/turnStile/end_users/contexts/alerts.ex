@@ -148,12 +148,11 @@ defmodule TurnStile.Alerts do
 
   @doc """
   create_alert_w_build_assoc
-  -takes alert_attrs
   -builds sets of changeset with put_assoc
-  -returns formed changeset
+  -returns formed alert changeset
+  -takes alert_attrs or changeset in opts like [alert_attrs: %{}, changeset: %{}]
   """
   def create_alert_w_put_assoc(
-        alert_attrs,
         employee_struct,
         user_struct,
         role,
@@ -161,92 +160,100 @@ defmodule TurnStile.Alerts do
         # alattrs,
         # organization_struct \\ nil
       ) do
-    # build_alert assoc
-    alert = Alert.changeset(%Alert{}, alert_attrs)
-    IO.inspect(alert)
-    # user_changeset = TurnStile.Patients.User.changeset(%TurnStile.Patients.User{}, user_struct)
-    changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
+    if is_nil(Keyword.get(opts, :alert_attrs)) &&
+         is_nil(Keyword.get(opts, :changeset)) do
+      error = "Opts CANNOT be nil. Pass in alert_attrs or changeset."
+      IO.puts("Error in create_alert_w_put_assoc: #{error}")
+      {:error, "An error occurred creating alert associations. See dev logs"}
+    else
+      # build_alert assoc - takes params or a changeset
+      alert = Alert.changeset(%Alert{}, Keyword.get(opts, :alert_attrs) || Keyword.get(opts, :alert_attrs))
 
-    #  check employee organization_struct
-    case employee_struct.current_organization_login_id do
-      # check employee has org_id, or ir org struct passed in
-      nil ->
-        organization_struct = Keyword.get(opts, :organization_struct)
-        case organization_struct do
-          nil ->
-            error =
-              "Error: cast_alert_changeset: User.organization struct && organization params cannot BOTH be nil. Organization is required."
+      # user_changeset = TurnStile.Patients.User.changeset(%TurnStile.Patients.User{}, user_struct)
+      changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
 
-            IO.puts(error)
-            {:error, error}
+      #  check employee organization_struct
+      case employee_struct.current_organization_login_id do
+        # check employee has org_id, or ir org struct passed in
+        nil ->
+          organization_struct = Keyword.get(opts, :organization_struct)
 
-          _ ->
-            # check all assocs are okay
-            case Roles.check_role_has_employee_org_user_assoc(
-                   employee_struct.id,
-                   organization_struct.id,
-                   user_struct,
-                   role
-                 ) do
-              {:error, error} ->
-                IO.puts(error)
-                {:error, error}
+          case organization_struct do
+            nil ->
+              error =
+                "Error: cast_alert_changeset: User.organization struct && organization params cannot BOTH be nil. Organization is required."
 
-              # check employee as permissions
-              {:ok, _} ->
-                if Roles.role_value_has_add_alert?(role) do
-                  changeset_with_employee =
-                    Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
+              IO.puts(error)
+              {:error, error}
 
-                  changeset_with_organization =
-                    Ecto.Changeset.put_assoc(
-                      changeset_with_employee,
-                      :organization,
-                      organization_struct
-                    )
+            _ ->
+              # check all assocs are okay
+              case Roles.check_role_has_employee_org_user_assoc(
+                     employee_struct.id,
+                     organization_struct.id,
+                     user_struct,
+                     role
+                   ) do
+                {:error, error} ->
+                  IO.puts(error)
+                  {:error, error}
 
-                  # alert_struct
-                  {:ok, changeset_with_organization}
-                else
-                  {:error, "Employee lacks permissions to add alerts"}
-                end
-            end
-        end
+                # check employee as permissions
+                {:ok, _} ->
+                  if Roles.role_value_has_add_alert?(role) do
+                    changeset_with_employee =
+                      Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
 
-      # if logged-in user
-      _ ->
-        organization_id = employee_struct.current_organization_login_id
-        organization_struct = TurnStile.Company.get_organization(organization_id)
+                    changeset_with_organization =
+                      Ecto.Changeset.put_assoc(
+                        changeset_with_employee,
+                        :organization,
+                        organization_struct
+                      )
 
-        case Roles.check_role_has_employee_org_user_assoc(
-               employee_struct.id,
-               organization_id,
-               user_struct,
-               role
-             ) do
-          {:error, error} ->
-            IO.puts(error)
-            {:error, error}
+                    # alert_struct
+                    {:ok, changeset_with_organization}
+                  else
+                    {:error, "Employee lacks permissions to add alerts"}
+                  end
+              end
+          end
 
-          # check employee as permissions
-          {:ok, _} ->
-            if Roles.role_value_has_add_alert?(role) do
-              changeset_with_employee =
-                Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
+        # if logged-in user
+        _ ->
+          organization_id = employee_struct.current_organization_login_id
+          organization_struct = TurnStile.Company.get_organization(organization_id)
 
-              changeset_with_organization =
-                Ecto.Changeset.put_assoc(
-                  changeset_with_employee,
-                  :organization,
-                  organization_struct
-                )
+          case Roles.check_role_has_employee_org_user_assoc(
+                 employee_struct.id,
+                 organization_id,
+                 user_struct,
+                 role
+               ) do
+            {:error, error} ->
+              IO.puts(error)
+              {:error, error}
 
-              # alert_struct
-              {:ok, changeset_with_organization}
-            else
-              {:error, "Employee lacks permissions to add alerts"}
-            end
-        end
+            # check employee as permissions
+            {:ok, _} ->
+              if Roles.role_value_has_add_alert?(role) do
+                changeset_with_employee =
+                  Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
+
+                changeset_with_organization =
+                  Ecto.Changeset.put_assoc(
+                    changeset_with_employee,
+                    :organization,
+                    organization_struct
+                  )
+
+                # alert_struct
+                {:ok, changeset_with_organization}
+              else
+                {:error, "Employee lacks permissions to add alerts"}
+              end
+          end
+      end
     end
   end
 
