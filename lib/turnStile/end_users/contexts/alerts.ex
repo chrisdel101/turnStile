@@ -157,8 +157,6 @@ defmodule TurnStile.Alerts do
         user_struct,
         role,
         opts \\ []
-        # alattrs,
-        # organization_struct \\ nil
       ) do
     if is_nil(Keyword.get(opts, :alert_attrs)) &&
          is_nil(Keyword.get(opts, :changeset)) do
@@ -167,8 +165,8 @@ defmodule TurnStile.Alerts do
       {:error, "An error occurred creating alert associations. See dev logs"}
     else
       # build_alert assoc - takes params or a changeset
-      alert = Alert.changeset(%Alert{}, Keyword.get(opts, :alert_attrs) || Keyword.get(opts, :alert_attrs))
-
+      alert = Alert.changeset(Keyword.get(opts, :changeset), Keyword.get(opts, :alert_attrs))
+      # IO.inspect(alert, label: "alert changeset create_alert_w_put_assoc")
       # user_changeset = TurnStile.Patients.User.changeset(%TurnStile.Patients.User{}, user_struct)
       changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
 

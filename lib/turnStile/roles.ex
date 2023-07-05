@@ -35,7 +35,7 @@ defmodule TurnStile.Roles do
   def get_role(id) do
     Repo.get(Role, id) |> Repo.preload([:employee, :organization])
   end
-
+  # get employee role within an organization
   def get_role(employee_id, organization_id) do
     q =
       from(r in Role,

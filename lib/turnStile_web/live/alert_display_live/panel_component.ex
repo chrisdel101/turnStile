@@ -2,13 +2,15 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   use TurnStileWeb, :live_component
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
+  alias TurnStileWeb.AlertUtils
+
 
   @impl true
   def update(props, socket) do
     # IO.inspect(props, label: "props")
     # IO.inspect(socket, label: "socket")
 
-    %{id: user_id, current_employee: current_employee, user: user} = props
+    %{id: user_id, current_employee: _current_employee, user: user} = props
 
     alerts = Alerts.get_alerts_for_user(user_id)
     # IO.inspect(alerts, label: "alerts")
@@ -20,7 +22,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         AlertFormatTypesMap.get_alert("SMS")
       )
     changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
-    # IO.inspect(changeset, label: "changeset")
+    # IO.inspect(changeset, label: "changeset in update")
     {:ok,
      socket
      |> assign(props)
@@ -38,8 +40,9 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   #   {:noreply, socket}
   # end
 
+  # only fires on change-handles changing the form based on radio button selection
   def handle_event("validate", params, socket) do
-    # IO.inspect("validate", label: "validate")
+    IO.inspect("validate", label: "validate")
     # IO.inspect(socket, label: "params")
     alert_params = Map.get(params, :alert) || Map.get(params, "alert")
 
@@ -48,6 +51,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       # IO.inspect(alert_params["alert_format"], label: "alert_params")
       # check which type of alert to change
       cond do
+        # flip to email form
         alert_params["alert_format"] === AlertFormatTypesMap.get_alert("EMAIL") ->
           IO.inspect("EMAIL", label: "EMAIL")
 
@@ -63,7 +67,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
             |> Alerts.change_alert(email_attrs)
             |> Map.put(:action, :validate)
 
-          IO.inspect(changeset, label: "changeset HERE")
+          # IO.inspect(changeset, label: "changeset HERE")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
@@ -83,7 +87,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
             |> Alerts.change_alert(sms_attrs)
             |> Map.put(:action, :validate)
 
-          IO.inspect(changeset, label: "changeset")
+          IO.inspect(changeset, label: "changeset in validate")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
@@ -99,19 +103,18 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     # IO.inspect(socket, label: "socket")
   end
 
-  # displays the custom alert form
-  def handle_event("dispatch", params, socket) do
+  # displays the custom alert form; called on change
+  def handle_event("dispatch", _params, socket) do
     # IO.inspect(params, label: "params")
     changeset = %Alert{}
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  def handle_event("save", %{"alert" => alert_params}, socket) do
-    # IO.inspect(alert_params, label: "alert_params")
-    save_alert(socket, alert_params)
+  def handle_event("send", %{"alert" => alert_params}, socket) do
+    AlertUtils.save_alert(socket, socket.assigns.changeset, alert_params)
   end
 
-  # defp save_alert(socket, :edit, alert_params) do
+  # defp AlertUtils.save_alert(socket, :edit, alert_params) do
   #   case Alerts.update_alert(socket.assigns.alert, alert_params) do
   #     {:ok, _alert} ->
   #       {:noreply,
@@ -123,40 +126,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   #       {:noreply, assign(socket, :changeset, changeset)}
   #   end
   # end
-
-  defp save_alert(socket, alert_params) do
-    current_employee = Kernel.get_in(socket.assigns, [:current_employee])
-    user = Kernel.get_in(socket.assigns, [:user])
-
-    if !current_employee || !user do
-      IO.puts('INNMMMMMMMMMM')
-      {:noreply,
-      socket
-      |> put_flash(:error, "Error: Data loss occured on form submission. Please try again.")
-      |> push_redirect(to: socket.assigns.return_to)}
-    else
-      role =
-        TurnStile.Roles.get_role(
-          current_employee.id,
-          current_employee.current_organization_login_id
-        )
-      #   # IO.inspect(user, label: "user")
-      case Alerts.create_alert_w_put_assoc(alert_params, current_employee, user, role) do
-        {:ok, alert_changeset} ->
-          IO.inspect(alert_changeset, label: "alert_changeset")
-          {:noreply,
-          socket
-            |> put_flash(:info, "Alert created successfully")
-          |> push_redirect(to: socket.assigns.return_to)}
-        _ ->
-          IO.puts("ERROR")
-          {:noreply,
-        socket
-          |> put_flash(:error, "Alert Not created successfully")}
-
-      end
-    end
-  end
 
   defp set_title(panel_prop) do
     if panel_prop === "history" do
