@@ -256,6 +256,9 @@ defmodule TurnStile.Alerts do
   end
 
   def insert_alert(alert) do
+    # a = Alert.changeset(alert, %{})
+    # a = Map.put(a, :error, "Some Error")
+    # {:error, a}
     Repo.insert(alert)
   end
 

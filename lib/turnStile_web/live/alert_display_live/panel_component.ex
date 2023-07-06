@@ -4,7 +4,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   alias TurnStile.Alerts.Alert
   alias TurnStileWeb.AlertUtils
 
-
   @impl true
   def update(props, socket) do
     # IO.inspect(props, label: "props")
@@ -21,6 +20,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         AlertCategoryTypesMap.get_alert("CUSTOM"),
         AlertFormatTypesMap.get_alert("SMS")
       )
+
     changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
     # IO.inspect(changeset, label: "changeset in update")
     {:ok,
@@ -33,13 +33,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   end
 
   @impl true
-  # def handle_event(any, any2, socket) do
-  #   IO.inspect(any, label: "any")
-  #   IO.inspect(any2, label: "any2")
-  #   IO.inspect(socket, label: "socket")
-  #   {:noreply, socket}
-  # end
-
   # only fires on change-handles changing the form based on radio button selection
   def handle_event("validate", params, socket) do
     IO.inspect("validate", label: "validate")
@@ -110,22 +103,44 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  def handle_event("send", %{"alert" => alert_params}, socket) do
-    AlertUtils.save_alert(socket, socket.assigns.changeset, alert_params)
+  # send alert from custom dispatch form
+  def handle_event("send-custom-alert", %{"alert" => alert_params}, socket) do
+    case  AlertUtils.handle_save_alert(socket, socket.assigns.changeset, alert_params) do
+      {:ok, alert} ->
+        case AlertUtils.send_alert(alert) do
+          {:ok, twilio_msg} ->
+            IO.inspect(twilio_msg)
+            {
+              :noreply,
+              socket
+              |> assign(:action, "insert")
+              |> put_flash(:success, "Alert sent successfully")
+              # |> push_redirect(to: socket.assigns.return_to)
+            }
+          # handle twilio errors
+          {:error, error_map, error_code} ->
+            {
+              :noreply,
+              socket
+              |> assign(:action, "insert")
+              |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
+              # |> push_redirect(to: socket.assigns.return_to)
+            }
+
+        end
+
+      {:error, changeset} when is_map(changeset) ->
+        {:noreply,
+         socket
+         |> assign(:changeset, changeset)
+         |> put_flash(:error, "Alert Not created successfully")}
+
+      {:error, error} when is_binary(error) ->
+        {:noreply,
+         socket
+         |> put_flash(:error, error)}
+    end
   end
-
-  # defp AlertUtils.save_alert(socket, :edit, alert_params) do
-  #   case Alerts.update_alert(socket.assigns.alert, alert_params) do
-  #     {:ok, _alert} ->
-  #       {:noreply,
-  #        socket
-  #        |> put_flash(:info, "Alert updated successfully")
-  #        |> push_redirect(to: socket.assigns.return_to)}
-
-  #     {:error, %Ecto.Changeset{} = changeset} ->
-  #       {:noreply, assign(socket, :changeset, changeset)}
-  #   end
-  # end
 
   defp set_title(panel_prop) do
     if panel_prop === "history" do
