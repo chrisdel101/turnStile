@@ -58,9 +58,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
           changeset =
             socket.assigns.changeset.data
             |> Alerts.change_alert(email_attrs)
-            |> Map.put(:action, :validate)
 
-          # IO.inspect(changeset, label: "changeset HERE")
+          IO.inspect(changeset, label: "changeset HERE")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
@@ -78,9 +77,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
           changeset =
             socket.assigns.changeset.data
             |> Alerts.change_alert(sms_attrs)
-            |> Map.put(:action, :validate)
 
-          IO.inspect(changeset, label: "changeset in validate")
+          # IO.inspect(changeset, label: "changeset in validate")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
@@ -105,28 +103,46 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   # send alert from custom dispatch form
   def handle_event("send-custom-alert", %{"alert" => alert_params}, socket) do
+    # IO.inspect(alert_params, label: "alert_params")
+    # save alert to DB
     case  AlertUtils.handle_save_alert(socket, socket.assigns.changeset, alert_params) do
       {:ok, alert} ->
-        case AlertUtils.send_alert(alert) do
-          {:ok, twilio_msg} ->
-            IO.inspect(twilio_msg)
+        # check alert type to send
+        IO.inspect(alert, label: "alert")
+        cond do
+          alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+            IO.inspect("EMAIL", label: "EMAIL")
+            alert = AlertUtils.build_email_alert(alert)
+          alert.alert_format === AlertFormatTypesMap.get_alert("SMS") ->
+            IO.inspect("SMS", label: "SMS")
+            case AlertUtils.send_SMS_alert(alert) do
+              {:ok, twilio_msg} ->
+                IO.inspect(twilio_msg)
+                {
+                  :noreply,
+                  socket
+                  # |> assign(:action, "insert")
+                  |> put_flash(:success, "Alert sent successfully")
+                  # |> push_redirect(to: socket.assigns.return_to)
+                }
+              # handle twilio errors
+              {:error, error_map, error_code} ->
+                {
+                  :noreply,
+                  socket
+                  # |> assign(:action, "insert")
+                  |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
+                  # |> push_redirect(to: socket.assigns.return_to)
+                }
+              end
+          true ->
             {
               :noreply,
               socket
-              |> assign(:action, "insert")
-              |> put_flash(:success, "Alert sent successfully")
+              # |> assign(:action, "insert")
+              |> put_flash(:error, "Unknown alert format type. Only email or SMS are alllowed. Try again or contact support.")
               # |> push_redirect(to: socket.assigns.return_to)
             }
-          # handle twilio errors
-          {:error, error_map, error_code} ->
-            {
-              :noreply,
-              socket
-              |> assign(:action, "insert")
-              |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
-              # |> push_redirect(to: socket.assigns.return_to)
-            }
-
         end
 
       {:error, changeset} when is_map(changeset) ->

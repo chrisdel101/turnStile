@@ -35,17 +35,21 @@ defmodule TurnStile.Roles do
   def get_role(id) do
     Repo.get(Role, id) |> Repo.preload([:employee, :organization])
   end
+
   # get employee role within an organization
-  def get_role(employee_id, organization_id) do
+  def get_employee_role_in_organization(employee_id, organization_id) do
     q =
       from(r in Role,
         where: r.employee_id == ^employee_id,
         where: r.organization_id == ^organization_id,
         preload: [:employee, :organization]
       )
-
     Repo.one(q)
   end
+
+  @doc """
+  """
+  def role_exists?(role), do: !is_nil(role)
 
   @doc """
   Creates a role.
@@ -201,8 +205,9 @@ defmodule TurnStile.Roles do
       end
     end
   end
-
-  def role_value_has_add_user?(role_struct) do
+  # checks permissions for a role; rather than checking employee directly
+  # - used in business logic w no req.res
+  def role_has_add_user_permission?(role_struct) do
     role_value = role_struct.value
 
     if TurnStile.Utils.convert_to_int(role_value) <=
@@ -213,7 +218,7 @@ defmodule TurnStile.Roles do
     end
   end
 
-  def role_value_has_add_alert?(role_struct) do
+  def role_has_send_alert_permission?(role_struct) do
     role_value = role_struct.value
 
     if TurnStile.Utils.convert_to_int(role_value) <=

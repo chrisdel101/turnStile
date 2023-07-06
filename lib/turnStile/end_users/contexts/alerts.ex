@@ -106,7 +106,7 @@ defmodule TurnStile.Alerts do
 
               # check employee as permissions
               {:ok, _} ->
-                if Roles.role_value_has_add_alert?(role) do
+                if Roles.role_has_send_alert_permission?(role) do
                   alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
                   alert_struct = Ecto.build_assoc(organization_struct, :alerts, alert_struct)
                   # alert_struct
@@ -134,7 +134,7 @@ defmodule TurnStile.Alerts do
 
           # check employee as permissions
           {:ok, _} ->
-            if Roles.role_value_has_add_alert?(role) do
+            if Roles.role_has_send_alert_permission?(role) do
               alert_struct = Ecto.build_assoc(employee_struct, :alerts, alert_struct)
               alert_struct = Ecto.build_assoc(organization_struct, :alerts, alert_struct)
               # alert_struct
@@ -198,7 +198,7 @@ defmodule TurnStile.Alerts do
 
                 # check employee as permissions
                 {:ok, _} ->
-                  if Roles.role_value_has_add_alert?(role) do
+                  if Roles.role_has_send_alert_permission?(role) do
                     changeset_with_employee =
                       Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
 
@@ -234,7 +234,7 @@ defmodule TurnStile.Alerts do
 
             # check employee as permissions
             {:ok, _} ->
-              if Roles.role_value_has_add_alert?(role) do
+              if Roles.role_has_send_alert_permission?(role) do
                 changeset_with_employee =
                   Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
 

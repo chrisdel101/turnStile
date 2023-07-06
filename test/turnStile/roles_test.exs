@@ -15,9 +15,9 @@ defmodule TurnStile.RolesTest do
       assert Roles.list_roles() == [role]
     end
 
-    test "get_role!/1 returns the role with given id" do
+    test "get_employee_role_in_organization!/1 returns the role with given id" do
       role = role_fixture()
-      assert Roles.get_role!(role.id) == role
+      assert Roles.get_employee_role_in_organization!(role.id) == role
     end
 
     test "create_role/1 with valid data creates a role" do
@@ -40,13 +40,13 @@ defmodule TurnStile.RolesTest do
     test "update_role/2 with invalid data returns error changeset" do
       role = role_fixture()
       assert {:error, %Ecto.Changeset{}} = Roles.update_role(role, @invalid_attrs)
-      assert role == Roles.get_role!(role.id)
+      assert role == Roles.get_employee_role_in_organization!(role.id)
     end
 
     test "delete_role/1 deletes the role" do
       role = role_fixture()
       assert {:ok, %Role{}} = Roles.delete_role(role)
-      assert_raise Ecto.NoResultsError, fn -> Roles.get_role!(role.id) end
+      assert_raise Ecto.NoResultsError, fn -> Roles.get_employee_role_in_organization!(role.id) end
     end
 
     test "change_role/1 returns a role changeset" do

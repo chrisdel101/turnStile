@@ -130,7 +130,7 @@ defmodule TurnStile.Patients do
                 {:error, error}
 
               {:ok, _} ->
-                if Roles.role_value_has_add_user?(org_employee_role) do
+                if Roles.role_has_add_user_permission?(org_employee_role) do
                   # add org assoc
                   user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
                   # IO.inspect(user_struct, label: "user struct123")
@@ -146,7 +146,7 @@ defmodule TurnStile.Patients do
       # if logged-in user
       _ ->
         organization_id = employee_struct.current_organization_login_id
-        if Roles.role_value_has_add_user?(org_employee_role) do
+        if Roles.role_has_add_user_permission?(org_employee_role) do
           organization_struct = TurnStile.Company.get_organization(organization_id)
           user_struct = Ecto.build_assoc(organization_struct, :users, organization_struct)
           # IO.inspect(user_struct, label: "organization struct123")

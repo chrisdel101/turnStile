@@ -489,6 +489,7 @@ defmodule TurnStileWeb.EmployeeAuth do
       end
     end
   end
+
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :employee_return_to, current_path(conn))
   end
@@ -514,9 +515,9 @@ defmodule TurnStileWeb.EmployeeAuth do
           employee.role_value_on_current_organization
       Map.get(employee, :role_on_current_organization) ->
           role = employee.role_on_current_organization
-          EmployeeRolesMap.EmployeeRolesMap.get_permission_role_value(String.upcase(role))
+          EmployeeRolesMap.get_permission_role_value(String.upcase(role))
       true ->
-        role = TurnStile.Roles.get_role(employee.id, current_employee.current_organization_login_id)
+        role = TurnStile.Roles.get_employee_role_in_organization(employee.id, current_employee.current_organization_login_id)
         if role do
           role.value
         else

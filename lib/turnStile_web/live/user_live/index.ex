@@ -47,11 +47,11 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  def handle_event("initial_alert", values, socket) do
+  def handle_event("send_initial_SMS_alert", values, socket) do
     user_id = values["value"]
     current_employee = socket.assigns.current_employee
     if EmployeeAuth.has_alert_send_permissions?(socket, current_employee) do
-      socket = AlertUtils.send_alert(socket, %{"employee_id" => current_employee.id, "user_id" => user_id})
+      socket = AlertUtils.send_SMS_alert(socket, %{"employee_id" => current_employee.id, "user_id" => user_id})
       {:noreply, socket}
     else
       socket =

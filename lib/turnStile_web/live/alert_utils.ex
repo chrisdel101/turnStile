@@ -16,7 +16,7 @@ defmodule TurnStileWeb.AlertUtils do
       {:error, "Error: Data loss occured on form submission. Please try again."}
     else
       role =
-        TurnStile.Roles.get_role(
+        TurnStile.Roles.get_employee_role_in_organization(
           current_employee.id,
           current_employee.current_organization_login_id
         )
@@ -44,8 +44,8 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  #  create and send the alert only
-  def send_alert(alert) do
+  # sends SMS via twilio
+  def send_SMS_alert(alert) do
     if System.get_env("TWILIO_MODE") === "test" do
       case ExTwilio.Message.create(
              to: System.get_env("TEST_NUMBER"),
