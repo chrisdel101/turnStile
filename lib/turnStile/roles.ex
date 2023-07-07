@@ -38,13 +38,19 @@ defmodule TurnStile.Roles do
 
   # get employee role within an organization
   def get_employee_role_in_organization(employee_id, organization_id) do
-    q =
-      from(r in Role,
-        where: r.employee_id == ^employee_id,
-        where: r.organization_id == ^organization_id,
-        preload: [:employee, :organization]
-      )
-    Repo.one(q)
+    if is_nil(employee_id) || is_nil(organization_id) do
+      IO.puts("get_employee_role_in_organization: nil input")
+      nil
+    else
+      q =
+        from(r in Role,
+          where: r.employee_id == ^employee_id,
+          where: r.organization_id == ^organization_id,
+          preload: [:employee, :organization]
+        )
+
+      Repo.one(q)
+    end
   end
 
   @doc """
@@ -152,7 +158,7 @@ defmodule TurnStile.Roles do
   # confirm prev emp/org assoc hold
   # confirm user is
   # params are extracted and used
-  def check_role_has_employee_org_user_assoc(
+  def check_role_has_employee_org_asocc_and_user_org_assoc(
         employee_id,
         organization_id,
         user_struct,
@@ -161,28 +167,52 @@ defmodule TurnStile.Roles do
     # IO.inspect(user_struct, label: "user_struct")
     case check_role_has_employee_org_assoc(employee_id, organization_id, role) do
       {:ok, _} ->
-        # make sure user is associated with organization
-        cond do
-          !Ecto.assoc_loaded?(user_struct.organization) ->
-            error =
-              "Error: Roles.check_role_has_employee_org_user_assoc user organization is not loaded"
+        {:ok, true}
 
-            # IO.puts(error)
-            {:error, error}
+      # make sure user is associated with organization
+      cond do
+        !Ecto.assoc_loaded?(user_struct.organization) ->
+          error =
+            "Error: Roles.check_role_has_employee_org_asocc_and_user_org_assoc user organization is not loaded"
 
-          user_struct.organization.id !== organization_id ->
-            error =
-              "Error: Roles.check_role_has_employee_org_user_assoc user organization id does not match"
+          # IO.puts(error)
+          {:error, error}
 
-            # IO.puts(error)
-            {:error, error}
+        user_struct.organization.id !== organization_id ->
+          error =
+            "Error: Roles.check_role_has_employee_org_asocc_and_user_org_assoc user organization id does not match"
 
-          true ->
-            {:ok, true}
-        end
+          # IO.puts(error)
+          {:error, error}
+
+        true ->
+          {:ok, true}
+      end
 
       {:error, error} ->
         {:error, error}
+    end
+  end
+
+  def check_role_has_user_org_assoc(user_struct, organization_id, role) do
+    # # make sure user is associated with organization
+    cond do
+      !Ecto.assoc_loaded?(user_struct.organization) ->
+        error =
+          "Error: Roles.check_role_has_user_org_assoc user organization is not loaded"
+
+        # IO.puts(error)
+        {:error, error}
+
+      user_struct.organization.id !== organization_id ->
+        error =
+          "Error: Roles.check_role_has_user_org_assoc user organization id does not match"
+
+        # IO.puts(error)
+        {:error, error}
+
+      true ->
+        {:ok, true}
     end
   end
 
@@ -205,6 +235,7 @@ defmodule TurnStile.Roles do
       end
     end
   end
+
   # checks permissions for a role; rather than checking employee directly
   # - used in business logic w no req.res
   def role_has_add_user_permission?(role_struct) do

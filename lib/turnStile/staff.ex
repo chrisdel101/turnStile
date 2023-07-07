@@ -5,8 +5,10 @@ defmodule TurnStile.Staff do
 
   import Ecto.Query, only: [from: 2], warn: false
   alias TurnStile.Repo
+  alias TurnStile.Roles
   alias TurnStile.Company
   alias TurnStile.Staff.{Employee, EmployeeToken, EmployeeNotifier}
+  alias TurnsStileWeb.EmployeeAuth
 
   ## Database getters
 
@@ -59,27 +61,6 @@ defmodule TurnStile.Staff do
   """
   def get_employee(id), do: Repo.get(Employee, id) |> Repo.preload(:roles)
 
-  @doc"""
-  Gets role on current organization.
-
-  """
-
-  defp get_organization_employee_role(employee, organization_id) do
-    if is_nil(employee) || is_nil(organization_id) do
-      IO.puts("get_organization_employee_role: nil input")
-      nil
-    else
-      q =
-        from(r in TurnStile.Roles.Role,
-          where: r.organization_id == ^organization_id,
-          where: r.employee_id == ^employee.id,
-          select: r
-        )
-
-
-      Repo.one(q)
-    end
-  end
 
   ## Employee registration
 
@@ -534,7 +515,6 @@ defmodule TurnStile.Staff do
       []
     end
   end
-
   @doc """
   Creates a employee.
   """
@@ -632,7 +612,7 @@ defmodule TurnStile.Staff do
   def set_employee_role(employee, organization_id) do
     # IO.inspect(employee, label: "employee")
     # IO.inspect(organization_id, label: "organization_id")
-    role = get_organization_employee_role(employee, organization_id)
+    role = Roles.get_employee_role_in_organization(employee.id, organization_id)
     # IO.inspect(role)
     # IO.inspect(role.name)
     # enum types need ints as strings
@@ -687,6 +667,119 @@ defmodule TurnStile.Staff do
     |> Repo.update()
   end
 
+  def check_employee_role_and_permissions(employee, opts \\ []) do
+    cond do
+      # if logged in employee
+      employee.current_organization_login_id ->
+        role =
+          Roles.get_employee_role_in_organization(
+            employee.id,
+            employee.current_organization_login_id
+          )
+          # confirm role is valid
+          case Roles.check_role_has_employee_org_assoc(employee.id, employee.current_organization_login_id, role) do
+            {:ok, _} ->
+              # check permissions for action
+              true
+            {:error, _} ->
+              {:error, "check_employee_role_and_permissions: employee has no role in organization"}
+          end
+      Keyword.get(opts, :organization_id) ->
+        organization_id = Keyword.get(opts, :organization_id)
+        role =
+          Roles.get_employee_role_in_organization(
+            employee.id,
+            organization_id
+          )
+          case Roles.check_role_has_employee_org_assoc(employee.id, organization_id, role) do
+            {:ok, _} ->
+              # check permissions for action
+              true
+            {:error, _} ->
+              {:error, "check_employee_role_and_permissions: employee has no role in organization"}
+          end
+      Keyword.get(opts, :role) ->
+        role = Keyword.get(opts, :role)
+          if is_nil(role.organization_id) do
+              {:error, "check_employee_role_and_permissions: role option is organization_id"}
+          else
+            organization_id = role.organization_id
+            case Roles.check_role_has_employee_org_assoc(employee.id, organization_id, role) do
+              {:ok, _} ->
+                # check permissions for action
+                true
+              {:error, _} ->
+                {:error, "check_employee_role_and_permissions: employee does not match this role"}
+            end
+          end
+      true ->
+        {:error, "check_employee_role_and_permissions: missing required opts. Must be one of: organization_id, role, or employee.current_organization_login_id"}
+        nil
+    end
+  end
+
+  @doc """
+  check_employee_permission_by_action
+  -checks if employee has the proper permissions
+  -takes type of permission that is needed [:employee, :user, :alert]
+  -takes action of the permission [:register, :edit, :add, :remove, :delete, :send]
+  """
+  def check_employee_permission_by_type_and_action(employee, type, action) do
+    allowed_actions = [:register, :edit, :add, :remove, :delete, :send]
+    allow_types = [:employee, :user, :alert]
+
+    if Enum.member?(allowed_actions, action)  do
+      if Enum.member?(allow_types, action) do
+        case type do
+          :employee ->
+            case action do
+              :register ->
+                EmployeeAuth.has_employee_register_permissions(nil)
+
+              :edit ->
+                true
+
+              :add ->
+                true
+
+              :remove ->
+                true
+
+              :delete ->
+                true
+            end
+
+          :user ->
+            true
+
+          :alert ->
+            true
+        end
+        # case action do
+        #   :read ->
+        #     # Check if employee has read permission
+        #     employee.read_permission
+
+        #   :write ->
+        #     # Check if employee has write permission
+        #     employee.write_permission
+
+        #   :delete ->
+        #     # Check if employee has delete permission
+        #     employee.delete_permission
+        # end
+      else
+        IO.puts("Invalid type")
+        # Handle invalid type
+        false
+      end
+    else
+      IO.puts("Invalid action")
+      # Handle invalid action
+      false
+    end
+  # end
+end
   alias TurnStile.Staff.Owner
 
   @doc """

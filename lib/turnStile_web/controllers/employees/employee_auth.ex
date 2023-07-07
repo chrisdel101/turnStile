@@ -360,6 +360,33 @@ defmodule TurnStileWeb.EmployeeAuth do
     end
   end
 
+  def has_employee_register_permissions?(_conn, employee_params_to_register, current_employee) do
+    # IO.inspect(current_employee)
+    if !current_employee do
+      false
+    else
+      # check if owner; owner has full access
+      if current_employee.role_on_current_organization ===
+        EmployeeRolesMap.get_permission_role("OWNER") do
+        # IO.inspect("owner perms")
+        true
+      else
+        current_user_permission = current_employee.role_value_on_current_organization
+
+        registrant_role_value =
+          Map.get(employee_params_to_register, "role_on_current_organization") ||
+            Map.get(employee_params_to_register, :role_on_current_organization)
+        # current must be equal to register; both are digit strings
+        if current_user_permission <=
+             registrant_role_value do
+          true
+        else
+          false
+        end
+      end
+    end
+  end
+
   @doc """
   check current employee has greater-equal persmissions to edit
   -used in employee controller: update

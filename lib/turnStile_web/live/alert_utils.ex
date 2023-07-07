@@ -15,31 +15,37 @@ defmodule TurnStileWeb.AlertUtils do
     if !current_employee || !user do
       {:error, "Error: Data loss occured on form submission. Please try again."}
     else
-      role =
-        TurnStile.Roles.get_employee_role_in_organization(
-          current_employee.id,
-          current_employee.current_organization_login_id
-        )
-
-      # builds an alert changeset with all associations
-      case Alerts.create_alert_w_put_assoc(current_employee, user, role,
-             changeset: changeset,
-             alert_attrs: params
-           ) do
-        {:ok, alert_changeset} ->
-          # IO.inspect(alert_changeset, label: "alert_changeset")
-          # insert alert into DB
-          case Alerts.insert_alert(alert_changeset) do
-            {:ok, alert} ->
-              {:ok, alert}
-
-            {:error, %Ecto.Changeset{} = changeset} ->
-              {:error, changeset}
-          end
-
+      # check roles match here
+      case Staff.check_employee_role_and_permissions(current_employee) do
         {:error, error} ->
           IO.puts("ERROR: #{error}")
           {:error, error}
+        {:ok, _} ->
+           # check permissions match here
+          IO.puts("Employee has correct role")
+          role = "hello"
+          # builds an alert changeset with all associations
+          case Alerts.create_alert_w_put_assoc(current_employee, user, role,
+                 changeset: changeset,
+                 alert_attrs: params
+               ) do
+            {:ok, alert_changeset} ->
+              # IO.inspect(alert_changeset, label: "alert_changeset")
+              # insert alert into DB
+              case Alerts.insert_alert(alert_changeset) do
+                {:ok, alert} ->
+                  {:ok, alert}
+
+                {:error, %Ecto.Changeset{} = changeset} ->
+                  {:error, changeset}
+              end
+
+            {:error, error} ->
+              IO.puts("ERROR: #{error}")
+              {:error, error}
+
+      end
+
       end
     end
   end

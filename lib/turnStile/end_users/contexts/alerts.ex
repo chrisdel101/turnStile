@@ -94,7 +94,7 @@ defmodule TurnStile.Alerts do
 
           _ ->
             # check all assocs are okay
-            case Roles.check_role_has_employee_org_user_assoc(
+            case Roles.check_role_has_employee_org_asocc_and_user_org_assoc(
                    employee_struct.id,
                    organization_struct.id,
                    user_struct,
@@ -122,7 +122,7 @@ defmodule TurnStile.Alerts do
         organization_id = employee_struct.current_organization_login_id
         organization_struct = TurnStile.Company.get_organization(organization_id)
 
-        case Roles.check_role_has_employee_org_user_assoc(
+        case Roles.check_role_has_employee_org_asocc_and_user_org_assoc(
                employee_struct.id,
                organization_id,
                user_struct,
@@ -170,7 +170,7 @@ defmodule TurnStile.Alerts do
       # user_changeset = TurnStile.Patients.User.changeset(%TurnStile.Patients.User{}, user_struct)
       changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
 
-      #  check employee organization_struct
+      # For logged in employee: use organization_struct
       case employee_struct.current_organization_login_id do
         # check employee has org_id, or ir org struct passed in
         nil ->
@@ -186,7 +186,7 @@ defmodule TurnStile.Alerts do
 
             _ ->
               # check all assocs are okay
-              case Roles.check_role_has_employee_org_user_assoc(
+              case Roles.check_role_has_employee_org_asocc_and_user_org_assoc(
                      employee_struct.id,
                      organization_struct.id,
                      user_struct,
@@ -222,7 +222,7 @@ defmodule TurnStile.Alerts do
           organization_id = employee_struct.current_organization_login_id
           organization_struct = TurnStile.Company.get_organization(organization_id)
 
-          case Roles.check_role_has_employee_org_user_assoc(
+          case Roles.check_role_has_employee_org_asocc_and_user_org_assoc(
                  employee_struct.id,
                  organization_id,
                  user_struct,
