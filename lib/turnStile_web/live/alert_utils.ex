@@ -4,6 +4,7 @@ defmodule TurnStileWeb.AlertUtils do
   alias TurnStile.Staff
   @json TurnStile.Utils.read_json("sms.json")
   alias TurnStileWeb.EmployeeAuth
+  alias TurnStile.Patients.UserNotifier
 
   @doc """
   handle_save_alert
@@ -40,7 +41,7 @@ defmodule TurnStileWeb.AlertUtils do
                          alert_attrs: params
                        ) do
                     {:ok, alert_changeset} ->
-                      IO.inspect(alert_changeset, label: "alert_changeset")
+                      # IO.inspect(alert_changeset, label: "alert_changeset")
                       # insert alert into DB
                       case Alerts.insert_alert(alert_changeset) do
                         {:ok, alert} ->
@@ -67,11 +68,11 @@ defmodule TurnStileWeb.AlertUtils do
 
   # sends SMS via twilio
   def send_SMS_alert(alert) do
-    if System.get_env("TWILIO_MODE") === "test" do
+    if System.get_env("SMS_ALERT_MODE") === "dev" do
       case ExTwilio.Message.create(
              to: System.get_env("TEST_NUMBER"),
              from: System.get_env("TWILIO_PHONE_NUM"),
-             body: @json["alerts"]["request"]["initial"]
+             body: alert.body || @json["alerts"]["request"]["initial"]
            ) do
         {:ok, twilio_msg} ->
           {:ok, twilio_msg}
@@ -100,5 +101,44 @@ defmodule TurnStileWeb.AlertUtils do
           {:error, "An unknown error occured"}
       end
     end
+  end
+  # sends SMS via twilio
+  def send_email_alert(alert) do
+    # use default system setting for email
+    user = TurnStile.Patients.get_user(alert.user_id)
+    cond do
+      alert.alert_category ===  AlertCategoryTypesMap.get_alert("CUSTOM") ->
+        if System.get_env("EMAIL_ALERT_MODE") === "dev" do
+          # make sure alert is set to system TO/FROM settings
+          alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL")) # default :from
+          alert = Map.put(alert, :to, System.get_env("DEV_EMAIL")) # default :from
+          alert = Map.put(alert, :body, @json["alerts"]["request"]["custom_dev"]) # default :body
+          IO.inspect(@json["alerts"]["request"]["custom_dev"], label: "alert")
+          case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
+              {:ok, email} ->
+                IO.inspect(email, label: "email")
+                {:ok, email}
+              {:error, error} ->
+                {:error, error}
+            end
+          else
+            # get TO/FROM the input form
+            case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
+              {:ok, email} ->
+                {:ok, email}
+              {:error, error} ->
+                {:error, error}
+            end
+        end
+        # initial alert
+        true ->
+          case UserNotifier.deliver_initial_alert(user, "localhost:4000/test123") do
+            {:ok, email} ->
+              {:ok, email}
+            {:error, error} ->
+              {:error, error}
+          end
+      end
+    # end
   end
 end

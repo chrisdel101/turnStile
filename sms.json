@@ -1,7 +1,8 @@
 {
   "alerts": {
     "request": {
-      "initial": "This is a Turnstile message. You will recieve an alert when it is your turn. Reply with 1 to confirmm 2 to cancel."
+      "initial": "This is a Turnstile message. You will recieve an alert when it is your turn. Reply with 1 to confirmm 2 to cancel.",
+      "custom_dev": "This is a Turnstile message. This is sent to test the system settings are working. This is for DEV only. If you've recieved this message please resond to this email and let us know. Thanks!"
     },
     "response": {
       "confirm": "You have confirmed your turn. You will recieve an alert when it is your turn.",

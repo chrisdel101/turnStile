@@ -41,7 +41,7 @@
       ) %>
     </span>
   </div>
-
+  <%!-- <% display form based on query params %> --%>
   <%= if @panel === "dispatch" do %>
     <div>
       <h3><%= @title %></h3>
@@ -50,7 +50,7 @@
     for={@changeset}
     id="alert-form"
     phx-target={@myself}
-    phx-change="validate"
+    phx-change="toggle_alert_form"
     phx-submit="send_custom_alert"
     >
         <table>

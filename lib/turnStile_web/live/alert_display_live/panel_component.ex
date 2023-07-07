@@ -5,6 +5,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   alias TurnStileWeb.AlertUtils
 
   @impl true
+  # user opens panel component to alter alert defauls
   def update(props, socket) do
     # IO.inspect(props, label: "props")
     # IO.inspect(socket, label: "socket")
@@ -13,7 +14,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
     alerts = Alerts.get_alerts_for_user(user_id)
     # IO.inspect(alerts, label: "alerts")
-    # build SMS alert as default
+    # - add some alert default alert attr
+    # - default alert to SMS
     sms_attrs =
       Alerts.build_alert_attrs(
         user,
@@ -34,8 +36,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   @impl true
   # only fires on change-handles changing the form based on radio button selection
-  def handle_event("validate", params, socket) do
-    IO.inspect("validate", label: "validate")
+  def handle_event("toggle_alert_form", params, socket) do
+    IO.inspect("toggle_alert_form", label: "toggle_alert_form")
     # IO.inspect(socket, label: "params")
     alert_params = Map.get(params, :alert) || Map.get(params, "alert")
 
@@ -94,12 +96,12 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     # IO.inspect(socket, label: "socket")
   end
 
-  # displays the custom alert form; called on change
-  def handle_event("dispatch", _params, socket) do
-    # IO.inspect(params, label: "params")
-    changeset = %Alert{}
-    {:noreply, assign(socket, :changeset, changeset)}
-  end
+  # # displays the custom alert form; called on change
+  # def handle_event("dispatch", _params, socket) do
+  #   IO.inspect("DISPATCH", label: "params")
+  #   changeset = %Alert{}
+  #   {:noreply, assign(socket, :changeset, changeset)}
+  # end
 
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
@@ -108,11 +110,28 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     case  AlertUtils.handle_save_alert(socket, socket.assigns.changeset, alert_params) do
       {:ok, alert} ->
         # check alert type to send
-        IO.inspect(alert, label: "alert")
+        # IO.inspect(alert, label: "alert")
         cond do
           alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
             IO.inspect("EMAIL", label: "EMAIL")
-            alert = AlertUtils.build_email_alert(alert)
+            case AlertUtils.send_email_alert(alert) do
+              {:ok, _email} ->
+                {
+                  :noreply,
+                  socket
+                  # |> assign(:action, "insert")
+                  |> put_flash(:success, "Alert sent successfully")
+                  # |> push_redirect(to: socket.assigns.return_to)
+                }
+              {:error, error} ->
+                {
+                  :noreply,
+                  socket
+                  # |> assign(:action, "insert")
+                  |> put_flash(:error, "Failure in alert send. #{error}")
+                  # |> push_redirect(to: socket.assigns.return_to)
+                }
+            end
           alert.alert_format === AlertFormatTypesMap.get_alert("SMS") ->
             IO.inspect("SMS", label: "SMS")
             case AlertUtils.send_SMS_alert(alert) do
@@ -132,6 +151,14 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
                   socket
                   # |> assign(:action, "insert")
                   |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
+                  # |> push_redirect(to: socket.assigns.return_to)
+                }
+              {:error, error} ->
+                {
+                  :noreply,
+                  socket
+                  # |> assign(:action, "insert")
+                  |> put_flash(:error, "Failure in alert send. #{error}")
                   # |> push_redirect(to: socket.assigns.return_to)
                 }
               end
