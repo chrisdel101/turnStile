@@ -43,14 +43,14 @@
   </div>
   <%!-- <% display form based on query params %> --%>
   <%= if @panel === "dispatch" do %>
-    <div>
+    <div id="alert-form-container">
       <h3><%= @title %></h3>
       <.form
     let={f}
     for={@changeset}
     id="alert-form"
     phx-target={@myself}
-    phx-change="toggle_alert_form"
+    phx-change="change"
     phx-submit="send_custom_alert"
     >
         <table>
@@ -65,9 +65,9 @@
             <tr>
               <td>
                 <%= label(f, :alert_format, "SMS") %>
-                <%= radio_button(f, :alert_format, :sms) %>
+                <%= radio_button(f, :alert_format, :sms, phx_change: "radio_changed")%>
                 <%= label(f, :alert_format, "Email") %>
-                <%= radio_button(f, :alert_format, :email) %>
+                <%= radio_button(f, :alert_format, :email,phx_change: "radio_changed") %>
               </td>
               <%!-- <% IO.inspect(@changeset.changes.alert_format) %> --%>
               <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("EMAIL") do %>
@@ -80,8 +80,13 @@
                   <%= text_input(f, :from, value: @changeset.changes.from) %>
                   <%= error_tag(f, :from) %>
 
+                  <%= label(f, "Subject") %>
+                  <%= text_input(f, :title, value: Kernel.get_in(@changeset.changes, [:title]), placeholder: "Enter a subject line") %>
+                  <%= error_tag(f, :title) %>
+
+
                   <%= label(f, "Message") %>
-                  <%= textarea(f, nil, placeholder: input_value(f, :body)) %>
+                  <%= textarea(f, :body, value: Kernel.get_in(@changeset.changes, [:body]), placeholder: "Enter email body") %>
                   <%= error_tag(f, :body) %>
                 </td>
               <% end %>
@@ -119,7 +124,7 @@
     </div>
   <% end %>
   <%= if @panel === "history" do %>
-    <div>
+      <div id="alert-history-container">
       <h3><%= @title %></h3>
       <table>
         <thead>

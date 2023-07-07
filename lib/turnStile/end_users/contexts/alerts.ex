@@ -53,8 +53,8 @@ defmodule TurnStile.Alerts do
   create_new_alert
   Creates a new alert object for use in insertion process.
   """
-  def create_new_alert(%Alert{} = alert, attrs \\ %{}) do
-    Alert.changeset(alert, attrs)
+  def create_new_alert(%Alert{} = alert, attrs \\ %{}, validate? \\ false) do
+    Alert.changeset(alert, attrs, validate?)
   end
 
   @doc """
@@ -171,7 +171,7 @@ defmodule TurnStile.Alerts do
 
       # For logged in employee: use organization_struct
       case employee_struct.current_organization_login_id do
-      #  non-logged in user requires organization struct
+        #  non-logged in user requires organization struct
         nil ->
           organization_struct = Keyword.get(opts, :organization_struct)
 
@@ -179,8 +179,10 @@ defmodule TurnStile.Alerts do
             nil ->
               error =
                 "Error: cast_alert_changeset: User.organization struct && organization params cannot BOTH be nil. Organization is required."
+
               IO.puts(error)
               {:error, error}
+
             _ ->
               # add other assoc
               changeset_with_employee =
@@ -192,6 +194,7 @@ defmodule TurnStile.Alerts do
                   :organization,
                   organization_struct
                 )
+
               # alert_struct
               {:ok, changeset_with_organization}
           end
@@ -201,16 +204,17 @@ defmodule TurnStile.Alerts do
           organization_id = employee_struct.current_organization_login_id
           organization_struct = TurnStile.Company.get_organization(organization_id)
 
-                changeset_with_employee =
-                  Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
+          changeset_with_employee =
+            Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
 
-                changeset_with_organization =
-                  Ecto.Changeset.put_assoc(
-                    changeset_with_employee,
-                    :organization,
-                    organization_struct
-                  )
-                {:ok, changeset_with_organization}
+          changeset_with_organization =
+            Ecto.Changeset.put_assoc(
+              changeset_with_employee,
+              :organization,
+              organization_struct
+            )
+
+          {:ok, changeset_with_organization}
       end
     end
   end
@@ -242,19 +246,12 @@ defmodule TurnStile.Alerts do
   end
 
   @doc """
-  insert_alert
-   Basic insert w/o assoc
-  """
-  def insert_alert(%Alert{} = alert) do
-    Repo.insert(alert)
-  end
-
-  @doc """
   build_alert_attr
   -Auto-fills in possible fields based on category
   -use env variables to set system :from fields
   -Returns a map of alert attributes
   -to override default fields pass in opts [:body, :title, :from...]
+  -title & body can be set to "" string to empty them before form validation by user
   """
   def build_alert_attrs(
         user,
@@ -266,42 +263,62 @@ defmodule TurnStile.Alerts do
       # build custom type alert
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
         %{
-          title: case Keyword.get(opts, :title) do
-            nil -> "A Custom Alert Title"
-            value -> value
-          end,
-          body: case Keyword.get(opts, :body) do
-            nil ->
-              cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  "This is a custom alert being used to test the alert system for EMAIL"
+          # allow empty title for user form entry for email
+          title:
+            if Keyword.get(opts, :empty_title?) do
+              nil
+            else
+              case Keyword.get(opts, :title) do
+                # nil -> "A Custom Alert Title"
+                value -> value
+              end
+            end,
+          # allow empty body for user form entry for email
+          body:
+            if Keyword.get(opts, :empty_body?) do
+              nil
+            else
+              case Keyword.get(opts, :body) do
+                # nil ->
+                #   cond do
+                #     alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                #       "This is a custom alert being used to test the alert system for EMAIL"
 
-                  true ->
-                    "This is a custom alert being used to test the alert system for SMS"
-                  end
-            value -> value
-          end,
-          from: case Keyword.get(opts, :from) do
-            nil ->
-              cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  System.get_env("SYSTEM_ALERT_FROM_EMAIL")
+                #     true ->
+                #       "This is a custom alert being used to test the alert system for SMS"
+                #   end
+
+                value ->
+                  value
+              end
+            end,
+          from:
+            case Keyword.get(opts, :from) do
+              nil ->
+                cond do
+                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                    System.get_env("SYSTEM_ALERT_FROM_EMAIL")
 
                   true ->
                     System.get_env("SYSTEM_ALERT_FROM_SMS")
-                  end
-                value -> value
-                end,
-          to: case Keyword.get(opts, :to) do
-            nil ->
-              cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  user.email
+                end
 
-                true ->
-                  user.phone
-              end
-              value -> value
+              value ->
+                value
+            end,
+          to:
+            case Keyword.get(opts, :to) do
+              nil ->
+                cond do
+                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                    user.email
+
+                  true ->
+                    user.phone
+                end
+
+              value ->
+                value
             end,
           alert_format: alert_format,
           alert_category: alert_category
@@ -309,42 +326,52 @@ defmodule TurnStile.Alerts do
 
       true ->
         %{
-          title: case Keyword.get(opts, :title) do
-            nil -> "Initial Alert"
-            value -> value
-          end,
-          body: case Keyword.get(opts, :body) do
-            nil ->
-              cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  "This is an initial alert being to test the alert system email"
+          title:
+            case Keyword.get(opts, :title) do
+              # nil -> "Initial Alert"
+              value -> value
+            end,
+          body:
+            case Keyword.get(opts, :body) do
+              # nil ->
+              #   cond do
+              #     alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+              #       "This is an initial alert being to test the alert system email"
 
-                  true ->
-                    "This is an initial alert being to test the alert system sms"
-                  end
-            value -> value
-          end,
-          from: case Keyword.get(opts, :from) do
-            nil ->
-              cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  System.get_env("SYSTEM_ALERT_FROM_EMAIL")
+              #     true ->
+              #       "This is an initial alert being to test the alert system sms"
+              #   end
+
+              value ->
+                value
+            end,
+          from:
+            case Keyword.get(opts, :from) do
+              nil ->
+                cond do
+                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                    System.get_env("SYSTEM_ALERT_FROM_EMAIL")
 
                   true ->
                     System.get_env("SYSTEM_ALERT_FROM_SMS")
-                  end
-                value -> value
-                end,
-          to: case Keyword.get(opts, :to) do
-            nil ->
-              cond do
-                alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                  user.email
+                end
 
-                true ->
-                  user.phone
-              end
-              value -> value
+              value ->
+                value
+            end,
+          to:
+            case Keyword.get(opts, :to) do
+              nil ->
+                cond do
+                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+                    user.email
+
+                  true ->
+                    user.phone
+                end
+
+              value ->
+                value
             end,
           alert_format: alert_format,
           alert_category: alert_category
@@ -393,7 +420,7 @@ defmodule TurnStile.Alerts do
       %Todo{...}
 
   """
-  def change_alert(%Alert{} = alert, attrs \\ %{}) do
-    Alert.changeset(alert, attrs)
+  def change_alert(%Alert{} = alert, attrs \\ %{}, validate? \\ false) do
+    Alert.changeset(alert, attrs, validate?)
   end
 end

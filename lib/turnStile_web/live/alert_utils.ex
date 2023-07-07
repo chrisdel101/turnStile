@@ -113,18 +113,20 @@ defmodule TurnStileWeb.AlertUtils do
           alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL")) # default :from
           alert = Map.put(alert, :to, System.get_env("DEV_EMAIL")) # default :from
           alert = Map.put(alert, :body, @json["alerts"]["request"]["custom_dev"]) # default :body
-          IO.inspect(@json["alerts"]["request"]["custom_dev"], label: "alert")
+          # IO.inspect(@json["alerts"]["request"]["custom_dev"], label: "alert")
+
           case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
               {:ok, email} ->
-                IO.inspect(email, label: "email")
                 {:ok, email}
-              {:error, error} ->
-                {:error, error}
-            end
-          else
-            # get TO/FROM the input form
-            case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
-              {:ok, email} ->
+                {:error, error} ->
+                  {:error, error}
+                end
+              else
+                # IO.inspect(alert, label: "alert")
+                # get TO/FROM/BODY the input form
+                case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
+                  {:ok, email} ->
+                    IO.inspect(email, label: "email")
                 {:ok, email}
               {:error, error} ->
                 {:error, error}

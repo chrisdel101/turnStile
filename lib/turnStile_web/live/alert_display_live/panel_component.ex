@@ -36,9 +36,9 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   @impl true
   # only fires on change-handles changing the form based on radio button selection
-  def handle_event("toggle_alert_form", params, socket) do
+  def handle_event("radio_changed", params, socket) do
     IO.inspect("toggle_alert_form", label: "toggle_alert_form")
-    # IO.inspect(socket, label: "params")
+    IO.inspect(params, label: "params")
     alert_params = Map.get(params, :alert) || Map.get(params, "alert")
 
     # check for change on radio buttons
@@ -48,18 +48,25 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       cond do
         # flip to email form
         alert_params["alert_format"] === AlertFormatTypesMap.get_alert("EMAIL") ->
-          IO.inspect("EMAIL", label: "EMAIL")
+          # IO.inspect("EMAIL", label: "EMAIL")
 
           email_attrs =
             Alerts.build_alert_attrs(
               socket.assigns.user,
               AlertCategoryTypesMap.get_alert("CUSTOM"),
-              AlertFormatTypesMap.get_alert("EMAIL")
+              AlertFormatTypesMap.get_alert("EMAIL"),
+              from: alert_params["from"],
+              to: alert_params["to"],
+              title: alert_params["title"],
+              body: alert_params["body"]
+              # empty_title?: true,
+              # empty_body?: true
             )
-
+            IO.inspect(email_attrs, label: "email_attrs")
+          # enforce form validations here on email alert
           changeset =
             socket.assigns.changeset.data
-            |> Alerts.change_alert(email_attrs)
+            |> Alerts.change_alert(email_attrs, true)
 
           IO.inspect(changeset, label: "changeset HERE")
 
@@ -102,6 +109,59 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   #   changeset = %Alert{}
   #   {:noreply, assign(socket, :changeset, changeset)}
   # end
+  def handle_event("change", params, socket) do
+    alert_params = Map.get(params, :alert) || Map.get(params, "alert")
+    cond do
+      # flip to email form
+      alert_params["alert_format"] === AlertFormatTypesMap.get_alert("EMAIL") ->
+        # IO.inspect("EMAIL", label: "EMAIL")
+
+        email_attrs =
+          Alerts.build_alert_attrs(
+            socket.assigns.user,
+            AlertCategoryTypesMap.get_alert("CUSTOM"),
+            AlertFormatTypesMap.get_alert("EMAIL"),
+            from: alert_params["from"],
+            to: alert_params["to"],
+            title: alert_params["title"],
+            body: alert_params["body"]
+            # empty_title?: true,
+            # empty_body?: true
+          )
+          IO.inspect(email_attrs, label: "email_attrs")
+        # enforce form validations here on email alert
+        changeset =
+          socket.assigns.changeset.data
+          |> Alerts.change_alert(email_attrs, true)
+
+        IO.inspect(changeset, label: "changeset HERE")
+
+        {:noreply, assign(socket, :changeset, changeset)}
+
+      # end
+      alert_params["alert_format"] === AlertFormatTypesMap.get_alert("SMS") ->
+        IO.inspect("SMS", label: "SMS")
+
+        sms_attrs =
+          Alerts.build_alert_attrs(
+            socket.assigns.user,
+            AlertCategoryTypesMap.get_alert("CUSTOM"),
+            AlertFormatTypesMap.get_alert("SMS")
+          )
+
+        changeset =
+          socket.assigns.changeset.data
+          |> Alerts.change_alert(sms_attrs)
+
+        # IO.inspect(changeset, label: "changeset in validate")
+
+        {:noreply, assign(socket, :changeset, changeset)}
+
+      #  end
+      true ->
+        {:noreply, socket}
+    end
+  end
 
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
@@ -113,7 +173,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         # IO.inspect(alert, label: "alert")
         cond do
           alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-            IO.inspect("EMAIL", label: "EMAIL")
+            # IO.inspect(alert, label: "alert handle_event EmAIl")
+
             case AlertUtils.send_email_alert(alert) do
               {:ok, _email} ->
                 {

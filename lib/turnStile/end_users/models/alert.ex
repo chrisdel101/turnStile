@@ -22,8 +22,18 @@ defmodule TurnStile.Alerts.Alert do
   end
 
   @doc false
-  def changeset(alert, attrs) do
+  def changeset(alert, attrs, validate? \\ false) do
     alert
     |> cast(attrs, [:title, :body, :to, :from, :alert_category, :alert_format, :employee_id, :user_id])
+    |> validate_when_required(validate?, [:title, :body, :to, :from])
+  end
+
+  defp validate_when_required(alert, validate?, attrs) do
+    if validate? do
+      alert
+      |> validate_required(attrs)
+    else
+      alert
+    end
   end
 end

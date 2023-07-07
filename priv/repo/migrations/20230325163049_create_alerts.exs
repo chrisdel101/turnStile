@@ -5,8 +5,8 @@ defmodule TurnStile.Repo.Migrations.CreateAlerts do
     create table(:alerts) do
       add :title, :string
       add :body, :string
-      add :to, :string
-      add :from, :string
+      add :to, :string, null: false
+      add :from, :string, null: false
       add :alert_category, :alert_category, null: false
       add :alert_format, :alert_format, null: false
       add :employee_id, references("employees"), null: false
