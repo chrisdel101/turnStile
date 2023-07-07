@@ -244,7 +244,9 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body1",
-    title: "alert1"
+    title: "alert1",
+    to: user1.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a1, role1, organization1)
@@ -254,7 +256,9 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "confirmation",
     alert_format: "sms",
     body: "some body4",
-    title: "alert4"
+    title: "alert4",
+    to: user1.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a4, role1, organization1)
@@ -264,7 +268,9 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body2",
-    title: "alert2"
+    title: "alert2",
+    to: user1.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a2, role1, organization1)
@@ -274,7 +280,10 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body3",
-    title: "alert3"
+    title: "alert3",
+    to: user1.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
+
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user1, a3, role1, organization1)
@@ -439,7 +448,9 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body1",
-    title: "alert1"
+    title: "alert1",
+    to: user5.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee9, user5, a5, role9, organization2)
@@ -449,7 +460,9 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "confirmation",
     alert_format: "sms",
     body: "some body4",
-    title: "alert4"
+    title: "alert4",
+    to: user6.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee1, user6, a6, rolexy, organization2)
@@ -457,9 +470,11 @@ TurnStile.Repo.transaction(fn ->
 
   a7 = %{
     alert_category: "initial",
-    alert_format: "sms",
+    alert_format: "email",
     body: "some body2",
-    title: "alert2"
+    title: "alert2",
+    to: user7.email,
+    from: System.get_env("SYSTEM_ALERT_FROM_EMAIL")
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee10, user7, a7, role10, organization2)
@@ -469,7 +484,10 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body3",
-    title: "alert3"
+    title: "alert3",
+    to: user8.phone,
+    from: System.get_env("SYSTEM_ALERT_FROM_SMS")
+
   }
 
   {:ok, alert} = TurnStile.Alerts.create_alert_w_build_assoc(employee10, user8, a8, role10, organization2)

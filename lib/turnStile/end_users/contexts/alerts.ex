@@ -75,7 +75,9 @@ defmodule TurnStile.Alerts do
       alert_category: attrs["alert_category"] || attrs.alert_category,
       alert_format: attrs["alert_format"] || attrs.alert_format,
       body: attrs["body"] || attrs.body,
-      title: attrs["title"] || attrs.title
+      title: attrs["title"] || attrs.title,
+      to: attrs["to"] || attrs.to,
+      from: attrs["from"] || attrs.from
     }
 
     # build_alert assoc
