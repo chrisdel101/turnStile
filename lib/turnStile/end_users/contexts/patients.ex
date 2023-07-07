@@ -171,6 +171,27 @@ defmodule TurnStile.Patients do
     end
   end
 
+  def check_user_has_organization(user_struct, organization_id) do
+    # # make sure user is associated with organization
+    cond do
+      !Ecto.assoc_loaded?(user_struct.organization) ->
+        error =
+          "Error: Roles.check_role_has_user_org_assoc user organization is not loaded"
+
+        # IO.puts(error)
+        {:error, error}
+
+      user_struct.organization.id !== organization_id ->
+        error =
+          "Error: Roles.check_role_has_user_org_assoc user organization id does not match"
+
+        # IO.puts(error)
+        {:error, error}
+
+      true ->
+        {:ok, true}
+    end
+  end
   @doc """
   Updates a user.
 

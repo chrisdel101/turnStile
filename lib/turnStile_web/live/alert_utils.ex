@@ -1,7 +1,9 @@
 defmodule TurnStileWeb.AlertUtils do
   use TurnStileWeb, :live_component
   alias TurnStile.Alerts
+  alias TurnStile.Staff
   @json TurnStile.Utils.read_json("sms.json")
+  alias TurnStileWeb.EmployeeAuth
 
   @doc """
   handle_save_alert
@@ -15,37 +17,50 @@ defmodule TurnStileWeb.AlertUtils do
     if !current_employee || !user do
       {:error, "Error: Data loss occured on form submission. Please try again."}
     else
-      # check roles match here
-      case Staff.check_employee_role_and_permissions(current_employee) do
+      # check employee/organization roles match
+      case Staff.check_employee_has_organization_role(current_employee) do
         {:error, error} ->
           IO.puts("ERROR: #{error}")
           {:error, error}
-        {:ok, _} ->
-           # check permissions match here
-          IO.puts("Employee has correct role")
-          role = "hello"
-          # builds an alert changeset with all associations
-          case Alerts.create_alert_w_put_assoc(current_employee, user, role,
-                 changeset: changeset,
-                 alert_attrs: params
-               ) do
-            {:ok, alert_changeset} ->
-              # IO.inspect(alert_changeset, label: "alert_changeset")
-              # insert alert into DB
-              case Alerts.insert_alert(alert_changeset) do
-                {:ok, alert} ->
-                  {:ok, alert}
 
-                {:error, %Ecto.Changeset{} = changeset} ->
-                  {:error, changeset}
+        {:ok, _} ->
+          IO.puts("Employee has correct role")
+          # check employee has permissions
+          case EmployeeAuth.has_alert_send_permissions?(socket, current_employee) do
+            true ->
+              IO.puts("Employee has correct permissions")
+              # check user is part of organization
+              case TurnStile.Patients.check_user_has_organization(
+                     user,
+                     current_employee.current_organization_login_id
+                   ) do
+                {:ok, _} ->
+                  case Alerts.create_alert_w_put_assoc(current_employee, user,
+                         changeset: changeset,
+                         alert_attrs: params
+                       ) do
+                    {:ok, alert_changeset} ->
+                      IO.inspect(alert_changeset, label: "alert_changeset")
+                      # insert alert into DB
+                      case Alerts.insert_alert(alert_changeset) do
+                        {:ok, alert} ->
+                          {:ok, alert}
+                        {:error, %Ecto.Changeset{} = changeset} ->
+                          {:error, changeset}
+                      end
+                    {:error, error} ->
+                      IO.puts("ERROR: #{error}")
+                      {:error, error}
+                  end
+                {:error, error} ->
+                  IO.puts("ERROR: #{error}")
+                  {:error, error}
               end
 
-            {:error, error} ->
-              IO.puts("ERROR: #{error}")
-              {:error, error}
-
-      end
-
+            false ->
+              IO.puts("Employee does not have correct permissions")
+              {:error, "Error: You do not have permission to send alerts."}
+          end
       end
     end
   end

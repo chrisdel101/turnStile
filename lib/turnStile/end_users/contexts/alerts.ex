@@ -155,7 +155,6 @@ defmodule TurnStile.Alerts do
   def create_alert_w_put_assoc(
         employee_struct,
         user_struct,
-        role,
         opts \\ []
       ) do
     if is_nil(Keyword.get(opts, :alert_attrs)) &&
@@ -167,12 +166,12 @@ defmodule TurnStile.Alerts do
       # build_alert assoc - takes params or a changeset
       alert = Alert.changeset(Keyword.get(opts, :changeset), Keyword.get(opts, :alert_attrs))
       # IO.inspect(alert, label: "alert changeset create_alert_w_put_assoc")
-      # user_changeset = TurnStile.Patients.User.changeset(%TurnStile.Patients.User{}, user_struct)
+
       changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
 
       # For logged in employee: use organization_struct
       case employee_struct.current_organization_login_id do
-        # check employee has org_id, or ir org struct passed in
+      #  non-logged in user requires organization struct
         nil ->
           organization_struct = Keyword.get(opts, :organization_struct)
 
@@ -180,41 +179,21 @@ defmodule TurnStile.Alerts do
             nil ->
               error =
                 "Error: cast_alert_changeset: User.organization struct && organization params cannot BOTH be nil. Organization is required."
-
               IO.puts(error)
               {:error, error}
-
             _ ->
-              # check all assocs are okay
-              case Roles.check_role_has_employee_org_asocc_and_user_org_assoc(
-                     employee_struct.id,
-                     organization_struct.id,
-                     user_struct,
-                     role
-                   ) do
-                {:error, error} ->
-                  IO.puts(error)
-                  {:error, error}
+              # add other assoc
+              changeset_with_employee =
+                Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
 
-                # check employee as permissions
-                {:ok, _} ->
-                  if Roles.role_has_send_alert_permission?(role) do
-                    changeset_with_employee =
-                      Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
-
-                    changeset_with_organization =
-                      Ecto.Changeset.put_assoc(
-                        changeset_with_employee,
-                        :organization,
-                        organization_struct
-                      )
-
-                    # alert_struct
-                    {:ok, changeset_with_organization}
-                  else
-                    {:error, "Employee lacks permissions to add alerts"}
-                  end
-              end
+              changeset_with_organization =
+                Ecto.Changeset.put_assoc(
+                  changeset_with_employee,
+                  :organization,
+                  organization_struct
+                )
+              # alert_struct
+              {:ok, changeset_with_organization}
           end
 
         # if logged-in user
@@ -222,19 +201,6 @@ defmodule TurnStile.Alerts do
           organization_id = employee_struct.current_organization_login_id
           organization_struct = TurnStile.Company.get_organization(organization_id)
 
-          case Roles.check_role_has_employee_org_asocc_and_user_org_assoc(
-                 employee_struct.id,
-                 organization_id,
-                 user_struct,
-                 role
-               ) do
-            {:error, error} ->
-              IO.puts(error)
-              {:error, error}
-
-            # check employee as permissions
-            {:ok, _} ->
-              if Roles.role_has_send_alert_permission?(role) do
                 changeset_with_employee =
                   Ecto.Changeset.put_assoc(changeset_with_user, :employee, employee_struct)
 
@@ -244,13 +210,7 @@ defmodule TurnStile.Alerts do
                     :organization,
                     organization_struct
                   )
-
-                # alert_struct
                 {:ok, changeset_with_organization}
-              else
-                {:error, "Employee lacks permissions to add alerts"}
-              end
-          end
       end
     end
   end
