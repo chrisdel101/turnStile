@@ -1,11 +1,12 @@
 defmodule TurnStileWeb.UserLive.Index do
   use TurnStileWeb, :live_view
-  alias TurnStileWeb.AlertController
   alias TurnStile.Patients
   alias TurnStile.Patients.User
   alias TurnStile.Staff
   alias TurnStileWeb.EmployeeAuth
   alias TurnStileWeb.AlertUtils
+  alias TurnStile.Alerts
+  alias TurnStile.Alerts.Alert
 
   @impl true
   def mount(_params, session, socket) do
@@ -41,7 +42,7 @@ defmodule TurnStileWeb.UserLive.Index do
 #
   @impl true
   def handle_info(param, socket) do
-    IO.inspect(param, label: "user-live handle_info on index")
+    # IO.inspect(param, label: "user-live handle_info on index")
     # update the list of cards in the socket
     {:noreply, socket}
   end
@@ -49,15 +50,54 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
   def handle_event("send_initial_SMS_alert", values, socket) do
     user_id = values["value"]
-    current_employee = socket.assigns.current_employee
-    if EmployeeAuth.has_alert_send_permissions?(socket, current_employee) do
-      socket = AlertUtils.send_SMS_alert(socket, %{"employee_id" => current_employee.id, "user_id" => user_id})
-      {:noreply, socket}
-    else
-      socket =
-        socket
-        |> put_flash(:error, "Insuffient permissions to perform alert send")
-        {:noreply, socket}
+    # assign user to socket
+    socket = assign(socket, :user, Patients.get_user(user_id))
+
+    sms_attrs =
+      Alerts.build_alert_attrs(
+        socket.assigns.user,
+        AlertCategoryTypesMap.get_alert("INITIAL"),
+        AlertFormatTypesMap.get_alert("SMS")
+      )
+
+    changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
+    # IO.inspect(changeset, label: "changeset in handle_event")
+    case  AlertUtils.handle_save_alert(socket, changeset, %{}) do
+      {:ok, alert} ->
+        case AlertUtils.send_SMS_alert(alert) do
+          {:ok, twilio_msg} ->
+            IO.inspect(twilio_msg)
+            {
+              :noreply,
+              socket
+              # |> assign(:action, "insert")
+              |> put_flash(:success, "Alert sent successfully")
+              # |> push_redirect(to: socket.assigns.return_to)
+            }
+          # handle twilio errors
+          {:error, error_map, error_code} ->
+            {
+              :noreply,
+              socket
+              # |> assign(:action, "insert")
+              |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
+              # |> push_redirect(to: socket.assigns.return_to)
+            }
+          {:error, error} ->
+            {
+              :noreply,
+              socket
+              # |> assign(:action, "insert")
+              |> put_flash(:error, "Failure in alert send. #{error}")
+              # |> push_redirect(to: socket.assigns.return_to)
+            }
+          end
+      {:error, error} ->
+        IO.inspect(error, label: "error in initial alert send")
+        socket =
+          socket
+          |> put_flash(:error, "Initial SMS alert failed to send #{error}")
+          {:noreply, socket}
     end
   end
 
@@ -79,6 +119,7 @@ defmodule TurnStileWeb.UserLive.Index do
         {:noreply, assign(socket, :users,  Patients.list_active_users(current_employee.current_organization_login_id))}
     end
   end
+
   def handle_event("remove", %{"id" => id}, socket) do
     current_employee = socket.assigns.current_employee
 
@@ -120,7 +161,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   defp apply_action(socket, :index, _params) do
-    IO.inspect("index", label: "apply_action on index")
+    # IO.inspect("index", label: "apply_action on index")
     socket
     |> assign(:page_title, "Listing Users")
     |> assign(:user, nil)

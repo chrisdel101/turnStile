@@ -69,7 +69,7 @@
                 <%= label(f, :alert_format, "Email") %>
                 <%= radio_button(f, :alert_format, :email,phx_change: "radio_changed") %>
               </td>
-              <%!-- <% IO.inspect(@changeset.changes.alert_format) %> --%>
+            
               <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("EMAIL") do %>
                 <td>
                   <%= label(f, :to) %>

@@ -1,5 +1,5 @@
 
-TurnStile.Repo.transaction(fn ->
+# TurnStile.Repo.transaction(fn ->
 org1_params = %{
   email: "org1@test.com",
   name: "Org1",
@@ -35,14 +35,31 @@ role =
 role = TurnStile.Roles.assocaiate_role_with_employee(role, employee1)
 role = TurnStile.Roles.assocaiate_role_with_organization(role, org_w_emps)
 
-
+# USERS W ORG1
+user1 = %{
+  first_name: "Joe",
+  last_name: "Schmoe",
+  email: "joe1@schmoe.com",
+  phone: "777777777",
+  health_card_num: 1234
+}
 {:ok, role1} = TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
-IO.inspect(role1, label: "AAAAAA")
+
+{:ok, user1} = TurnStile.Patients.create_user_w_assocs(employee1, user1, role1, organization1)
+{:ok, user1} = TurnStile.Patients.insert_user(user1)
+# IO.inspect(role1, label: "AAAAAA")
 
 all = %{
+
   organization: organization1,
   employee: employee1,
-  role: role1
+  role: role1,
+  user: user1
 }
-  # TurnStile.Repo.rollback({:rolling_back})
-end)
+
+# IO.inspect(all, label: "AAAAAA")
+  # TurnStile .Repo.rollback({:rolling_back})
+# end)
+
+
+# {_, all} = List.last(elem(Code.eval_file("./loader.exs"),1))

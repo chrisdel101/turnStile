@@ -13,7 +13,7 @@ defmodule TurnStileWeb.AlertUtils do
   def handle_save_alert(socket, changeset, params \\ %{}) do
     current_employee = Kernel.get_in(socket.assigns, [:current_employee])
     user = Kernel.get_in(socket.assigns, [:user])
-    IO.inspect(changeset, label: "changeset in handle_save_alert")
+    # IO.inspect(changeset, label: "changeset in handle_save_alert")
 
     if !current_employee || !user do
       {:error, "Error: Data loss occured on form submission. Please try again."}
