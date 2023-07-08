@@ -50,7 +50,7 @@
     for={@changeset}
     id="alert-form"
     phx-target={@myself}
-    phx-change="change"
+    phx-change="form_changes"
     phx-submit="send_custom_alert"
     >
         <table>
@@ -73,7 +73,7 @@
               <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("EMAIL") do %>
                 <td>
                   <%= label(f, :to) %>
-                  <%= text_input(f, :to, value: @user.email) %>
+                  <%= text_input(f, :to, value: @changeset.changes.to || @user.email) %>
                   <%= error_tag(f, :to) %>
 
                   <%= label(f, :from) %>
@@ -93,7 +93,7 @@
               <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("SMS") do %>
                 <td>
                   <%= label(f, :to) %>
-                  <%= text_input(f, :to, value: @changeset.changes.to) %>
+                  <%= text_input(f, :to, value: @changeset.changes.to || @user.to) %>
                   <%= error_tag(f, :to) %>
 
                   <%= label(f, :from) %>

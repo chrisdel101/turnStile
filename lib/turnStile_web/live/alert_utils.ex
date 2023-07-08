@@ -71,37 +71,41 @@ defmodule TurnStileWeb.AlertUtils do
 
   # sends SMS via twilio
   def send_SMS_alert(alert) do
-    if System.get_env("SMS_ALERT_MODE") === "dev" do
-      case ExTwilio.Message.create(
-             to: System.get_env("TEST_NUMBER"),
-             from: System.get_env("TWILIO_PHONE_NUM"),
-             body: "#{alert.title} - #{alert.body}" || @json["alerts"]["request"]["initial"]
-           ) do
-        {:ok, twilio_msg} ->
-          {:ok, twilio_msg}
-
-        # handle twilio errors
-        {:error, error_map, error_code} ->
-          {:error, error_map, error_code}
-
-        _ ->
-          {:error, "An unknown error occured"}
-      end
+    if System.get_env("TWILIO_ALERT_MODE") === "off" do
+      {:ok, "FAKE ALERT. Twilio alert mode is off."}
     else
-      case ExTwilio.Message.create(
-             to: alert.to,
-             from: alert.from,
-             body: alert.body
-           ) do
-        {:ok, twilio_msg} ->
-          {:ok, twilio_msg}
+      if System.get_env("SMS_ALERT_MODE") === "dev" do
+        case ExTwilio.Message.create(
+               to: System.get_env("TEST_NUMBER"),
+               from: System.get_env("TWILIO_PHONE_NUM"),
+               body: "#{alert.title} - #{alert.body}" || @json["alerts"]["request"]["initial"]
+             ) do
+          {:ok, twilio_msg} ->
+            {:ok, twilio_msg}
 
-        # handle twilio errors
-        {:error, error_map, error_code} ->
-          {:error, error_map, error_code}
+          # handle twilio errors
+          {:error, error_map, error_code} ->
+            {:error, error_map, error_code}
 
-        _ ->
-          {:error, "An unknown error occured"}
+          _ ->
+            {:error, "An unknown error occured"}
+        end
+      else
+        case ExTwilio.Message.create(
+               to: alert.to,
+               from: alert.from,
+               body: alert.body
+             ) do
+          {:ok, twilio_msg} ->
+            {:ok, twilio_msg}
+
+          # handle twilio errors
+          {:error, error_map, error_code} ->
+            {:error, error_map, error_code}
+
+          _ ->
+            {:error, "An unknown error occured"}
+        end
       end
     end
   end

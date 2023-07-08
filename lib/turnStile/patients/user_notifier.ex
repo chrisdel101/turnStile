@@ -3,27 +3,19 @@ defmodule TurnStile.Patients.UserNotifier do
   alias TurnStile.Mailer
 
   # Delivers the email using the application mailer - called by the funcs belo
-  def deliver(recipient, subject, body) do
-    # systax here requires this for domain in sender - for mailgun
+  def deliver(alert, subject, body) do
 
     email =
       new()
-      |> to(recipient)
+      |> to(alert.to)
       |> from({"TurnStile", "mailgun@#{System.get_env("MAILGUN_DOMAIN")}"})
-      |> subject(subject)
-      |> text_body(body)
+      |> subject(alert.title)
+      |> text_body(alert.body)
 
-      IO.puts("HERE")
-      IO.inspect(email)
-    case Mailer.deliver(email) do
-      {:ok, email} ->
-        {:ok, email}
-
-      {:error, error} ->
-        {:error, error}
+    with {:ok, _metadata} <- Mailer.deliver(email) do
+      {:ok, email}
     end
   end
-
   @doc """
   Deliver instructions to confirm account.
   """
@@ -55,8 +47,9 @@ defmodule TurnStile.Patients.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_custom_alert(_user, alert, url) do
+
     if !is_nil(alert) do
-      deliver(alert.to, "Custom Alert", """
+      deliver(alert, "Custom Alert", """
 
       ==============================
 
