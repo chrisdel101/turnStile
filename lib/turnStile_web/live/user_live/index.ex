@@ -41,7 +41,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
 #
   @impl true
-  def handle_info(param, socket) do
+  def handle_info(_param, socket) do
     # IO.inspect(param, label: "user-live handle_info on index")
     # update the list of cards in the socket
     {:noreply, socket}
@@ -52,52 +52,55 @@ defmodule TurnStileWeb.UserLive.Index do
     user_id = values["value"]
     # assign user to socket
     socket = assign(socket, :user, Patients.get_user(user_id))
+    # make sure user has has phone number, else no text can be sent
+    if !socket.assigns.user || !Map.get(socket.assigns.user, :phone) do
+      {
+        :noreply,
+        socket
+        |> put_flash(:error, "No phone number listed for this user. Alert not sent")
+      }
+    else
 
-    sms_attrs =
-      Alerts.build_alert_attrs(
-        socket.assigns.user,
-        AlertCategoryTypesMap.get_alert("INITIAL"),
-        AlertFormatTypesMap.get_alert("SMS")
-      )
+      sms_attrs =
+        Alerts.build_alert_attrs(
+          socket.assigns.user,
+          AlertCategoryTypesMap.get_alert("INITIAL"),
+          AlertFormatTypesMap.get_alert("SMS")
+        )
 
-    changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
-    # IO.inspect(changeset, label: "changeset in handle_event")
-    case  AlertUtils.handle_save_alert(socket, changeset, %{}) do
-      {:ok, alert} ->
-        case AlertUtils.send_SMS_alert(alert) do
-          {:ok, twilio_msg} ->
-            IO.inspect(twilio_msg)
-            {
-              :noreply,
-              socket
-              # |> assign(:action, "insert")
-              |> put_flash(:success, "Alert sent successfully")
-              # |> push_redirect(to: socket.assigns.return_to)
-            }
-          # handle twilio errors
-          {:error, error_map, error_code} ->
-            {
-              :noreply,
-              socket
-              # |> assign(:action, "insert")
-              |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
-              # |> push_redirect(to: socket.assigns.return_to)
-            }
-          {:error, error} ->
-            {
-              :noreply,
-              socket
-              # |> assign(:action, "insert")
-              |> put_flash(:error, "Failure in alert send. #{error}")
-              # |> push_redirect(to: socket.assigns.return_to)
-            }
-          end
-      {:error, error} ->
-        IO.inspect(error, label: "error in initial alert send")
-        socket =
-          socket
-          |> put_flash(:error, "Initial SMS alert failed to send #{error}")
-          {:noreply, socket}
+      changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
+      # IO.inspect(changeset, label: "changeset in handle_event")
+      case  AlertUtils.handle_save_alert(socket, changeset, %{}) do
+        {:ok, alert} ->
+          case AlertUtils.send_SMS_alert(alert) do
+            {:ok, twilio_msg} ->
+              IO.inspect(twilio_msg)
+              {
+                :noreply,
+                socket
+                |> put_flash(:success, "Alert sent successfully")
+              }
+            # handle twilio errors
+            {:error, error_map, error_code} ->
+              {
+                :noreply,
+                socket
+                |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
+              }
+            {:error, error} ->
+              {
+                :noreply,
+                socket
+                |> put_flash(:error, "Failure in alert send. #{error}")
+              }
+            end
+        {:error, error} ->
+          IO.inspect(error, label: "error in initial alert send")
+          socket =
+            socket
+            |> put_flash(:error, "Initial SMS alert failed to send #{error}")
+            {:noreply, socket}
+      end
     end
   end
 

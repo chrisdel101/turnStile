@@ -65,9 +65,9 @@
             <tr>
               <td>
                 <%= label(f, :alert_format, "SMS") %>
-                <%= radio_button(f, :alert_format, :sms, phx_change: "radio_changed")%>
+                <%= radio_button(f, :alert_format, :sms, phx_change: "radio_click")%>
                 <%= label(f, :alert_format, "Email") %>
-                <%= radio_button(f, :alert_format, :email,phx_change: "radio_changed") %>
+                <%= radio_button(f, :alert_format, :email,phx_change: "radio_click") %>
               </td>
             
               <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("EMAIL") do %>
@@ -100,8 +100,12 @@
                   <%= text_input(f, :from, value: @changeset.changes.from) %>
                   <%= error_tag(f, :from) %>
 
+                  <%= label(f, "Subject") %>
+                  <%= text_input(f, :title, placeholder: "Enter a subject line") %>
+                  <%= error_tag(f, :title) %>
+
                   <%= label(f, "Message") %>
-                  <%= textarea(f, nil, placeholder: input_value(f, :body)) %>
+                  <%= textarea(f, :body, placeholder: "Enter a message") %>
                   <%= error_tag(f, :body) %>
                 </td>
               <% end %>

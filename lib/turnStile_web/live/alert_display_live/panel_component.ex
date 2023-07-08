@@ -20,10 +20,11 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
       Alerts.build_alert_attrs(
         user,
         AlertCategoryTypesMap.get_alert("CUSTOM"),
-        AlertFormatTypesMap.get_alert("SMS")
+        AlertFormatTypesMap.get_alert("SMS"),
+        title:  "Recieving TurnStile Alert"
       )
 
-    changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
+    changeset = Alerts.create_new_alert(%Alert{}, sms_attrs,true)
     # IO.inspect(changeset, label: "changeset in update")
     {:ok,
      socket
@@ -36,45 +37,40 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   @impl true
   # only fires on change-handles changing the form based on radio button selection
-  def handle_event("radio_changed", params, socket) do
-    IO.inspect("toggle_alert_form", label: "toggle_alert_form")
-    IO.inspect(params, label: "params")
+  def handle_event("radio_click", params, socket) do
+    # IO.inspect("toggle_alert_form", label: "toggle_alert_form")
+    # IO.inspect(params, label: "params")
     alert_params = Map.get(params, :alert) || Map.get(params, "alert")
 
-    # check for change on radio buttons
+    # check for changes when radio click
     if alert_params && Map.has_key?(socket.assigns.changeset, :data) do
       # IO.inspect(alert_params["alert_format"], label: "alert_params")
       # check which type of alert to change
       cond do
-        # flip to email form
+        # radio - flip to email form
         alert_params["alert_format"] === AlertFormatTypesMap.get_alert("EMAIL") ->
-          # IO.inspect("EMAIL", label: "EMAIL")
 
+          # IO.inspect(socket.assigns.changeset, label: "click HERE radio")
           email_attrs =
             Alerts.build_alert_attrs(
               socket.assigns.user,
               AlertCategoryTypesMap.get_alert("CUSTOM"),
               AlertFormatTypesMap.get_alert("EMAIL"),
               from: alert_params["from"],
-              to: alert_params["to"],
-              title: alert_params["title"],
-              body: alert_params["body"]
-              # empty_title?: true,
-              # empty_body?: true
+              to: alert_params["to"]
             )
-            IO.inspect(email_attrs, label: "email_attrs")
-          # enforce form validations here on email alert
+          # sets up changeset for template use
           changeset =
             socket.assigns.changeset.data
             |> Alerts.change_alert(email_attrs, true)
 
-          IO.inspect(changeset, label: "changeset HERE")
+          # IO.inspect(changeset, label: "changeset HERE radio")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
         # end
         alert_params["alert_format"] === AlertFormatTypesMap.get_alert("SMS") ->
-          IO.inspect("SMS", label: "SMS")
+          # IO.inspect(alert_params, label: "SMS")
 
           sms_attrs =
             Alerts.build_alert_attrs(
@@ -85,7 +81,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
           changeset =
             socket.assigns.changeset.data
-            |> Alerts.change_alert(sms_attrs)
+            |> Alerts.change_alert(sms_attrs, true)
 
           # IO.inspect(changeset, label: "changeset in validate")
 
@@ -95,69 +91,46 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
         true ->
           {:noreply, socket}
       end
-
-      # else
-      #   {:noreply, socket}
     end
-
-    # IO.inspect(socket, label: "socket")
   end
 
-  # # displays the custom alert form; called on change
-  # def handle_event("dispatch", _params, socket) do
-  #   IO.inspect("DISPATCH", label: "params")
-  #   changeset = %Alert{}
-  #   {:noreply, assign(socket, :changeset, changeset)}
-  # end
+  # # handle form change events - typing
   def handle_event("change", params, socket) do
     alert_params = Map.get(params, :alert) || Map.get(params, "alert")
+    # IO.inspect(socket.assigns.changeset, label: "socket.assigns.changeset")
     cond do
       # flip to email form
       alert_params["alert_format"] === AlertFormatTypesMap.get_alert("EMAIL") ->
-        # IO.inspect("EMAIL", label: "EMAIL")
+        # IO.inspect(socket.assigns.changeset, label: "socket.assigns.changeset IN")
+        # manually reassign category
+        alert_params = Map.put(alert_params, "alert_category", AlertCategoryTypesMap.get_alert("CUSTOM"))
+        # IO.inspect(alert_params, label: "PPP")
+        # build new alert that is an email
 
-        email_attrs =
-          Alerts.build_alert_attrs(
-            socket.assigns.user,
-            AlertCategoryTypesMap.get_alert("CUSTOM"),
-            AlertFormatTypesMap.get_alert("EMAIL"),
-            from: alert_params["from"],
-            to: alert_params["to"],
-            title: alert_params["title"],
-            body: alert_params["body"]
-            # empty_title?: true,
-            # empty_body?: true
-          )
-          IO.inspect(email_attrs, label: "email_attrs")
         # enforce form validations here on email alert
         changeset =
           socket.assigns.changeset.data
-          |> Alerts.change_alert(email_attrs, true)
+          |> Alerts.change_alert(alert_params, true)
 
-        IO.inspect(changeset, label: "changeset HERE")
+        # IO.inspect(changeset, label: "changeset HERE")
 
         {:noreply, assign(socket, :changeset, changeset)}
 
       # end
       alert_params["alert_format"] === AlertFormatTypesMap.get_alert("SMS") ->
-        IO.inspect("SMS", label: "SMS")
+        # IO.inspect(alert_params, label: "SMS")
+        # manually reassign category
+        alert_params = Map.put(alert_params, "alert_category", AlertCategoryTypesMap.get_alert("CUSTOM"))
 
-        sms_attrs =
-          Alerts.build_alert_attrs(
-            socket.assigns.user,
-            AlertCategoryTypesMap.get_alert("CUSTOM"),
-            AlertFormatTypesMap.get_alert("SMS")
-          )
-
+        # enforce form validations here on sms alert
         changeset =
           socket.assigns.changeset.data
-          |> Alerts.change_alert(sms_attrs)
+          |> Alerts.change_alert(alert_params, true)
 
         # IO.inspect(changeset, label: "changeset in validate")
 
         {:noreply, assign(socket, :changeset, changeset)}
 
-      #  end
       true ->
         {:noreply, socket}
     end
@@ -194,7 +167,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
                 }
             end
           alert.alert_format === AlertFormatTypesMap.get_alert("SMS") ->
-            IO.inspect("SMS", label: "SMS")
+            IO.inspect(alert, label: "SMS")
             case AlertUtils.send_SMS_alert(alert) do
               {:ok, twilio_msg} ->
                 IO.inspect(twilio_msg)

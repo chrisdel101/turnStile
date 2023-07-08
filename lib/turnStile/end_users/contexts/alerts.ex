@@ -10,6 +10,7 @@ defmodule TurnStile.Alerts do
   alias TurnStile.Patients
   alias TurnStile.Staff
   alias TurnStile.Roles
+  @json TurnStile.Utils.read_json("sms.json")
 
   @doc """
   Returns the list of alerts.
@@ -249,11 +250,11 @@ defmodule TurnStile.Alerts do
 
   @doc """
   build_alert_attr
-  -Auto-fills in possible fields based on category
+  -CUSTOM: takes user input from form; or fills in with defaults
+  -INITIAL: uses values set in json file
   -use env variables to set system :from fields
   -Returns a map of alert attributes
   -to override default fields pass in opts [:body, :title, :from...]
-  -title & body can be set to "" string to empty them before form validation by user
   """
   def build_alert_attrs(
         user,
@@ -265,34 +266,15 @@ defmodule TurnStile.Alerts do
       # build custom type alert
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
         %{
-          # allow empty title for user form entry for email
           title:
-            if Keyword.get(opts, :empty_title?) do
-              nil
-            else
               case Keyword.get(opts, :title) do
-                # nil -> "A Custom Alert Title"
                 value -> value
-              end
-            end,
+              end,
           # allow empty body for user form entry for email
           body:
-            if Keyword.get(opts, :empty_body?) do
-              nil
-            else
               case Keyword.get(opts, :body) do
-                # nil ->
-                #   cond do
-                #     alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                #       "This is a custom alert being used to test the alert system for EMAIL"
-
-                #     true ->
-                #       "This is a custom alert being used to test the alert system for SMS"
-                #   end
-
                 value ->
                   value
-              end
             end,
           from:
             case Keyword.get(opts, :from) do
@@ -304,7 +286,6 @@ defmodule TurnStile.Alerts do
                   true ->
                     System.get_env("SYSTEM_ALERT_FROM_SMS")
                 end
-
               value ->
                 value
             end,
@@ -314,11 +295,9 @@ defmodule TurnStile.Alerts do
                 cond do
                   alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
                     user.email
-
                   true ->
                     user.phone
                 end
-
               value ->
                 value
             end,
@@ -326,55 +305,23 @@ defmodule TurnStile.Alerts do
           alert_category: alert_category
         }
 
+      #  INITIAL is only SMS type
+      alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
+        %{
+          title: @json["alerts"]["request"]["initial"]["title"],
+          body: @json["alerts"]["request"]["initial"]["body"],
+          from: System.get_env("SYSTEM_ALERT_FROM_SMS"),
+          to: user.phone,
+          alert_format: alert_format,
+          alert_category: alert_category
+        }
+      # test map
       true ->
         %{
-          title:
-            case Keyword.get(opts, :title) do
-              # nil -> "Initial Alert"
-              value -> value
-            end,
-          body:
-            case Keyword.get(opts, :body) do
-              # nil ->
-              #   cond do
-              #     alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-              #       "This is an initial alert being to test the alert system email"
-
-              #     true ->
-              #       "This is an initial alert being to test the alert system sms"
-              #   end
-
-              value ->
-                value
-            end,
-          from:
-            case Keyword.get(opts, :from) do
-              nil ->
-                cond do
-                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                    System.get_env("SYSTEM_ALERT_FROM_EMAIL")
-
-                  true ->
-                    System.get_env("SYSTEM_ALERT_FROM_SMS")
-                end
-
-              value ->
-                value
-            end,
-          to:
-            case Keyword.get(opts, :to) do
-              nil ->
-                cond do
-                  alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-                    user.email
-
-                  true ->
-                    user.phone
-                end
-
-              value ->
-                value
-            end,
+          title: @json["alerts"]["request"]["custom"]["dev_test"]["title"],
+          body: @json["alerts"]["request"]["custom"]["dev_test"]["body"],
+          from: System.get_env("SYSTEM_ALERT_FROM_SMS"),
+          to: System.get_env("TEST_NUMBER"),
           alert_format: alert_format,
           alert_category: alert_category
         }

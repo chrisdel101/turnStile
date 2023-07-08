@@ -84,11 +84,11 @@ defmodule AlertCategoryTypesMap do
     AlertTypesMap
   """
   @alerts %{
-    "INITIAL" => "initial",
+    "INITIAL" => "initial", #initital SMS
+    "CUSTOM" => "custom", # inittial by email, or other
     "CONFIRMATION" => "confirmation",
     "CANCELLATION" => "cancellation",
-    "CHANGE" => "change",
-    "CUSTOM" => "custom"
+    "CHANGE" => "change"
   }
   def get_alerts do
     @alerts

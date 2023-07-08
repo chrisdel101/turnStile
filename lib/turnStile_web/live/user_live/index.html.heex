@@ -58,14 +58,14 @@
           <td><%= user.health_card_num %></td>
 
           <td>
-          <span>
-              <button 
-                title="Send Initial Alert"
-                class="btn btn-primary" 
-                phx-click={:send_initial_SMS_alert} 
-                value={user.id}> Send Alert
-              </button>
-          </span>
+            <span>
+                <button 
+                  title="Send Initial Alert"
+                  class={"btn btn-primary #{if !user.phone do 'disable' end}"} 
+                  phx-click={:send_initial_SMS_alert} 
+                  value={user.id}> Send SMS Alert
+                </button>
+            </span>
               <span>
                 <%= live_patch "Custom_Alert", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "dispatch"}) %>
               </span>
