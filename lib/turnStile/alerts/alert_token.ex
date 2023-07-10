@@ -40,6 +40,10 @@ defmodule TurnStile.Alerts.AlertToken do
     {token, %AlertToken{token: token, context: "cookie", alert_id: alert.id}}
   end
 
+  def build_cookie_token do
+    :crypto.strong_rand_bytes(@rand_size)
+  end
+
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 

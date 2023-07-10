@@ -18,8 +18,20 @@ defmodule TurnStile.Patients do
       [%User{}, ...]
 
   """
-  def list_users do
+  # ADMIN ONLY function
+  def list_all_users do
     Repo.all(User)
+  end
+
+  # - lists all users w.in an organization
+  def list_users(organization_id) do
+    q =
+      from(u in User,
+        where: u.organization_id == ^organization_id,
+        preload: [:employee, :organization],
+        order_by: [desc: u.inserted_at]
+      )
+    Repo.all(q)
   end
 
   def list_active_users(organization_id) do
@@ -49,6 +61,16 @@ defmodule TurnStile.Patients do
   """
   def get_user(id) do
    Repo.get(User, id) |> Repo.preload([:employee, :organization])
+  end
+
+  # - there could be multiple users w. the same phone so we return a list
+  def get_users_by_phone(phone) do
+    q =
+      from(u in User,
+        where: u.phone == ^phone,
+        preload: [:employee, :organization]
+      )
+    Repo.all(q)
   end
 
   @doc """

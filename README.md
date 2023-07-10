@@ -46,10 +46,18 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `mix phx.gen.html Operations Admin admins --no-schema`
 - other half of context created here
 
+### Handle Receiving Alerts
+__Developement__
+- [Using CLI](https://www.twilio.com/docs/twilio-cli/examples/explore-sms#have-your-phone-number-respond-to-incoming-sms) (must be installed) set the system to "listen" for incoming requests. 
+  - Route is set to POST `/sms_messages`
+  - An exposed URL is required for responses to be recieved 
+  - i.e. using NGROK `ngrok http 4000`, copy ngrok URL into twilio CLI command below
 
-
-
-
+  ```
+  twilio api:core:incoming-phone-numbers:update \
+  --sid PN3ae43ff9946669eeeb7d41deba57fac4 \
+  --sms-url "https://7114-108-60-178-251.ngrok-free.app/sms_messages"
+  ```
 # Installation
 
 - instal[postgres](https://www.postgresql.org/)
