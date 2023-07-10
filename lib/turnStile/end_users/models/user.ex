@@ -9,7 +9,7 @@ defmodule TurnStile.Patients.User do
     field :last_name, :string
     field :phone, :string
     field :is_active?, :boolean, default: true
-    field :status, :string, default: UserStatusTypesMap.get_user_status("UNALERTED")
+    field :user_alert_status, :string, default: UserStatusTypesMap.get_user_status("UNALERTED")
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert
     belongs_to :organization, TurnStile.Company.Organization
@@ -22,7 +22,7 @@ defmodule TurnStile.Patients.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :status])
-    |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num, :is_active?, :status])
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :alert_status])
+    |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num, :is_active?, :alert_status])
   end
 end

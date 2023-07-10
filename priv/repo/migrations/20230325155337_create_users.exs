@@ -11,7 +11,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :phone, :string
       add :health_card_num, :integer
       add :is_active?, :boolean
-      add :status, :string
+      add :user_alert_status, :user_alert_status
       add :employee_id, references("employees"), null: false
       add :organization_id, references("organizations"), null: false
 
