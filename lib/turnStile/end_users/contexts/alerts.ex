@@ -7,6 +7,7 @@ defmodule TurnStile.Alerts do
   alias TurnStile.Repo
 
   alias TurnStile.Alerts.Alert
+  alias TurnStile.Alerts.AlertToken
   alias TurnStile.Patients
   alias TurnStile.Staff
   alias TurnStile.Roles
@@ -372,4 +373,11 @@ defmodule TurnStile.Alerts do
   def change_alert(%Alert{} = alert, attrs \\ %{}, validate? \\ false) do
     Alert.changeset(alert, attrs, validate?)
   end
+
+  def generate_alert_cookie_token(alert) do
+    {token, alert_token} = AlertToken.build_cookie_token(alert)
+    Repo.insert(alert_token)
+    token
+  end
+
 end

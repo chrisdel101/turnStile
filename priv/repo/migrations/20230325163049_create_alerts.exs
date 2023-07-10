@@ -15,5 +15,17 @@ defmodule TurnStile.Repo.Migrations.CreateAlerts do
 
       timestamps()
     end
-  end
+
+      create table(:alert_tokens) do
+        add :alert_id, references(:alerts, on_delete: :delete_all), null: false
+        add :token, :binary, null: false
+        add :context, :string, null: false
+        add :sent_to, :string
+        timestamps(updated_at: false)
+      end
+
+      create index(:alert_tokens, [:alert_id])
+      create unique_index(:alert_tokens, [:context, :token])
+    end
+
 end
