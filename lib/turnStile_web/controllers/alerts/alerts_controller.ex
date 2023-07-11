@@ -4,80 +4,37 @@ defmodule TurnStileWeb.AlertController do
   alias TurnStile.Patients
   @json Utils.read_json("sms.json")
 
-  # create alert; used for server side pages
-  def create(conn, %{"employee_id" => employee_id, "user_id" => user_id}) do
-    case ExTwilio.Message.create(
-           to: System.get_env("TEST_NUMBER"),
-           from: System.get_env("TWILIO_PHONE_NUM"),
-           body: @json["alerts"]["request"]["initial"]
-         ) do
-      {:ok, _twilio_msg} ->
-        conn
-        |> put_flash(:info, "Alert sent successfully.")
-        |> redirect(
-          to:
-            Routes.user_show_path(
-              conn,
-              :show,
-              conn.assigns[:current_employee].organization_id,
-              employee_id,
-              user_id
-            )
-        )
 
-      # handle twilio errors
-      {:error, error_map, error_code} ->
-        IO.inspect("error: #{error_code} #{error_map["message"]}")
-
-        conn
-        |> put_flash(:error, "Alert Failed: #{error_map["message"]}")
-        |> redirect(
-          to:
-            Routes.organization_employee_user_path(
-              conn,
-              :index,
-              conn.assigns[:current_employee].organization_id,
-              employee_id
-            )
-        )
-
-      true ->
-        conn
-        |> put_flash(:error, "An unknown error occured")
-        |> redirect(
-          to:
-            Routes.organization_employee_user_path(
-              conn,
-              :index,
-              conn.assigns[:current_employee].organization_id,
-              employee_id
-            )
-        )
-    end
-  end
-
-  # # live-view version- create and send the alert only
-  # def create_live(%{"employee_id" => _employee_id, "user_id" => _user_id}) do
-  #   case ExTwilio.Message.create(
-  #          to: System.get_env("TEST_NUMBER"),
-  #          from: System.get_env("TWILIO_PHONE_NUM"),
-  #          body: @json["alerts"]["request"]["initial"]
-  #        ) do
-  #     {:ok, twilio_msg} ->
-  #       {:ok, twilio_msg}
-  #     # handle twilio errors
-  #     {:error, error_map, error_code} ->
-  #       {:error, error_map, error_code}
-  #     true ->
-  #       "An unknown error occured"
-  #   end
-  # end
-
-  # handle incoming user response and render proper reply repsponse
-  def receive(conn, twilio_params) do
-    IO.inspect(twilio_params, label: "twilio_params")
+  def receive_sms_alert(conn, twilio_params) do
+    # IO.inspect(twilio_params, label: "twilio_params")
     if is_response_valid?(twilio_params) do
-      # look up by phone number
+      case match_recieved_sms_to_user(twilio_params) do
+        {:ok, user} ->
+          IO.puts('USER')
+          {:error, error} ->
+            IO.puts('ERROR')
+      end
+      conn
+      |> put_resp_content_type("text/xml")
+      # |> maybe_write_alert_cookie(token)
+      |> text(IsolatedTwinML.render_response(handle_sms_response(twilio_params)))
+    else
+        # Invalid response user response - send notification
+        conn
+        |> put_resp_content_type("text/xml")
+        # |> maybe_write_alert_cookie(token)
+        |> text(IsolatedTwinML.render_response(handle_sms_response(twilio_params)))
+      end
+  end
+  @doc """
+  match_recieved_sms_to_user
+  -handles incoming SMS messages from Twilio-
+  -only available useful param is phone number
+  -checks for user w phone; gets last updated active user if multiple
+  -TODO: if multiple active users active now, reqiuire employee action to resolve
+  """
+  def match_recieved_sms_to_user(twilio_params) do
+      # remove starting "+"
       number =
         if String.starts_with?(twilio_params["From"], "+") do
           # Remove plus sign - change outer number
@@ -85,9 +42,9 @@ defmodule TurnStileWeb.AlertController do
         else
           twilio_params["From"]
         end
-      IO.inspect(number, label: "number")
+      # IO.inspect(number, label: "number")
       users_w_number = Patients.get_users_by_phone(number)
-      IO.inspect(users_w_number, label: "users_w_number")
+      # IO.inspect(users_w_number, label: "users_w_number")
       cond do
         # if more than one use w that number
         list_is_greater_than_1(users_w_number) ->
@@ -95,30 +52,20 @@ defmodule TurnStileWeb.AlertController do
           active_users = Utils.filter_maps_list(users_w_number, "is_active?")
           case list_is_greater_than_1(active_users) do
             true ->
-              # check for last account update
+              # check account most recently updated
+              # TODO: check if active within window for mutliple active users
               last_active = Patients.check_last_account_update(active_users)
+              {:ok, last_active}
             false ->
               # return only user
-              hd active_users
+              {:ok, hd active_users}
           end
-
         length(users_w_number) === 1 ->
-
-          IO.puts("SOME TEXT AGAIN")
+          {:ok, hd users_w_number}
         true ->
-          IO.puts("SOME TEXT")
+          error = "Error: a problem occured looking up matching user"
+          {:error, error}
       end
-    else
-      IO.puts("Invalid response")
-      conn
-      |> put_resp_content_type("text/xml")
-      # |> maybe_write_alert_cookie(token)
-      |> text(IsolatedTwinML.render_response(handle_sms_response(twilio_params)))
-    end
-
-    # IO.inspect(maybe_write_alert_cookie(conn, token), label: "maybe_write_alert_cookie")
-    # IO.inspect(twilio_params, label: "twilio_params")
-
   end
 
   # check user resonse within text message
@@ -135,18 +82,6 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  def handle_alert_cookie_token(conn) do
-    IO.inspect(conn)
-    if !conn.cookies || conn.cookies === %{} do
-      IO.puts("COOKIES EMPTY")
-      # Alerts.generate_employee_session_token(alert)
-      TurnStile.Alerts.AlertToken.build_cookie_token
-      # create cookie
-    else
-      IO.puts("COOKIES EXIST")
-      conn.cookies
-    end
-  end
 
   def handle_user_account_updates(params) do
     phone = params["From"]
@@ -160,14 +95,6 @@ defmodule TurnStileWeb.AlertController do
     if @json["matching_responses"][body], do: true, else: false
   end
 
-  @max_age 60 * 60 * 24 * 60
-  @remember_me_cookie "_turn_stile_alert"
-  @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
-
-  defp maybe_write_alert_cookie(conn, token) do
-    put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
-  end
-
   defp list_is_greater_than_1(list) do
     length(list) !== 0 && length(list) > 1
   end
@@ -175,8 +102,6 @@ end
 
 # isolate in separate module - duplicate render function in both causes ambiguity error
 defmodule IsolatedTwinML do
-  # alias TurnStile.Utils
-  # @json Utils.read_json("sms.json")
   def render_response(response) do
     IO.inspect(response, label: "response")
     import ExTwiml
