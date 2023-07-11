@@ -22,7 +22,7 @@ defmodule TurnStile.Patients.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :alert_status])
-    |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num, :is_active?, :alert_status])
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status])
+    |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num, :is_active?, :user_alert_status])
   end
 end

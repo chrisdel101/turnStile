@@ -75,15 +75,50 @@ defmodule TurnStileWeb.AlertController do
 
   # handle incoming user response and render proper reply repsponse
   def receive(conn, twilio_params) do
-    # is_response_valid(twilio_params)
-    response = handle_sms_response(twilio_params)
-    token = handle_alert_cookie_token(conn)
-    IO.inspect(maybe_write_alert_cookie(conn, token), label: "maybe_write_alert_cookie")
     IO.inspect(twilio_params, label: "twilio_params")
-    conn
-    |> put_resp_content_type("text/xml")
-    |> maybe_write_alert_cookie(token)
-    |> text(IsolatedTwinML.render_response(response))
+    if is_response_valid?(twilio_params) do
+      # look up by phone number
+      number =
+        if String.starts_with?(twilio_params["From"], "+") do
+          # Remove plus sign - change outer number
+          String.slice(twilio_params["From"], 1..-1)
+        else
+          twilio_params["From"]
+        end
+      IO.inspect(number, label: "number")
+      users_w_number = Patients.get_users_by_phone(number)
+      IO.inspect(users_w_number, label: "users_w_number")
+      cond do
+        # if more than one use w that number
+        list_is_greater_than_1(users_w_number) ->
+          # check if active
+          active_users = Utils.filter_maps_list(users_w_number, "is_active?")
+          case list_is_greater_than_1(active_users) do
+            true ->
+              # check for last account update
+              last_active = Patients.check_last_account_update(active_users)
+            false ->
+              # return only user
+              hd active_users
+          end
+
+        length(users_w_number) === 1 ->
+
+          IO.puts("SOME TEXT AGAIN")
+        true ->
+          IO.puts("SOME TEXT")
+      end
+    else
+      IO.puts("Invalid response")
+      conn
+      |> put_resp_content_type("text/xml")
+      # |> maybe_write_alert_cookie(token)
+      |> text(IsolatedTwinML.render_response(handle_sms_response(twilio_params)))
+    end
+
+    # IO.inspect(maybe_write_alert_cookie(conn, token), label: "maybe_write_alert_cookie")
+    # IO.inspect(twilio_params, label: "twilio_params")
+
   end
 
   # check user resonse within text message
@@ -131,6 +166,10 @@ defmodule TurnStileWeb.AlertController do
 
   defp maybe_write_alert_cookie(conn, token) do
     put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
+  end
+
+  defp list_is_greater_than_1(list) do
+    length(list) !== 0 && length(list) > 1
   end
 end
 
