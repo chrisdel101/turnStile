@@ -68,10 +68,20 @@ defmodule TurnStile.Patients do
     q =
       from(u in User,
         where: u.phone == ^phone,
+        order_by: [desc: u.inserted_at],
         preload: [:employee, :organization]
       )
     Repo.all(q)
   end
+
+  def get_user_most_recently_updated(user_list) do
+    Enum.reduce(user_list, hd(user_list), fn user, acc ->
+       dt1 = DateTime.from_naive!(acc.updated_at, "Etc/UTC")
+       dt2 = DateTime.from_naive!(user.updated_at, "Etc/UTC")
+       # if DateTime.compare(user.inserted, acc) == :gt, do: val, else: acc
+     if DateTime.compare(dt1, dt2) == :gt, do: acc, else: user
+     end)
+ end
 
   @doc """
   Creates a user.
@@ -110,25 +120,32 @@ defmodule TurnStile.Patients do
     #  IO.inspect(Roles.has, label: "JHERE")
 
     # IO.inspect(user_params, label: "user_params")
-    IO.inspect("organization_struct")
-    IO.inspect(organization_struct)
+    # IO.inspect("organization_struct")
+    # IO.inspect(organization_struct)
     # build user struct from map
-    user = %User{
-      first_name: user_params["first_name"] || user_params.first_name,
-      last_name: user_params["last_name"] || user_params.last_name,
-      email: user_params["email"] || user_params.email,
-      phone: user_params["phone"] || user_params.phone,
-      health_card_num:
-        TurnStile.Utils.convert_to_int(user_params["health_card_num"]) ||
-          TurnStile.Utils.convert_to_int(user_params.health_card_num)
-    }
+    # user = %User{
+    #   first_name: user_params["first_name"] || user_params.first_name,
+    #   last_name: user_params["last_name"] || user_params.last_name,
+    #   email: user_params["email"] || user_params.email,
+    #   phone: user_params["phone"] || user_params.phone,
+    #   health_card_num:
+    #     TurnStile.Utils.convert_to_int(user_params["health_card_num"]) ||
+    #       TurnStile.Utils.convert_to_int(user_params.health_card_num)
+    # }
+    # convert arrow map to atom map
+    user_params =
+      user_params
+      |> Enum.reduce(%{}, fn {key, value}, acc -> Map.put(acc, String.to_atom(key), value) end)
 
-    # IO.inspect(employee_struct, label: "employee_struct22")
+    # build a instance spreading input params
+    user = %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+
     # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
     # IO.inspect(user, label: "user")
 
     # add employee assoc
     user_struct = Ecto.build_assoc(employee_struct, :users, user)
+    # IO.inspect(user_struct, label: "user")
     # add organization assoc
     case employee_struct.current_organization_login_id do
       # if no logged-in user
@@ -170,8 +187,8 @@ defmodule TurnStile.Patients do
         organization_id = employee_struct.current_organization_login_id
         if Roles.role_has_add_user_permission?(org_employee_role) do
           organization_struct = TurnStile.Company.get_organization(organization_id)
-          user_struct = Ecto.build_assoc(organization_struct, :users, organization_struct)
-          # IO.inspect(user_struct, label: "organization struct123")
+          user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
+          IO.inspect(user_struct, label: "organization struct123")
           {:ok, user_struct}
         else
           {:error, "Employee lacks permissions to add users"}
@@ -180,6 +197,8 @@ defmodule TurnStile.Patients do
   end
 
   def insert_user(user) do
+    # convert val to int
+    user = Map.put(user, :health_card_num, TurnStile.Utils.convert_to_int(user.health_card_num))
     case Repo.insert(user) do
       {:ok, user} ->
         {:ok,

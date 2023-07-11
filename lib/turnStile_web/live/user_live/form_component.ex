@@ -30,7 +30,8 @@ defmodule TurnStileWeb.UserLive.FormComponent do
       socket.assigns.user
       |> Patients.change_user(user_params)
       |> Map.put(:action, :validate)
-      IO.inspect("changeset", label: "VALIDATE")
+
+    IO.inspect("changeset", label: "VALIDATE")
 
     {:noreply, assign(socket, :changeset, changeset)}
   end
@@ -47,9 +48,10 @@ defmodule TurnStileWeb.UserLive.FormComponent do
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
             save_user(socket, socket.assigns.action, user_params)
           else
-            socket = socket
-            |> put_flash(:error, "Insuffient permissions to perform user edit")
-            |> push_redirect(to: socket.assigns.return_to)
+            socket =
+              socket
+              |> put_flash(:error, "Insuffient permissions to perform user edit")
+              |> push_redirect(to: socket.assigns.return_to)
 
             {:noreply, socket}
           end
@@ -58,9 +60,10 @@ defmodule TurnStileWeb.UserLive.FormComponent do
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
             save_user(socket, socket.assigns.action, user_params)
           else
-            socket = socket
-            |> put_flash(:error, "Insuffient permissions to perform user add")
-            |> push_redirect(to: socket.assigns.return_to)
+            socket =
+              socket
+              |> put_flash(:error, "Insuffient permissions to perform user add")
+              |> push_redirect(to: socket.assigns.return_to)
 
             {:noreply, socket}
           end
@@ -109,23 +112,37 @@ defmodule TurnStileWeb.UserLive.FormComponent do
 
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
-    IO.puts("HERE")
-    case Patients.create_user_w_assocs(current_employee, user_params) do
-      {:ok, _user} ->
-        {:noreply,
-         socket =
-           socket
-           |> put_flash(:info, "User created successfully")
-           |> push_redirect(to: socket.assigns.return_to)}
+    IO.inspect(user_params, label: "user_params: save_user")
 
-        {:noreply, socket}
+    role =
+      TurnStile.Roles.get_employee_role_in_organization(
+        current_employee.id,
+        current_employee.current_organization_login_id
+      )
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+    case Patients.create_user_w_assocs(current_employee, user_params, role) do
+      {:ok, user} ->
+        case Patients.insert_user(user) do
+          {:ok, _user} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "User created successfully")
+             |> push_redirect(to: socket.assigns.return_to)}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            socket =
+              socket
+              |> put_flash(:error, "User not created")
+
+            {:noreply, assign(socket, :changeset, changeset)}
+        end
+
+      {:error, error} ->
         socket =
           socket
-          |> put_flash(:error, "User not created")
+          |> put_flash(:error, "User not created: #{error}")
 
-        {:noreply, assign(socket, :changeset, changeset)}
+        {:noreply, socket}
     end
   end
 end
