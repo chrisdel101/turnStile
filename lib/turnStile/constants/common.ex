@@ -124,7 +124,7 @@ defmodule AlertFormatTypesMap do
   end
 end
 
-defmodule UserStatusTypesMap do
+defmodule UserAlertStatusTypesMap do
   @moduledoc """
    AlertFormatTypesMap
   """

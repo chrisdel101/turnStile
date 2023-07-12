@@ -9,7 +9,7 @@ defmodule TurnStile.Patients.User do
     field :last_name, :string
     field :phone, :string
     field :is_active?, :boolean, default: true
-    field :user_alert_status, :string, default: UserStatusTypesMap.get_user_status("UNALERTED")
+    field :user_alert_status, :string, default: UserAlertStatusTypesMap.get_user_status("UNALERTED")
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert
     belongs_to :organization, TurnStile.Company.Organization

@@ -10,20 +10,20 @@ defmodule TurnStileWeb.AlertController do
     if is_response_valid?(twilio_params) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
-          IO.puts('USER')
+          IO.inspect(user, label: "USER")
           {:error, error} ->
-            IO.puts('ERROR')
+            IO.inspect(error, label: "ERROR")
       end
       conn
       |> put_resp_content_type("text/xml")
       # |> maybe_write_alert_cookie(token)
-      |> text(IsolatedTwinML.render_response(handle_sms_response(twilio_params)))
+      |> text(IsolatedTwinML.render_response(fetch_sms_return_message(twilio_params)))
     else
         # Invalid response user response - send notification
         conn
         |> put_resp_content_type("text/xml")
         # |> maybe_write_alert_cookie(token)
-        |> text(IsolatedTwinML.render_response(handle_sms_response(twilio_params)))
+        |> text(IsolatedTwinML.render_response(fetch_sms_return_message(twilio_params)))
       end
   end
   @doc """
@@ -69,7 +69,7 @@ defmodule TurnStileWeb.AlertController do
   end
 
   # check user resonse within text message
-  def handle_sms_response(params) do
+  def fetch_sms_return_message(params) do
     # get response from text message
     body = params["Body"]
 
@@ -82,13 +82,26 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
+  def handle_user_account_updates(user, twilio_params) do
+    body = twilio_params["Body"]
+    #  check if match is valid or not
+    if @json["matching_responses"][body] do
+      cond do
+        body ===  @json["matching_responses"]["1"] ->
 
-  def handle_user_account_updates(params) do
-    phone = params["From"]
-    active_user = Patients.list_active_users()
+          # update user account
+          Patients.update_alert_status(user, %{"alert_status" => UserAlertStatusTypesMap.get_alert_status("CONFIRMED")})
+        body ===  @json["matching_responses"]["2"] ->
+           # update user account
+           Patients.update_alert_status(user, %{"alert_status" => UserAlertStatusTypesMap.get_alert_status("CANCELLED")})
+        true  ->
+          IO.puts("Error: invalid response in handle_user_account_updates")
+          nil
+      end
+    end
   end
 
-  def is_response_valid?(params) do
+  defp is_response_valid?(params) do
     # get response from text message
     body = params["Body"]
     #  check if match is valid or not

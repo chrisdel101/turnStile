@@ -165,7 +165,7 @@ defmodule TurnStile.Alerts do
          is_nil(Keyword.get(opts, :changeset)) do
       error = "Opts CANNOT be nil. Pass in alert_attrs or changeset."
       IO.puts("Error in create_alert_w_put_assoc: #{error}")
-      {:error, "An error occurred creating alert associations. See dev logs"}
+      {:error, "An error occurred creating alert associations. #{error}"}
     else
       # build_alert assoc - takes params or a changeset
       alert = Alert.changeset(Keyword.get(opts, :changeset), Keyword.get(opts, :alert_attrs))
