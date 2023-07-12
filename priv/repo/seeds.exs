@@ -10,8 +10,9 @@ TurnStile.Repo.transaction(fn ->
   org1_params = %{
     email: "org1@test.com",
     name: "Org1",
-    phone: "777777777",
-    slug: "org1"
+    phone: "1234567",
+    slug: "org1",
+    timezone: "Canada/Saskatchewan"
   }
 
   {:ok, organization1} = TurnStile.Company.insert_and_preload_organization(org1_params)
@@ -194,7 +195,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe",
     last_name: "Schmoe",
     email: "joe1@schmoe.com",
-    phone: "777777777",
+    phone: "777123456",
     health_card_num: 1234
   }
 
@@ -205,7 +206,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe2",
     last_name: "Schmoe",
     email: "joe2@schmoe.com",
-    phone: "777777777",
+    phone: "7777891011",
     health_card_num: 5678
   }
 
@@ -216,7 +217,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe3",
     last_name: "Schmoe",
     email: "joe3@schmoe.com",
-    phone: "777777777",
+    phone: "7771213151",
     health_card_num: 9101
   }
 
@@ -227,17 +228,49 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe4",
     last_name: "Schmoe",
     email: "joe4@schmoe.com",
-    phone: "777777777",
+    phone: "7776171819",
     health_card_num: 1121
   }
-
-  # user w/ emp and org assocs
   {:ok, user4} = TurnStile.Patients.create_user_w_assocs(employee4, user4, role4, organization1)
+
+  user9 = %{
+    first_name: "Joe9",
+    last_name: "Schmoe",
+    email: "joe9@schmoe.com",
+    phone: "7773434353",
+    health_card_num: 1202,
+    is_active?: false
+  }
+
+  {:ok, user9} = TurnStile.Patients.create_user_w_assocs(employee3, user9, role3, organization1)
+
+  user10 = %{
+    first_name: "Joe10",
+    last_name: "Schmoe",
+    email: "joe10@schmoe.com",
+    phone: "7777383940",
+    health_card_num: 2212,
+    is_active?: false
+  }
+  {:ok, user10} = TurnStile.Patients.create_user_w_assocs(employee2, user10, role2, organization1)
+
+  user11 = %{
+    first_name: "Joe11",
+    last_name: "Schmoe",
+    email: "joe11@schmoe.com",
+    phone: "7774142434",
+    health_card_num: 3222,
+    is_active?: false
+  }
+  {:ok, user11} = TurnStile.Patients.create_user_w_assocs(employee4, user11, role4, organization1)
 
   {:ok, user1} = TurnStile.Patients.insert_user(user1)
   {:ok, user2} = TurnStile.Patients.insert_user(user2)
   {:ok, user3} = TurnStile.Patients.insert_user(user3)
   {:ok, user4} = TurnStile.Patients.insert_user(user4)
+  {:ok, user9} = TurnStile.Patients.insert_user(user9)
+  {:ok, user10} = TurnStile.Patients.insert_user(user10)
+  {:ok, user11} = TurnStile.Patients.insert_user(user11)
 
   # ALERTS
   a1 = %{
@@ -400,7 +433,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe5",
     last_name: "Schmoe",
     email: "joe5@schmoe.com",
-    phone: "777777777",
+    phone: "7772021222",
     health_card_num: 3141
   }
 
@@ -411,7 +444,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe6",
     last_name: "Schmoe",
     email: "joe6@schmoe.com",
-    phone: "777777777",
+    phone: "7773242526",
     health_card_num: 5161
   }
 
@@ -421,8 +454,8 @@ TurnStile.Repo.transaction(fn ->
   user7 = %{
     first_name: "Joe7",
     last_name: "Schmoe",
-    email: "joe8@schmoe.com",
-    phone: "777777777",
+    email: "joe7@schmoe.com",
+    phone: "7772728293",
     health_card_num: 7181
   }
 
@@ -432,16 +465,26 @@ TurnStile.Repo.transaction(fn ->
   user8 = %{
     first_name: "Joe9",
     last_name: "Schmoe",
-    email: "joe9@schmoe.com",
-    phone: "777777777",
+    email: "joe8@schmoe.com",
+    phone: "7770313233",
     health_card_num: 8191
   }
   {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, role9, organization2)
+  user12 = %{
+    first_name: "Joe12",
+    last_name: "Schmoe",
+    email: "joe12@schmoe.com",
+    phone: "7774142434",
+    health_card_num: 4232,
+  }
+
+  {:ok, user12} = TurnStile.Patients.create_user_w_assocs(employee10, user12, role10, organization2)
 
   {:ok, user5} = TurnStile.Patients.insert_user(user5)
   {:ok, user6} = TurnStile.Patients.insert_user(user6)
   {:ok, user7} = TurnStile.Patients.insert_user(user7)
   {:ok, user8} = TurnStile.Patients.insert_user(user8)
+  {:ok, user12} = TurnStile.Patients.insert_user(user12)
 
   # ALERTS
   a5 = %{

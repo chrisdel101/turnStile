@@ -8,14 +8,14 @@ defmodule TurnStileWeb.AlertUtils do
   alias TurnStile.Patients.UserNotifier
 
   @doc """
-  handle_save_alert
+  handle_send_alert_save
   -take user params from form and save alert to DB
   -arity/3 handles saving sent alerts
   """
-  def handle_save_alert(socket, changeset, params \\ %{}) do
+  def handle_send_alert_save(socket, changeset, params \\ %{}) do
     current_employee = Kernel.get_in(socket.assigns, [:current_employee])
     user = Kernel.get_in(socket.assigns, [:user])
-    # IO.inspect(changeset, label: "changeset in handle_save_alert")
+    # IO.inspect(changeset, label: "changeset in handle_send_alert_save")
 
     if !current_employee || !user do
       {:error, "Error: Data loss occured on form submission. Please try again."}
@@ -71,48 +71,53 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  @doc """
-  handle_save_alert
-  -take user params from form and save alert to DB
-  -arity/3 w no socket/nil handles saving recieved alerts
-  """
-  def handle_save_alert(nil, user, twilio_params) do
-    # employee should be preloaded
-    current_employee = user.employee
-    # undo captialization of twilio params
-    lower_twilio_params =
-      Map.new(twilio_params, fn {key, value} -> {String.downcase(key), value} end)
+  def handle_recieve_alert_save(user, twilio_params) do
+    cond do
+      !user ->
+        {:error, "Error: Missing user input for handle_recieve_alert_save. Alert not processed."}
 
-    changeset =
-      %Alert{}
-      |> Alerts.create_new_alert(lower_twilio_params)
+      !user.employee ->
+        {:error,
+         "Error: User input is missing employee in handle_recieve_alert_save. Check preload is run. Alert not processed."}
 
-    # IO.inspect(changeset, label: "changeset in handle_save_alert")
+      true ->
+        # employee should be preloaded
+        current_employee = user.employee
+        # undo captialization of twilio params
+        lower_twilio_params =
+          Map.new(twilio_params, fn {key, value} -> {String.downcase(key), value} end)
 
-    if !current_employee || !user do
-      {:error, "Error: Missing user/employee on incoming sms message. Alert not processed."}
-    else
-      # preloaded employee alredy associated with organization
+        alert_category = compute_recieved_sms_alert_category(twilio_params)
+        attrs = Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
 
-      case Alerts.create_alert_w_put_assoc(current_employee, user,
-             changeset: changeset,
-             alert_attrs: lower_twilio_params
-           ) do
-        {:ok, alert_changeset} ->
-          # IO.inspect(alert_changeset, label: "alert_changeset")
-          # insert alert into DB
-          case Alerts.insert_alert(alert_changeset) do
-            {:ok, alert} ->
-              {:ok, alert}
 
-            {:error, %Ecto.Changeset{} = changeset} ->
-              {:error, changeset}
-          end
+        changeset =
+          %Alert{}
+          |> Alerts.create_new_alert(lower_twilio_params)
 
-        {:error, error} ->
-          IO.puts("ERROR: #{error}")
-          {:error, error}
-      end
+        IO.inspect(changeset, label: "changeset in handle_send_alert_save")
+
+        # preloaded employee alredy associated with organization
+
+        case Alerts.create_alert_w_put_assoc(current_employee, user,
+               changeset: changeset,
+               alert_attrs: lower_twilio_params
+             ) do
+          {:ok, alert_changeset} ->
+            # IO.inspect(alert_changeset, label: "alert_changeset")
+            # insert alert into DB
+            case Alerts.insert_alert(alert_changeset) do
+              {:ok, alert} ->
+                {:ok, alert}
+
+              {:error, %Ecto.Changeset{} = changeset} ->
+                {:error, changeset}
+            end
+
+          {:error, error} ->
+            IO.puts("ERROR: #{error}")
+            {:error, error}
+        end
     end
   end
 
@@ -203,7 +208,24 @@ defmodule TurnStileWeb.AlertUtils do
             {:error, error}
         end
     end
+  end
 
-    # end
+  def compute_recieved_sms_alert_category(twilio_params) do
+    body = twilio_params["Body"]
+    #  check if match is valid or not
+    if @json["matching_responses"][body] do
+      IO.inspect(@json["matching_responses"][body], label: "matching_responses")
+      cond do
+        body === "1" ->
+          AlertCategoryTypesMap.get_alert("CONFIRMATION")
+
+        body === "2" ->
+          AlertCategoryTypesMap.get_alert("CANCELLATION")
+
+        true ->
+          IO.puts("Error: invalid response in handle_user_account_updates")
+          nil
+      end
+    end
   end
 end

@@ -70,7 +70,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
       changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
       # IO.inspect(changeset, label: "changeset in handle_event")
-      case  AlertUtils.handle_save_alert(socket, changeset, %{}) do
+      case  AlertUtils.handle_send_alert_save(socket, changeset, %{}) do
         {:ok, alert} ->
           case AlertUtils.send_SMS_alert(alert) do
             {:ok, twilio_msg} ->

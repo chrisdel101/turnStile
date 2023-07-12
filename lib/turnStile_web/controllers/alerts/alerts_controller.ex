@@ -2,6 +2,7 @@ defmodule TurnStileWeb.AlertController do
   use TurnStileWeb, :controller
   alias TurnStile.Utils
   alias TurnStile.Patients
+  alias TurnStileWeb.AlertUtils
   @json Utils.read_json("sms.json")
 
 
@@ -10,6 +11,7 @@ defmodule TurnStileWeb.AlertController do
     if is_response_valid?(twilio_params) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
+          AlertUtils.handle_recieve_alert_save(user, twilio_params)
           IO.inspect(user, label: "USER")
           {:error, error} ->
             IO.inspect(error, label: "ERROR")
@@ -17,13 +19,13 @@ defmodule TurnStileWeb.AlertController do
       conn
       |> put_resp_content_type("text/xml")
       # |> maybe_write_alert_cookie(token)
-      |> text(IsolatedTwinML.render_response(fetch_sms_return_message(twilio_params)))
+      |> text(IsolatedTwinML.render_response(compute_sms_return_message(twilio_params)))
     else
-        # Invalid response user response - send notification
+        # Invalid response user response; send notification; msg is set in json
         conn
         |> put_resp_content_type("text/xml")
         # |> maybe_write_alert_cookie(token)
-        |> text(IsolatedTwinML.render_response(fetch_sms_return_message(twilio_params)))
+        |> text(IsolatedTwinML.render_response(compute_sms_return_message(twilio_params)))
       end
   end
   @doc """
@@ -68,10 +70,10 @@ defmodule TurnStileWeb.AlertController do
       end
   end
 
-  # check user resonse within text message
-  def fetch_sms_return_message(params) do
+  # check user resonse within text message; find appropriate response to send
+  def compute_sms_return_message(twilio_params) do
     # get response from text message
-    body = params["Body"]
+    body = twilio_params["Body"]
 
     #  check if match is valid or not
     if @json["matching_responses"][body] do
@@ -88,6 +90,7 @@ defmodule TurnStileWeb.AlertController do
     if @json["matching_responses"][body] do
       cond do
         body ===  @json["matching_responses"]["1"] ->
+          #save alert
 
           # update user account
           Patients.update_alert_status(user, %{"alert_status" => UserAlertStatusTypesMap.get_alert_status("CONFIRMED")})

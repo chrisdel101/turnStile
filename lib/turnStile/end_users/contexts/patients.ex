@@ -122,23 +122,15 @@ defmodule TurnStile.Patients do
     # IO.inspect(user_params, label: "user_params")
     # IO.inspect("organization_struct")
     # IO.inspect(organization_struct)
-    # build user struct from map
-    # user = %User{
-    #   first_name: user_params["first_name"] || user_params.first_name,
-    #   last_name: user_params["last_name"] || user_params.last_name,
-    #   email: user_params["email"] || user_params.email,
-    #   phone: user_params["phone"] || user_params.phone,
-    #   health_card_num:
-    #     TurnStile.Utils.convert_to_int(user_params["health_card_num"]) ||
-    #       TurnStile.Utils.convert_to_int(user_params.health_card_num)
-    # }
-    # convert arrow map to atom map
-    user_params =
-      user_params
-      |> Enum.reduce(%{}, fn {key, value}, acc -> Map.put(acc, String.to_atom(key), value) end)
 
-    # build a instance spreading input params
-    user = %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+    # spread the map into the object; check map type first
+    user =
+    if !TurnStile.Utils.is_arrow_map?(user_params) do
+      %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+    else
+      user_params = TurnStile.Utils.convert_arrow_map_to_atom(user_params)
+      %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+    end
 
     # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
     # IO.inspect(user, label: "user")
@@ -203,10 +195,7 @@ defmodule TurnStile.Patients do
       {:ok, user} ->
         {:ok,
          user
-         |> Repo.preload(:employee)
-         |> Repo.preload(:organization)
-         |> Repo.preload(:alerts)}
-
+         |> Repo.preload([:employee, :organization, :alerts])}
       {:error, error} ->
         {:error, error}
     end
@@ -249,6 +238,9 @@ defmodule TurnStile.Patients do
     user
     |> User.changeset(attrs)
     |> Repo.update()
+    |> Repo.preload(:employee)
+    |> Repo.preload(:organization)
+    |> Repo.preload(:alerts)
   end
 
   @doc """
@@ -285,5 +277,13 @@ defmodule TurnStile.Patients do
   """
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
+  end
+
+  def update_alert_status(user, new_alert_status) do
+     if Enum.member?(UserAlertStatusTypesMap.get_user_statuses_enum, String.to_atom(new_alert_status)) do
+       update_user(user, %{user_alert_status: new_alert_status})
+     else
+        {:error, "Error: update_alert_status: invalid alert status type"}
+     end
   end
 end

@@ -116,6 +116,36 @@ defmodule TurnStile.Utils do
   end
 
   def filter_maps_list(list, search_term_str) do
-    Enum.filter(list, fn(map) -> if (!!Map.get(map, search_term_str) || !!Map.get(map, String.to_atom(search_term_str))), do: map, else: nil end)
+    Enum.filter(list, fn map ->
+      if !!Map.get(map, search_term_str) || !!Map.get(map, String.to_atom(search_term_str)),
+        do: map,
+        else: nil
+    end)
+  end
+
+  def convert_arrow_map_to_atom(arrow_map) do
+    Enum.map(arrow_map, fn {key, value} -> {String.to_atom(key), value} end) |> Map.new()
+
+    # reduce way- Enum.reduce(%{}, fn {key, value}, acc -> Map.put(acc, String.to_atom(key), value) end)
+  end
+
+  def convert_atom_map_to_arrow(atom_map) do
+    arrow_map = atom_map |> Enum.into(%{}, fn {key, value} -> {Atom.to_string(key), value} end)
+    # reduce way
+    # arrow_map =
+    #   atom_map
+    #   |> Enum.reduce(%{}, fn {key, value}, acc ->
+    #     Map.put(acc, Atom.to_string(key), value)
+    #   end)
+  end
+
+  def is_arrow_map?(map) do
+    first_key = Map.keys(map) |> hd
+   cond do
+    is_binary(first_key) -> true
+    is_atom(first_key) -> false
+      true ->
+        raise ArgumentError, message: "Error in is_arrow_map?. invalid map type"
+    end
   end
 end

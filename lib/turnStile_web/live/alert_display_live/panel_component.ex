@@ -139,7 +139,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
     # IO.inspect(alert_params, label: "alert_params")
     # save alert to DB
-    case  AlertUtils.handle_save_alert(socket, socket.assigns.changeset, alert_params) do
+    case  AlertUtils.handle_send_alert_save(socket, socket.assigns.changeset, alert_params) do
       {:ok, alert} ->
         # check alert type to send
         # IO.inspect(alert, label: "alert")

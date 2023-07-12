@@ -316,6 +316,15 @@ defmodule TurnStile.Alerts do
           alert_format: alert_format,
           alert_category: alert_category
         }
+      (alert_category === AlertCategoryTypesMap.get_alert("CONFIRMATION") ||  alert_category === AlertCategoryTypesMap.get_alert("CANCELLATION")) ->
+        %{
+          title: Keyword.get(opts, :title),
+          body: Keyword.get(opts, :body),
+          from: Keyword.get(opts, :from),
+          to: Keyword.get(opts, :to),
+          alert_format: alert_format,
+          alert_category: alert_category
+        }
       # test map
       true ->
         %{
