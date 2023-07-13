@@ -351,7 +351,8 @@ defmodule TurnStile.Alerts do
 
   """
   def update_alert(%Alert{} = alert, attrs) do
-    raise "TODO"
+    Alert.changeset(alert, attrs)
+    |> Repo.update()
   end
 
   @doc """

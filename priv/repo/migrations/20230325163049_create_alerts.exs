@@ -12,6 +12,7 @@ defmodule TurnStile.Repo.Migrations.CreateAlerts do
       add :employee_id, references("employees"), null: false
       add :user_id, references("users"), null: false
       add :organization_id, references("organizations")
+      add :system_response, :map  # tracks webhooks responses
 
       timestamps()
     end
