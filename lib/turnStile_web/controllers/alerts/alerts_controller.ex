@@ -11,22 +11,31 @@ defmodule TurnStileWeb.AlertController do
     if is_response_valid?(twilio_params) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
-          AlertUtils.handle_recieve_alert_save(user, twilio_params)
-          IO.inspect(user, label: "USER")
+          # IO.inspect(user, label: "USER")
+          case AlertUtils.handle_receive_alert_save(user, twilio_params) do
+            {:ok, alert} ->
+              handle_receive_alert_send_reply(conn, twilio_params)
+
+            # {:error, error} ->
+
+          end
           {:error, error} ->
             IO.inspect(error, label: "ERROR")
       end
-      conn
+
+    else
+        # Invalid response user response; send notification; msg is set in json
+        handle_receive_alert_send_reply(conn, twilio_params)
+      end
+  end
+
+  def handle_receive_alert_send_reply(conn, twilio_params)
+  do
+    IO.puts("SENDING REPLY")
+    conn
       |> put_resp_content_type("text/xml")
       # |> maybe_write_alert_cookie(token)
       |> text(IsolatedTwinML.render_response(compute_sms_return_message(twilio_params)))
-    else
-        # Invalid response user response; send notification; msg is set in json
-        conn
-        |> put_resp_content_type("text/xml")
-        # |> maybe_write_alert_cookie(token)
-        |> text(IsolatedTwinML.render_response(compute_sms_return_message(twilio_params)))
-      end
   end
   @doc """
   match_recieved_sms_to_user
@@ -84,7 +93,7 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  def handle_user_account_updates(user, twilio_params) do
+  def handle_receive_alert_user_update(user, twilio_params) do
     body = twilio_params["Body"]
     #  check if match is valid or not
     if @json["matching_responses"][body] do
@@ -98,7 +107,7 @@ defmodule TurnStileWeb.AlertController do
            # update user account
            Patients.update_alert_status(user, %{"alert_status" => UserAlertStatusTypesMap.get_alert_status("CANCELLED")})
         true  ->
-          IO.puts("Error: invalid response in handle_user_account_updates")
+          IO.puts("Error: invalid response in handle_receive_alert_user_update")
           nil
       end
     end

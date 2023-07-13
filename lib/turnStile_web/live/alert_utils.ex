@@ -21,7 +21,7 @@ defmodule TurnStileWeb.AlertUtils do
       {:error, "Error: Data loss occured on form submission. Please try again."}
     else
       # check employee/organization roles match
-      case Staff.check_employee_has_organization_role(current_employee) do
+      case Staff.check_employee_matches_organization(current_employee) do
         {:error, error} ->
           IO.puts("ERROR: #{error}")
           {:error, error}
@@ -71,43 +71,51 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  def handle_recieve_alert_save(user, twilio_params) do
+  def handle_receive_alert_save(user, twilio_params) do
     cond do
       !user ->
-        {:error, "Error: Missing user input for handle_recieve_alert_save. Alert not processed."}
+        {:error, "Error: Missing user input for handle_receive_alert_save. Alert not processed."}
 
       !user.employee ->
         {:error,
-         "Error: User input is missing employee in handle_recieve_alert_save. Check preload is run. Alert not processed."}
+         "Error: User input is missing employee in handle_receive_alert_save. Check preload is run. Alert not processed."}
 
       true ->
-        # employee should be preloaded
-        current_employee = user.employee
         # undo captialization of twilio params
         lower_twilio_params =
           Map.new(twilio_params, fn {key, value} -> {String.downcase(key), value} end)
 
-        alert_category = compute_recieved_sms_alert_category(twilio_params)
-        attrs = Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
+        alert_category = compute_sms_category_from_body(twilio_params)
+        # build attr map
+        attrs =
+          Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
 
+        # merge w twilio params
+        twilio_params1 =
+          Map.merge(TurnStile.Utils.convert_atom_map_to_arrow(attrs), lower_twilio_params)
 
         changeset =
           %Alert{}
-          |> Alerts.create_new_alert(lower_twilio_params)
+          |> Alerts.create_new_alert(twilio_params1)
 
         IO.inspect(changeset, label: "changeset in handle_send_alert_save")
 
-        # preloaded employee alredy associated with organization
 
-        case Alerts.create_alert_w_put_assoc(current_employee, user,
+      # employee should be preloaded (last associated employee)
+      current_employee = user.employee
+        case Alerts.create_alert_w_put_assoc(
+               current_employee,
+               user,
                changeset: changeset,
-               alert_attrs: lower_twilio_params
+               alert_attrs: lower_twilio_params,
+               organization_struct: user.organization
              ) do
           {:ok, alert_changeset} ->
             # IO.inspect(alert_changeset, label: "alert_changeset")
             # insert alert into DB
             case Alerts.insert_alert(alert_changeset) do
               {:ok, alert} ->
+                # IO.inspect(alert, label: "alert in handle_receive_alert_save")
                 {:ok, alert}
 
               {:error, %Ecto.Changeset{} = changeset} ->
@@ -210,11 +218,12 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  def compute_recieved_sms_alert_category(twilio_params) do
+  defp compute_sms_category_from_body(twilio_params) do
     body = twilio_params["Body"]
     #  check if match is valid or not
     if @json["matching_responses"][body] do
-      IO.inspect(@json["matching_responses"][body], label: "matching_responses")
+      # IO.inspect(@json["matching_responses"][body], label: "matching_responses")
+
       cond do
         body === "1" ->
           AlertCategoryTypesMap.get_alert("CONFIRMATION")
@@ -228,4 +237,5 @@ defmodule TurnStileWeb.AlertUtils do
       end
     end
   end
+
 end

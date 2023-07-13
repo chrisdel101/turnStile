@@ -151,7 +151,7 @@ defmodule TurnStile.Alerts do
   end
 
   @doc """
-  create_alert_w_build_assoc
+  create_alert_w_put_assoc
   -builds sets of changeset with put_assoc
   -returns formed alert changeset
   -takes alert_attrs or changeset in opts like [alert_attrs: %{}, changeset: %{}]

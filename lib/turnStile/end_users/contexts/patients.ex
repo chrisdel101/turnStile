@@ -196,16 +196,6 @@ defmodule TurnStile.Patients do
         user_params,
         organization_struct \\ nil
       ) do
-    # IO.inspect(org_employee_role, label: "org_employee_role")
-
-    # IO.inspect(TurnStile.Roles.check_role_has_employee_org_assoc(employee_struct.id, organization_struct.id, role), label: "check_role_has_employee_org_assoc")
-
-    #  IO.inspect(Roles.has, label: "JHERE")
-
-    # IO.inspect(user_params, label: "user_params")
-    # IO.inspect("organization_struct")
-    # IO.inspect(organization_struct)
-
     # spread the map into the object; check map type first
     user =
       if !TurnStile.Utils.is_arrow_map?(user_params) do
@@ -215,13 +205,9 @@ defmodule TurnStile.Patients do
         %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
       end
 
-    # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
-    # IO.inspect(user, label: "user")
-
     # add employee assoc
     user_struct = Ecto.build_assoc(employee_struct, :users, user)
-    # IO.inspect(user_struct, label: "user")
-    # add organization assoc
+
     case employee_struct.current_organization_login_id do
       # if no logged-in user
       nil ->
@@ -229,10 +215,8 @@ defmodule TurnStile.Patients do
           nil ->
             error =
               "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
-
             IO.puts(error)
             {:error, error}
-
           _ ->
             user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
             # IO.inspect(user_struct, label: "user struct123")
