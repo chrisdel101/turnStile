@@ -669,7 +669,7 @@ defmodule TurnStile.Staff do
 
   # takes employee with opts and fetches the role
   # uses role checker to check if employee has role in organization
-  def check_employee_has_organization_role(employee, opts \\ []) do
+  def check_employee_matches_organization(employee, opts \\ []) do
     cond do
       # if logged in employee
       employee.current_organization_login_id ->
@@ -683,7 +683,7 @@ defmodule TurnStile.Staff do
             {:ok, _} ->
               {:ok, true}
             {:error, _} ->
-              {:error, "check_employee_has_organization_role: employee has no role in organization"}
+              {:error, "check_employee_matches_organization: employee has no role in organization"}
           end
       Keyword.get(opts, :organization_id) ->
         organization_id = Keyword.get(opts, :organization_id)
@@ -696,23 +696,23 @@ defmodule TurnStile.Staff do
             {:ok, _} ->
               {:ok, true}
             {:error, _} ->
-              {:error, "check_employee_has_organization_role: employee has no role in organization"}
+              {:error, "check_employee_matches_organization: employee has no role in organization"}
           end
       Keyword.get(opts, :role) ->
         role = Keyword.get(opts, :role)
           if is_nil(role.organization_id) do
-              {:error, "check_employee_has_organization_role: role option is organization_id"}
+              {:error, "check_employee_matches_organization: role option is organization_id"}
           else
             organization_id = role.organization_id
             case Roles.check_role_has_employee_org_assoc(employee.id, organization_id, role) do
               {:ok, _} ->
                 {:ok, true}
               {:error, _} ->
-                {:error, "check_employee_has_organization_role: employee does not match this role"}
+                {:error, "check_employee_matches_organization: employee does not match this role"}
             end
           end
       true ->
-        {:error, "check_employee_has_organization_role: missing required opts. Must be one of: organization_id, role, or employee.current_organization_login_id"}
+        {:error, "check_employee_matches_organization: missing required opts. Must be one of: organization_id, role, or employee.current_organization_login_id"}
     end
   end
 

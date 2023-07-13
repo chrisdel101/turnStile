@@ -36,6 +36,7 @@ defmodule TurnStileWeb.UserLive.FormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
+  # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(socket, label: "action")
@@ -44,6 +45,7 @@ defmodule TurnStileWeb.UserLive.FormComponent do
       handle_event("validate", %{"user" => user_params}, socket)
     else
       case socket.assigns.action do
+        # :edit_all is edit button on index page - not shown curently
         action when action in [:edit, :edit_all] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
             save_user(socket, socket.assigns.action, user_params)
@@ -112,37 +114,53 @@ defmodule TurnStileWeb.UserLive.FormComponent do
 
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
-    IO.inspect(user_params, label: "user_params: save_user")
+    # IO.inspect(user_params, label: "user_params: save_user")
 
-    role =
-      TurnStile.Roles.get_employee_role_in_organization(
-        current_employee.id,
-        current_employee.current_organization_login_id
-      )
+    # check employee has organization role
+    case TurnStile.Staff.check_employee_matches_organization(current_employee) do
+      {:error, error} ->
+        IO.puts("ERROR: #{error}")
+        {:error, error}
 
-    case Patients.create_user_w_assocs(current_employee, user_params, role) do
-      {:ok, user} ->
-        case Patients.insert_user(user) do
-          {:ok, _user} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "User created successfully")
-             |> push_redirect(to: socket.assigns.return_to)}
+      {:ok, _} ->
+        # IO.puts("Employee matches_organization")
+        # check employee has permissions
+        case EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
+          true ->
+            # IO.puts("Employee has correct permissions")
 
-          {:error, %Ecto.Changeset{} = changeset} ->
+            case Patients.create_user_w_assocs2(current_employee, user_params) do
+              {:ok, user} ->
+                case Patients.insert_user(user) do
+                  {:ok, _user} ->
+                    {:noreply,
+                     socket
+                     |> put_flash(:info, "User created successfully")
+                     |> push_redirect(to: socket.assigns.return_to)}
+
+                  {:error, %Ecto.Changeset{} = changeset} ->
+                    socket =
+                      socket
+                      |> put_flash(:error, "User not created")
+
+                    {:noreply, assign(socket, :changeset, changeset)}
+                end
+
+              {:error, error} ->
+                socket =
+                  socket
+                  |> put_flash(:error, "User not created: #{error}")
+
+                {:noreply, socket}
+            end
+
+          false ->
+            IO.puts("Employee does not have correct permissions")
             socket =
               socket
-              |> put_flash(:error, "User not created")
-
-            {:noreply, assign(socket, :changeset, changeset)}
+              |> put_flash(:error, "Insuffient employee permissions to perform user add")
+              {:noreply, socket}
         end
-
-      {:error, error} ->
-        socket =
-          socket
-          |> put_flash(:error, "User not created: #{error}")
-
-        {:noreply, socket}
     end
   end
 end

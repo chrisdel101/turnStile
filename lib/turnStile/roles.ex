@@ -118,11 +118,13 @@ defmodule TurnStile.Roles do
 
   # confirm that both struct items are on the role
   # confirm that both stuct items are the the correct ones for this role
+  #  - should be the same a Staff.check_employee_matches_organization
+  # - specfically called on a role here
   def check_role_has_employee_org_assoc(employee_id, organization_id, role) do
     # IO.inspect(role, label: "Role")
     # IO.inspect(employee_id, label: "employee_id")
     # IO.inspect(organization_id, label: "organization_id")
-    #  check ids match assocs; checks for invalid empl and orgs this way
+    #  check ids match assocs; checks for invalid empl and orgs this way;
     cond do
       # confirm employee preload
       !Ecto.assoc_loaded?(role.employee) ->

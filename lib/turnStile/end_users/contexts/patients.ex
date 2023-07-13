@@ -177,6 +177,7 @@ defmodule TurnStile.Patients do
       # if logged-in user
       _ ->
         organization_id = employee_struct.current_organization_login_id
+
         if Roles.role_has_add_user_permission?(org_employee_role) do
           organization_struct = TurnStile.Company.get_organization(organization_id)
           user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
@@ -188,14 +189,77 @@ defmodule TurnStile.Patients do
     end
   end
 
+  # - add 2 to name to seperate from other version; param errors
+  # - eventually remove old version; used in seeds now
+  def create_user_w_assocs2(
+        employee_struct,
+        user_params,
+        organization_struct \\ nil
+      ) do
+    # IO.inspect(org_employee_role, label: "org_employee_role")
+
+    # IO.inspect(TurnStile.Roles.check_role_has_employee_org_assoc(employee_struct.id, organization_struct.id, role), label: "check_role_has_employee_org_assoc")
+
+    #  IO.inspect(Roles.has, label: "JHERE")
+
+    # IO.inspect(user_params, label: "user_params")
+    # IO.inspect("organization_struct")
+    # IO.inspect(organization_struct)
+
+    # spread the map into the object; check map type first
+    user =
+      if !TurnStile.Utils.is_arrow_map?(user_params) do
+        %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+      else
+        user_params = TurnStile.Utils.convert_arrow_map_to_atom(user_params)
+        %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+      end
+
+    # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
+    # IO.inspect(user, label: "user")
+
+    # add employee assoc
+    user_struct = Ecto.build_assoc(employee_struct, :users, user)
+    # IO.inspect(user_struct, label: "user")
+    # add organization assoc
+    case employee_struct.current_organization_login_id do
+      # if no logged-in user
+      nil ->
+        case organization_struct do
+          nil ->
+            error =
+              "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
+
+            IO.puts(error)
+            {:error, error}
+
+          _ ->
+            user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
+            # IO.inspect(user_struct, label: "user struct123")
+            {:ok, user_struct}
+        end
+
+      # if logged-in user
+      _ ->
+        organization_id = employee_struct.current_organization_login_id
+
+        organization_struct = TurnStile.Company.get_organization(organization_id)
+        user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
+        IO.inspect(user_struct, label: "organization struct123")
+        {:ok, user_struct}
+    end
+  end
+
   def insert_user(user) do
     # convert val to int
     user = Map.put(user, :health_card_num, TurnStile.Utils.convert_to_int(user.health_card_num))
+
     case Repo.insert(user) do
       {:ok, user} ->
         {:ok,
          user
          |> Repo.preload([:employee, :organization, :alerts])}
+
       {:error, error} ->
         {:error, error}
     end
@@ -205,15 +269,13 @@ defmodule TurnStile.Patients do
     # # make sure user is associated with organization
     cond do
       !Ecto.assoc_loaded?(user_struct.organization) ->
-        error =
-          "Error: Roles.check_role_has_user_org_assoc user organization is not loaded"
+        error = "Error: Roles.check_role_has_user_org_assoc user organization is not loaded"
 
         # IO.puts(error)
         {:error, error}
 
       user_struct.organization.id !== organization_id ->
-        error =
-          "Error: Roles.check_role_has_user_org_assoc user organization id does not match"
+        error = "Error: Roles.check_role_has_user_org_assoc user organization id does not match"
 
         # IO.puts(error)
         {:error, error}
@@ -222,6 +284,7 @@ defmodule TurnStile.Patients do
         {:ok, true}
     end
   end
+
   @doc """
   Updates a user.
 
@@ -280,7 +343,10 @@ defmodule TurnStile.Patients do
   end
 
   def update_alert_status(user, new_alert_status) do
-     if Enum.member?(UserAlertStatusTypesMap.get_user_statuses_enum, String.to_atom(new_alert_status)) do
+    if Enum.member?(
+         UserAlertStatusTypesMap.get_user_statuses_enum(),
+         String.to_atom(new_alert_status)
+       ) do
        update_user(user, %{user_alert_status: new_alert_status})
      else
         {:error, "Error: update_alert_status: invalid alert status type"}
