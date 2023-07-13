@@ -71,14 +71,14 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  def handle_receive_alert_save(user, twilio_params) do
+  def save_received_alert(user, twilio_params) do
     cond do
       !user ->
-        {:error, "Error: Missing user input for handle_receive_alert_save. Alert not processed."}
+        {:error, "Error: Missing user input for save_received_alert. Alert not processed."}
 
       !user.employee ->
         {:error,
-         "Error: User input is missing employee in handle_receive_alert_save. Check preload is run. Alert not processed."}
+         "Error: User input is missing employee in save_received_alert. Check preload is run. Alert not processed."}
 
       true ->
         # undo captialization of twilio params
@@ -115,7 +115,7 @@ defmodule TurnStileWeb.AlertUtils do
             # insert alert into DB
             case Alerts.insert_alert(alert_changeset) do
               {:ok, alert} ->
-                # IO.inspect(alert, label: "alert in handle_receive_alert_save")
+                # IO.inspect(alert, label: "alert in save_received_alert")
                 {:ok, alert}
 
               {:error, %Ecto.Changeset{} = changeset} ->
@@ -125,6 +125,8 @@ defmodule TurnStileWeb.AlertUtils do
           {:error, error} ->
             IO.puts("ERROR: #{error}")
             {:error, error}
+          {:error, %Ecto.Changeset{} = changeset} ->
+              IO.inspect(changeset, label: "ERROR")
         end
     end
   end

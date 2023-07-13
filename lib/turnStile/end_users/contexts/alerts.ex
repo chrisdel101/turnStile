@@ -268,14 +268,14 @@ defmodule TurnStile.Alerts do
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
         %{
           title:
-              case Keyword.get(opts, :title) do
-                value -> value
-              end,
+            case Keyword.get(opts, :title) do
+              value -> value
+            end,
           # allow empty body for user form entry for email
           body:
-              case Keyword.get(opts, :body) do
-                value ->
-                  value
+            case Keyword.get(opts, :body) do
+              value ->
+                value
             end,
           from:
             case Keyword.get(opts, :from) do
@@ -287,6 +287,7 @@ defmodule TurnStile.Alerts do
                   true ->
                     System.get_env("SYSTEM_ALERT_FROM_SMS")
                 end
+
               value ->
                 value
             end,
@@ -296,9 +297,11 @@ defmodule TurnStile.Alerts do
                 cond do
                   alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
                     user.email
+
                   true ->
                     user.phone
                 end
+
               value ->
                 value
             end,
@@ -316,7 +319,9 @@ defmodule TurnStile.Alerts do
           alert_format: alert_format,
           alert_category: alert_category
         }
-      (alert_category === AlertCategoryTypesMap.get_alert("CONFIRMATION") ||  alert_category === AlertCategoryTypesMap.get_alert("CANCELLATION")) ->
+
+      alert_category === AlertCategoryTypesMap.get_alert("CONFIRMATION") ||
+          alert_category === AlertCategoryTypesMap.get_alert("CANCELLATION") ->
         %{
           title: Keyword.get(opts, :title),
           body: Keyword.get(opts, :body),
@@ -325,6 +330,7 @@ defmodule TurnStile.Alerts do
           alert_format: alert_format,
           alert_category: alert_category
         }
+
       # test map
       true ->
         %{
@@ -336,6 +342,20 @@ defmodule TurnStile.Alerts do
           alert_category: alert_category
         }
     end
+  end
+
+  # - takes alert that is being resonded to
+  def build_system_response_map(alert_struct, opts \\ []) do
+    %{
+      system_response: %{
+        to: Map.get(alert_struct, :from),
+        from: Map.get(alert_struct, :to),
+        body: Keyword.get(opts, :body),
+        title: Keyword.get(opts, :title) || "System Response",
+        alert_format: Map.get(alert_struct, :alert_format),
+        alert_category: Map.get(alert_struct, :alert_category)
+      }
+    }
   end
 
   @doc """
@@ -389,5 +409,4 @@ defmodule TurnStile.Alerts do
     Repo.insert(alert_token)
     token
   end
-
 end

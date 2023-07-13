@@ -242,7 +242,7 @@ defmodule TurnStile.Patients do
       {:ok, user} ->
         {:ok,
          user
-         |> Repo.preload([:employee, :organization, :alerts])}
+         |> Repo.preload([:employee, :organization])}
 
       {:error, error} ->
         {:error, error}
@@ -282,12 +282,19 @@ defmodule TurnStile.Patients do
 
   """
   def update_user(%User{} = user, attrs) do
-    user
+    IO.inspect(attrs, label: "attrs")
+    changeset =
+      user
     |> User.changeset(attrs)
-    |> Repo.update()
-    |> Repo.preload(:employee)
-    |> Repo.preload(:organization)
-    |> Repo.preload(:alerts)
+    case Repo.update(changeset) do
+      {:ok, user} ->
+        {:ok,
+         user
+         |> Repo.preload([:employee, :organization])}
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   @doc """
@@ -326,6 +333,7 @@ defmodule TurnStile.Patients do
     User.changeset(user, attrs)
   end
 
+  #  NO preloading - may cause error later
   def update_alert_status(user, new_alert_status) do
     if Enum.member?(
          UserAlertStatusTypesMap.get_user_statuses_enum(),
