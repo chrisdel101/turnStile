@@ -4,7 +4,7 @@ defmodule TurnStileWeb.UserLive.Show do
   alias TurnStile.Patients
 
   @impl true
-  def mount(params, session, socket) do
+  def mount(_params, session, socket) do
     # IO.inspect(params)
 
     # get token from session

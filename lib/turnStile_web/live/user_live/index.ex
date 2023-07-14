@@ -17,10 +17,12 @@ defmodule TurnStileWeb.UserLive.Index do
     current_employee = Staff.get_employee_by_session_token(employee_token)
     organization_id = current_employee.current_organization_login_id
 
+    if connected?(socket), do: Process.send_after(self(), :update, 30000)
+
     {:ok,
      assign(
        socket,
-       users:  Patients.list_active_users(organization_id),
+       users: Patients.list_active_users(organization_id),
        current_employee: current_employee
      )}
   end
@@ -39,12 +41,33 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-#
+  defp fetch(socket) do
+    org_id = socket.assigns.current_employee.current_organization_login_id
+    users = Patients.list_active_users(org_id)
+    IO.inspect(List.last(socket.assigns.users), label: "users in fetchAAAAAAAAAAAAAAA")
+    socket = assign(socket, user: users)
+    if connected?(socket), do: Process.send(self(), :update_and_reschedule, [:noconnect])
+  end
+
   @impl true
-  def handle_info(_param, socket) do
-    # IO.inspect(param, label: "user-live handle_info on index")
-    # update the list of cards in the socket
-    {:noreply, socket}
+  # def handle_info(_param, socket) do
+  #   # IO.inspect(param, label: "user-live handle_info on index")
+  #   # update the list of cards in the socket
+  #   {:noreply, socket}
+  # end
+
+  def handle_info(:update_and_reschedule, socket) do
+    Process.send_after(self(), :update, 30000)
+    users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
+    # IO.inspect(users, label: "XXXXXXXX")
+    {:noreply, assign(socket, :users, users)}
+  end
+
+  def handle_info(:update, socket) do
+    # Process.send(self(), :update, 30000)
+    users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
+    # IO.inspect(users, label: "XXXXXXXX")
+    {:noreply, assign(socket, :users, users)}
   end
 
   @impl true
@@ -76,7 +99,11 @@ defmodule TurnStileWeb.UserLive.Index do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg)
               case AlertUtils.handle_send_alert_user_update(socket.assigns.user, AlertCategoryTypesMap.get_alert("INITIAL")) do
-                {:ok, _} ->
+                {:ok, user} ->
+                  IO.puts("HEREHERE")
+                  IO.inspect(user, label: "YYYYYYYYYYYY")
+                  fetch(socket)
+                  # IO.inspect(List.last(socket.assigns.users), label: "users in fetchBBBBBBBBBBBBB")
                   {
                     :noreply,
                     socket
