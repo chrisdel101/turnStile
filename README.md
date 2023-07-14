@@ -1,5 +1,7 @@
 # TurnStile
 
+This is a rough draft README for assising in development.
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
@@ -48,16 +50,22 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ### Handle Receiving Alerts
 __Developement__
-- [Using CLI](https://www.twilio.com/docs/twilio-cli/examples/explore-sms#have-your-phone-number-respond-to-incoming-sms) (must be installed) set the system to "listen" for incoming requests. 
-  - Route is set to POST `/sms_messages`
-  - An exposed URL is required for responses to be recieved 
-  - i.e. using NGROK `ngrok http 4000`, copy ngrok URL into twilio CLI command below
+- [Using CLI](https://www.twilio.com/docs/twilio-cli/examples/explore-sms#have-your-phone-number-respond-to-incoming-sms) (must be installed), or from the dashboard under the phone number, set the system to "listen" for incoming requests on the webhook. 
+  1. In router expose api route outside the app flow: 
+    - i.e. `POST /sms_messages`
+  2. Exposed a public, non-local, access URL to the app: 
+    - i.e. `ngrok http 4000`
+  3. Use this URL in the webhook to allow twilio application access:
+    - i.e. `https://7114-108-60-178-251.ngrok-free.app/sms_messages`
+  4. Use the CLI command to set the webhook to listen. 
+  - This `sid` is phone number sid. This is found in the dashboard under the active phone number -> properties -> `Phone Number SID`
+      ``` 
+      twilio api:core:incoming-phone-numbers:update \
+      --sid PN3ae43ff9946669eeeb7d41deba57fac4 \
+      --sms-url "https://7114-108-60-178-251.ngrok-free.app/sms_messages"
+      ```
+  5. Using TwinML and this [tutorial](https://www.blakedietz.me/blog/2022-03-30/phoenix-twilio/) we immideatlely resonsd to incoming messages.
 
-  ```
-  twilio api:core:incoming-phone-numbers:update \
-  --sid PN3ae43ff9946669eeeb7d41deba57fac4 \
-  --sms-url "https://7114-108-60-178-251.ngrok-free.app/sms_messages"
-  ```
 # Installation
 
 - instal[postgres](https://www.postgresql.org/)
@@ -68,3 +76,20 @@ __Developement__
 - `mix ecto.migrate`
 - `mix phx.server`
 -  Visit [localhost:4000](http://localhost:4000)
+
+# Notes
+#### Handling Associations
+
+__1-Many__
+
+Schema
+- `belongs_to` singular in child:   
+   - i.e. `belongs_to(:employee, Employee)`
+- `has_many` plural in parent: 
+  - i.e. `has_many(:alerts, Alert)`
+
+Migration
+- `references` appears only in child: 
+  - i.e. ` add :employee_id, references("employees"), null: false`
+
+Business Logic

@@ -20,16 +20,16 @@ defmodule TurnStileWeb.AlertController do
               response_body = compute_sms_return_body(twilio_params)
               # build response map
               response_map = Alerts.build_system_response_map(alert, body: response_body)
-              # update alert w response map
+              # update alert w system_response map; recieved alerts only
               case Alerts.update_alert(alert, response_map) do
                 {:ok, updated_alert} ->
                   IO.inspect(updated_alert, label: "updated_alert")
-                  # update user
+                  # update user account
                   case handle_receive_alert_user_update(user, twilio_params) do
                     {:ok, updated_user} ->
                       IO.inspect(updated_user, label: "updated_user")
-                    # physically send resonse
-                  send_computed_system_response(conn, twilio_params)
+                        # physically send resonse
+                      send_computed_system_response(conn, twilio_params)
 
                     {:error, error} ->
                       IO.inspect(error, label: "receive_sms_alert error in update_user")

@@ -249,7 +249,7 @@ defmodule TurnStile.Patients do
     end
   end
 
-  def check_user_has_organization(user_struct, organization_id) do
+  def user_assoc_in_organization?(user_struct, organization_id) do
     # # make sure user is associated with organization
     cond do
       !Ecto.assoc_loaded?(user_struct.organization) ->

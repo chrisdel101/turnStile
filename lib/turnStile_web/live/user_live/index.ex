@@ -70,16 +70,26 @@ defmodule TurnStileWeb.UserLive.Index do
 
       changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
       # IO.inspect(changeset, label: "changeset in handle_event")
-      case  AlertUtils.handle_send_alert_save(socket, changeset, %{}) do
+      case  AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
         {:ok, alert} ->
           case AlertUtils.send_SMS_alert(alert) do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg)
-              {
-                :noreply,
-                socket
-                |> put_flash(:success, "Alert sent successfully")
-              }
+              case AlertUtils.handle_send_alert_user_update(socket.assigns.user, AlertCategoryTypesMap.get_alert("INITIAL")) do
+                {:ok, _} ->
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:success, "Alert sent successfully")
+                  }
+                {:error, error} ->
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:error, "Failure in alert send. #{error}")
+                  }
+              end
+
             # handle twilio errors
             {:error, error_map, error_code} ->
               {

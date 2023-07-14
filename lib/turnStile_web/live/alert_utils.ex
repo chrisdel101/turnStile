@@ -8,14 +8,17 @@ defmodule TurnStileWeb.AlertUtils do
   alias TurnStile.Patients.UserNotifier
 
   @doc """
-  handle_send_alert_save
+  authenticate_and_save_sent_alert
   -take user params from form and save alert to DB
-  -arity/3 handles saving sent alerts
+  -auth emp/org match, emp permissions, user in org
+  -assoc alert w all relevant others
+  -return saved alert
+  -partner function to save_received_alert
   """
-  def handle_send_alert_save(socket, changeset, params \\ %{}) do
+  def authenticate_and_save_sent_alert(socket, changeset, params \\ %{}) do
     current_employee = Kernel.get_in(socket.assigns, [:current_employee])
     user = Kernel.get_in(socket.assigns, [:user])
-    # IO.inspect(changeset, label: "changeset in handle_send_alert_save")
+    # IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
 
     if !current_employee || !user do
       {:error, "Error: Data loss occured on form submission. Please try again."}
@@ -33,7 +36,7 @@ defmodule TurnStileWeb.AlertUtils do
             true ->
               IO.puts("Employee has correct permissions")
               # check user is part of organization
-              case TurnStile.Patients.check_user_has_organization(
+              case TurnStile.Patients.user_assoc_in_organization?(
                      user,
                      current_employee.current_organization_login_id
                    ) do
@@ -70,7 +73,14 @@ defmodule TurnStileWeb.AlertUtils do
       end
     end
   end
-
+    @doc """
+  save_received_alert
+  -take twilio params as arrow map
+  -No auth for incoming alerts needed; match is checked before this call
+  -assoc alert w all relevant others
+  -return saved alert
+  -partner function to authenticate_and_save_sent_alert
+  """
   def save_received_alert(user, twilio_params) do
     cond do
       !user ->
@@ -98,11 +108,11 @@ defmodule TurnStileWeb.AlertUtils do
           %Alert{}
           |> Alerts.create_new_alert(twilio_params1)
 
-        IO.inspect(changeset, label: "changeset in handle_send_alert_save")
+        IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
 
+        # employee should be preloaded (last associated employee)
+        current_employee = user.employee
 
-      # employee should be preloaded (last associated employee)
-      current_employee = user.employee
         case Alerts.create_alert_w_put_assoc(
                current_employee,
                user,
@@ -125,8 +135,6 @@ defmodule TurnStileWeb.AlertUtils do
           {:error, error} ->
             IO.puts("ERROR: #{error}")
             {:error, error}
-          {:error, %Ecto.Changeset{} = changeset} ->
-              IO.inspect(changeset, label: "ERROR")
         end
     end
   end
@@ -140,7 +148,9 @@ defmodule TurnStileWeb.AlertUtils do
         case ExTwilio.Message.create(
                to: System.get_env("TEST_NUMBER"),
                from: System.get_env("TWILIO_PHONE_NUM"),
-               body: "#{alert.title} - #{alert.body}" || @json["alerts"]["request"]["initial"]
+               body:
+                 handle_alert_body_and_title_display(alert.title, alert.body) ||
+                   @json["alerts"]["request"]["initial"]
              ) do
           {:ok, twilio_msg} ->
             {:ok, twilio_msg}
@@ -240,4 +250,28 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
+  def handle_send_alert_user_update(user, alert_category) do
+    cond do
+      AlertCategoryTypesMap.get_alert("INITIAL") === alert_category ->
+        # update user account
+        TurnStile.Patients.update_alert_status(
+          user,
+          UserAlertStatusTypesMap.get_user_status("PENDING")
+        )
+
+      true ->
+        {:error, "Error: invalid alert_category in handle_send_alert_user_update"}
+    end
+  end
+
+  defp handle_alert_body_and_title_display(body, title) do
+    # performs what original code wanted but didn't work: "#{alert.title} - #{alert.body}
+    # code via CHATgpt
+    case {title, body} do
+      {nil, nil} -> nil
+      {nil, _} -> body
+      {_, nil} -> nil
+      {_, _} -> "#{title} - #{body}"
+    end
+  end
 end

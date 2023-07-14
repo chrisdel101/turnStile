@@ -6,15 +6,12 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   @impl true
   def update(props, socket) do
-    # IO.inspect(props, label: "props")
-    # IO.inspect(socket, label: "socket")
 
     %{id: user_id, current_employee: _current_employee, user: user} = props
 
     alerts = Alerts.get_alerts_for_user(user_id)
     # IO.inspect(alerts, label: "alerts")
-    # - add some alert default alert attr
-    # - default alert to SMS
+    # build default alert attrs to start, just a starting setting
     sms_attrs =
       Alerts.build_alert_attrs(
         user,
@@ -137,9 +134,10 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
-    # IO.inspect(alert_params, label: "alert_params")
+    IO.inspect(alert_params, label: "alert_params")
+    IO.inspect(socket, label: "socket")
     # save alert to DB
-    case  AlertUtils.handle_send_alert_save(socket, socket.assigns.changeset, alert_params) do
+    case  AlertUtils.authenticate_and_save_sent_alert(socket, socket.assigns.changeset, alert_params) do
       {:ok, alert} ->
         # check alert type to send
         # IO.inspect(alert, label: "alert")
@@ -150,6 +148,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
             case AlertUtils.send_email_alert(alert) do
               {:ok, email} ->
                 # IO.inspect(email, label: "alert handle_event EmAIl")
+                # case handle_send_alert_user_update()
                 {
                   :noreply,
                   socket
