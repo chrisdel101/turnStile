@@ -108,7 +108,7 @@ defmodule TurnStileWeb.AlertUtils do
           %Alert{}
           |> Alerts.create_new_alert(twilio_params1)
 
-        IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
+        # IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
 
         # employee should be preloaded (last associated employee)
         current_employee = user.employee
@@ -196,7 +196,7 @@ defmodule TurnStileWeb.AlertUtils do
           alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL"))
           # default :to
           alert = alert.to || Map.put(alert, :to, System.get_env("DEV_EMAIL"))
-          IO.inspect(alert, label: "XXXXXXXXXXXXX")
+          # IO.inspect(alert, label: "XXXXXXXXXXXXX")
 
           case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
             {:ok, email} ->
@@ -206,7 +206,7 @@ defmodule TurnStileWeb.AlertUtils do
               {:error, error}
           end
         else
-          IO.inspect(alert, label: "YYYYYYYYYYY")
+          # IO.inspect(alert, label: "YYYYYYYYYYY")
           # get TO/FROM/BODY the input form
           case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
             {:ok, email} ->

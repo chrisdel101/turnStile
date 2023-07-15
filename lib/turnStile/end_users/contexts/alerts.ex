@@ -388,7 +388,7 @@ defmodule TurnStile.Alerts do
 
   """
   def delete_alert(%Alert{} = alert) do
-    raise "TODO"
+    Repo.delete(alert)
   end
 
   @doc """

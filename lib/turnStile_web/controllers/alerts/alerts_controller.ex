@@ -15,15 +15,15 @@ defmodule TurnStileWeb.AlertController do
           # IO.inspect(user, label: "USER")
           case AlertUtils.save_received_alert(user, twilio_params) do
             {:ok, alert} ->
-              IO.inspect(alert, label: "alert")
+              # IO.inspect(alert, label: "alert")
               # exract response text
               response_body = compute_sms_return_body(twilio_params)
               # build response map
               response_map = Alerts.build_system_response_map(alert, body: response_body)
               # update alert w system_response map; recieved alerts only
               case Alerts.update_alert(alert, response_map) do
-                {:ok, updated_alert} ->
-                  IO.inspect(updated_alert, label: "updated_alert")
+                {:ok, _updated_alert} ->
+                  # IO.inspect(updated_alert, label: "updated_alert")
                   # update user account
                   case handle_receive_alert_user_update(user, twilio_params) do
                     {:ok, updated_user} ->
@@ -33,17 +33,29 @@ defmodule TurnStileWeb.AlertController do
 
                     {:error, error} ->
                       IO.inspect(error, label: "receive_sms_alert error in update_user")
-                      send_manual_system_response(conn, "An account update error occurred. Account not updated.")
 
+                      send_manual_system_response(
+                        conn,
+                        "An account update error occurred. Account not updated."
+                      )
                   end
+
                 {:error, error} ->
                   IO.inspect(error, label: "receive_sms_alert error in update_alert")
-                  send_manual_system_response(conn, "An account update error occurred. Account not updated.")
+
+                  send_manual_system_response(
+                    conn,
+                    "An account update error occurred. Account not updated."
+                  )
               end
 
-              {:error, error} ->
-                IO.inspect(error, label: "receive_sms_alert error in save_received_alert")
-                send_manual_system_response(conn, "An account save error occurred. Account not updated.")
+            {:error, error} ->
+              IO.inspect(error, label: "receive_sms_alert error in save_received_alert")
+
+              send_manual_system_response(
+                conn,
+                "An account save error occurred. Account not updated."
+              )
           end
 
         {:error, error} ->
@@ -59,6 +71,7 @@ defmodule TurnStileWeb.AlertController do
   # twlilio webhook in resonse to user reply
   def send_computed_system_response(conn, twilio_params) do
     IO.puts("SENDING REPLY")
+
     conn
     |> put_resp_content_type("text/xml")
     # |> maybe_write_alert_cookie(token)
@@ -68,6 +81,7 @@ defmodule TurnStileWeb.AlertController do
   # twlilio webhook in resonse to user reply
   def send_manual_system_response(conn, response_body) do
     IO.puts("SENDING REPLY")
+
     conn
     |> put_resp_content_type("text/xml")
     # |> maybe_write_alert_cookie(token)
@@ -79,7 +93,7 @@ defmodule TurnStileWeb.AlertController do
   -handles incoming SMS messages from Twilio-
   -only available useful param is phone number
   -checks for user w phone; gets last updated active user if multiple
-  -TODO: if multiple active users active now, reqiuire employee action to resolve
+  -TODO: if multiple active users active now, and no solution, reqiuire employee action to resolve
   """
   def match_recieved_sms_to_user(twilio_params) do
     # remove starting "+"
@@ -98,18 +112,19 @@ defmodule TurnStileWeb.AlertController do
       # if more than one use w that number
       list_is_greater_than_1(users_w_number) ->
         # check if active
-        active_users = Utils.filter_maps_list(users_w_number, "is_active?")
+        active_pending_users = Utils.filter_maps_list_by_truthy(users_w_number, "is_active?")
+        # TODO - reenage this
+        # check if pending - since this is a response
+        # |> Utils.filter_maps_list_by_value(:user_alert_status, "pending")
 
-        case list_is_greater_than_1(active_users) do
+        case list_is_greater_than_1(active_pending_users) do
           true ->
-            # check account most recently updated
-            # TODO: check if active within window for mutliple active users
-            last_active = Patients.check_last_account_update(active_users)
-            {:ok, last_active}
+            # require staff action here
+            {:error, "User lookup failed. Multiple active users found."}
 
           false ->
             # return only user
-            {:ok, hd(active_users)}
+            {:ok, hd(active_pending_users)}
         end
 
       length(users_w_number) === 1 ->
@@ -134,24 +149,24 @@ defmodule TurnStileWeb.AlertController do
       @json["alerts"]["response"]["wrong_response"]
     end
   end
-#  - must use arrows to match twilio params
+
+  #  - must use arrows to match twilio params
   def handle_receive_alert_user_update(user, twilio_params) do
     body = twilio_params["Body"]
     #  check if match is valid or not
     if @json["matching_responses"][body] do
       IO.inspect(body, label: "body")
+
       cond do
         body === "1" ->
           # save alert
 
           # update user account
-          Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("CONFIRMED")
-          )
+          Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("CONFIRMED"))
 
         body === "2" ->
           # update user account
-          Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("CANCELLED")
-          )
+          Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("CANCELLED"))
 
         true ->
           {:error, "Error: invalid response in handle_receive_alert_user_update"}
@@ -169,6 +184,7 @@ defmodule TurnStileWeb.AlertController do
         alert_format: AlertFormatTypesMap.get_alert("SMS")
       }
     }
+
     Alerts.update_alert(alert, system_response)
   end
 
@@ -182,7 +198,6 @@ defmodule TurnStileWeb.AlertController do
   defp list_is_greater_than_1(list) do
     length(list) !== 0 && length(list) > 1
   end
-
 end
 
 # isolate in separate module - duplicate render function in both causes ambiguity error

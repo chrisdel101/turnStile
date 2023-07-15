@@ -6,7 +6,6 @@ defmodule TurnStile.Patients do
   import Ecto.Query, warn: false
   alias TurnStile.Repo
   alias TurnStile.Patients.User
-  alias TurnStile.Roles.Role
   alias TurnStile.Roles
 
   @doc """

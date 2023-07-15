@@ -41,21 +41,7 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp fetch(socket) do
-    org_id = socket.assigns.current_employee.current_organization_login_id
-    users = Patients.list_active_users(org_id)
-    IO.inspect(List.last(socket.assigns.users), label: "users in fetchAAAAAAAAAAAAAAA")
-    socket = assign(socket, user: users)
-    if connected?(socket), do: Process.send(self(), :update_and_reschedule, [:noconnect])
-  end
-
   @impl true
-  # def handle_info(_param, socket) do
-  #   # IO.inspect(param, label: "user-live handle_info on index")
-  #   # update the list of cards in the socket
-  #   {:noreply, socket}
-  # end
-
   def handle_info(:update_and_reschedule, socket) do
     Process.send_after(self(), :update, 30000)
     users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
@@ -76,7 +62,7 @@ defmodule TurnStileWeb.UserLive.Index do
     # assign user to socket
     socket = assign(socket, :user, Patients.get_user(user_id))
     # make sure user has has phone number, else no text can be sent
-    if !socket.assigns.user || !Map.get(socket.assigns.user, :phone) do
+    if !Map.get(socket.assigns, :user) || (!!socket.assigns.user && !Map.get(socket.assigns.user, :phone)) do
       {
         :noreply,
         socket
@@ -92,17 +78,16 @@ defmodule TurnStileWeb.UserLive.Index do
         )
 
       changeset = Alerts.create_new_alert(%Alert{}, sms_attrs)
-      # IO.inspect(changeset, label: "changeset in handle_event")
+      # IO.inspect(changeset,   label: "changeset in handle_event")
       case  AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
         {:ok, alert} ->
           case AlertUtils.send_SMS_alert(alert) do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg)
               case AlertUtils.handle_send_alert_user_update(socket.assigns.user, AlertCategoryTypesMap.get_alert("INITIAL")) do
-                {:ok, user} ->
-                  IO.puts("HEREHERE")
-                  IO.inspect(user, label: "YYYYYYYYYYYY")
-                  fetch(socket)
+                {:ok, _user} ->
+                  # call :update for DB/page updates
+                  if connected?(socket), do: Process.send(self(), :update, [:noconnect])
                   # IO.inspect(List.last(socket.assigns.users), label: "users in fetchBBBBBBBBBBBBB")
                   {
                     :noreply,
@@ -119,12 +104,16 @@ defmodule TurnStileWeb.UserLive.Index do
 
             # handle twilio errors
             {:error, error_map, error_code} ->
+              # delete saved alert due to send error
+              Alerts.delete_alert(alert)
               {
                 :noreply,
                 socket
                 |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
               }
             {:error, error} ->
+               # delete saved alert due to send error
+               Alerts.delete_alert(alert)
               {
                 :noreply,
                 socket

@@ -115,9 +115,17 @@ defmodule TurnStile.Utils do
     end
   end
 
-  def filter_maps_list(list, search_term_str) do
+  def filter_maps_list_by_truthy(list, search_term_str) do
     Enum.filter(list, fn map ->
       if !!Map.get(map, search_term_str) || !!Map.get(map, String.to_atom(search_term_str)),
+        do: map,
+        else: nil
+    end)
+  end
+  # - checks if maps list have a value that matches
+  def filter_maps_list_by_value(list, key, value) do
+    Enum.filter(list, fn map ->
+      if (!!Map.get(map, key) && Map.get(map, key) === value),
         do: map,
         else: nil
     end)
