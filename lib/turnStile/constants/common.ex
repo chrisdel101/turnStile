@@ -133,7 +133,8 @@ defmodule UserAlertStatusTypesMap do
     "PENDING" => "pending",
     "CONFIRMED" => "confirmed",
     "CANCELLED" => "cancelled",
-    "EXPIRED" => "expired"
+    "EXPIRED" => "expired",
+    "ERROR" => "error" # occurs only system failures; not invalid responses
   }
   def get_user_statuses do
     @statuses
@@ -145,5 +146,22 @@ defmodule UserAlertStatusTypesMap do
 
   def get_user_statuses_enum do
     @statuses |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
+  end
+end
+
+defmodule PubSubTopicsMap do
+  @topics %{
+    "STATUS_UPDATE" => "status_update",
+  }
+  def get_topics do
+    @topics
+  end
+
+  def get_topic(key) do
+    Map.get(@topics, key)
+  end
+
+  def get_topics_enum do
+    @topics |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
   end
 end

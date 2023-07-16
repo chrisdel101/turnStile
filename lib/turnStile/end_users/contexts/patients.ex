@@ -334,6 +334,7 @@ defmodule TurnStile.Patients do
 
   #  NO preloading - may cause error later
   def update_alert_status(user, new_alert_status) do
+    # {:error, "Error: update_alert_status: invalid alert status type"}
     if Enum.member?(
          UserAlertStatusTypesMap.get_user_statuses_enum(),
          String.to_atom(new_alert_status)

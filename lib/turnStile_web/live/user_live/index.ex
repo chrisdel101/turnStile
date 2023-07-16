@@ -8,6 +8,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
 
+  @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
   @impl true
   def mount(_params, session, socket) do
     # TODO - cannot be null
@@ -16,19 +17,14 @@ defmodule TurnStileWeb.UserLive.Index do
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
     organization_id = current_employee.current_organization_login_id
-    # check for DB updates
-    if connected?(socket), do: Process.send_after(self(), :update, 30000)
-
+    # check for DB updates - leave out for now
+    # if connected?(socket), do: Process.send_after(self(), :update, 30000)
     # subscribe
-    Phoenix.PubSub.subscribe(TurnStile.PubSub, "alert_update")
-    # Phoenix
-    # TurnStile.PubSub.subscribe("update_liveview")
+    Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE"))
 
-#
     {:ok,
      assign(
        socket,
-       messages: [],
        users: Patients.list_active_users(organization_id),
        current_employee: current_employee
      )}
@@ -50,9 +46,10 @@ defmodule TurnStileWeb.UserLive.Index do
 
   @impl true
 
-    def handle_info(message, socket) do
-      IO.inspect(message, label: "message in handle_info")
-      {:noreply, socket}
+  def handle_info(%{user_alert_status: user_alert_status}, socket) do
+      IO.inspect(user_alert_status, label: "message in handle_info")
+      users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
+      {:noreply, assign(socket, :users, users)}
     end
 
     def handle_info(:update_and_reschedule, socket) do

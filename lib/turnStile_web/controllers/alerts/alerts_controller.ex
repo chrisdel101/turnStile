@@ -9,6 +9,7 @@ defmodule TurnStileWeb.AlertController do
 
   def receive_sms_alert(conn, twilio_params) do
     # IO.inspect(twilio_params, label: "twilio_params")
+    # invalid incoming user sms
     if is_response_valid?(twilio_params) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
@@ -17,52 +18,96 @@ defmodule TurnStileWeb.AlertController do
             {:ok, alert} ->
               # IO.inspect(alert, label: "alert")
               # exract response text
-              response_body = compute_sms_return_body(twilio_params)
+              system_response_body = compute_sms_return_body(twilio_params)
               # build response map
-              response_map = Alerts.build_system_response_map(alert, body: response_body)
+              system_response_map =
+                Alerts.build_system_response_map(alert, body: system_response_body)
+
               # update alert w system_response map; recieved alerts only
-              case Alerts.update_alert(alert, response_map) do
+              case Alerts.update_alert(alert, system_response_map) do
                 {:ok, _updated_alert} ->
                   # IO.inspect(updated_alert, label: "updated_alert")
+                  user_alert_status = compute_user_alert_status(twilio_params)
+                  user_alert_status = compute_user_alert_status(twilio_params)
                   # update user account
-                  case handle_receive_alert_user_update(user, twilio_params) do
+                  case Patients.update_alert_status(user,user_alert_status) do
                     {:ok, updated_user} ->
-                      IO.inspect(updated_user, label: "updated_user")
-                      # physically send resonse
-                      Phoenix.PubSub.broadcast(TurnStile.PubSub,"alert_update", %{sending: "HELLO123"
-})
+                      # IO.inspect(updated_user, label: "updated_user")
+                      # send valid respnse to update UI
+                      Phoenix.PubSub.broadcast(
+                        TurnStile.PubSub,
+                        PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                        %{user_alert_status: updated_user.user_alert_status}
+                      )
 
+                      # physically send valid SMS response
                       send_computed_system_response(conn, twilio_params)
 
                     {:error, error} ->
                       IO.inspect(error, label: "receive_sms_alert error in update_user")
-
+                      # update user accoint as ERROR status
+                      case Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("ERROR")) do
+                        {:ok, updated_user} ->
+                          # IO.inspect(updated_user, label: "updated_user")
+                          # send respnse to update UI
+                          Phoenix.PubSub.broadcast(
+                            TurnStile.PubSub,
+                            PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                            %{user_alert_status: updated_user.user_alert_status}
+                          )
+                        {:error, error} -> #udate user account error failure
+                          IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
+                          # TODO  - send flash to employee
+                      end
+                      # send manual sms system resonse to use
                       send_manual_system_response(
                         conn,
-                        "An account update error occurred. Account not updated."
+                        "An internal system error occured during account update. Account was not updated."
                       )
                   end
 
-                {:error, error} ->
+                {:error, error} -> # alert update failure
                   IO.inspect(error, label: "receive_sms_alert error in update_alert")
-
+                  # update user account as ERROR status
+                  case Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("ERROR")) do
+                    {:ok, updated_user} ->
+                      # IO.inspect(updated_user, label: "updated_user")
+                      # send respnse to update UI
+                      Phoenix.PubSub.broadcast(
+                        TurnStile.PubSub,
+                        PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                        %{user_alert_status: updated_user.user_alert_status}
+                      )
+                    {:error, error} -> #udate user account error failure
+                      IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
+                      # TODO  - send flash to employee
+                  end
+                  # send manual sms system resonse to user
                   send_manual_system_response(
                     conn,
                     "An account update error occurred. Account not updated."
                   )
               end
 
-            {:error, error} ->
+            {:error, error} ->  # alert save failure
               IO.inspect(error, label: "receive_sms_alert error in save_received_alert")
+              # send respnse to update UI
+              Phoenix.PubSub.broadcast(
+                TurnStile.PubSub,
+                PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                %{user_alert_status: UserAlertStatusTypesMap.get_user_status("ERROR")}
+              )
 
               send_manual_system_response(
                 conn,
-                "An account save error occurred. Account not updated."
+                "An internal system error occured during message save. Sorry, your message was not processesed."
               )
           end
 
-        {:error, error} ->
+        {:error, error} ->  # match failure
           IO.inspect(error, label: "ERROR")
+          # TODO send popup modal to get employee to resolve
+
           send_manual_system_response(conn, "Error: User account not found.")
       end
     else
@@ -153,42 +198,22 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  #  - must use arrows to match twilio params
-  def handle_receive_alert_user_update(user, twilio_params) do
+  def compute_user_alert_status(twilio_params) do
     body = twilio_params["Body"]
-    #  check if match is valid or not
-    if @json["matching_responses"][body] do
-      IO.inspect(body, label: "body")
 
-      cond do
-        body === "1" ->
-          # save alert
+    case body do
+      "1" ->
+        UserAlertStatusTypesMap.get_user_status("CONFIRMED")
 
-          # update user account
-          Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("CONFIRMED"))
+      "2" ->
+        UserAlertStatusTypesMap.get_user_status("CANCELLED")
 
-        body === "2" ->
-          # update user account
-          Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("CANCELLED"))
-
-        true ->
-          {:error, "Error: invalid response in handle_receive_alert_user_update"}
-      end
+      _ ->
+        IO.puts(
+          "ERROR: invalid response in compute_user_alert_status. This should not occur: validity already checked. Check inputs"
+        )
+        'INVALID_RESPONSE'
     end
-  end
-
-  def handle_receive_alert_system_response_update(alert, response_body, opts \\ []) do
-    system_response = %{
-      system_response: %{
-        title: Keyword.get(opts, :title, "System Response"),
-        body: response_body,
-        to: alert.from,
-        from: alert.to,
-        alert_format: AlertFormatTypesMap.get_alert("SMS")
-      }
-    }
-
-    Alerts.update_alert(alert, system_response)
   end
 
   defp is_response_valid?(params) do
