@@ -155,11 +155,22 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
                   |> put_flash(:success, "Email Alert sent successfully")
                 }
               {:error, error} ->
-                {
-                  :noreply,
-                  socket
-                  |> put_flash(:error, "Failure in alert send. #{error}")
-                }
+                # handle mailgun error format
+                IO.inspect(error, label: "OUTER: in handle_event")
+                case error do
+                  {error_code, %{"message" => error_message}} ->
+                    {
+                      :noreply,
+                      socket
+                      |> put_flash(:error, "Failure in alert send. #{error_message}. Code: #{error_code}")
+                    }
+                  _ ->
+                    {
+                      :noreply,
+                      socket
+                      |> put_flash(:error, "Failure in email alert send.")
+                    }
+                end
             end
           alert.alert_format === AlertFormatTypesMap.get_alert("SMS") ->
             IO.inspect(alert, label: "SMS")

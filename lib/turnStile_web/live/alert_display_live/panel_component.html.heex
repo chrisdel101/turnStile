@@ -73,11 +73,11 @@
               <%= if Kernel.get_in(@changeset.changes, [:alert_format]) === AlertFormatTypesMap.get_alert("EMAIL") do %>
                 <td>
                   <%= label(f, :to) %>
-                  <%= text_input(f, :to, value: @changeset.changes.to || @user.email) %>
+                  <%= text_input(f, :to, value: Map.get(@changeset.changes, :to) || @user.email) %>
                   <%= error_tag(f, :to) %>
 
                   <%= label(f, :from) %>
-                  <%= text_input(f, :from, value: @changeset.changes.from) %>
+                  <%= text_input(f, :from, value: Map.get(@changeset.changes, :from)) %>
                   <%= error_tag(f, :from) %>
 
                   <%= label(f, "Subject") %>
