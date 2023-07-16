@@ -156,4 +156,12 @@ defmodule TurnStile.Utils do
         raise ArgumentError, message: "Error in is_arrow_map?. invalid map type"
     end
   end
+  def remove_first_string_char(string, to_remove) do
+    if String.starts_with?(string, to_remove) do
+      # Remove first character
+      String.slice(string, 1..-1)
+    else
+      string
+    end
+  end
 end

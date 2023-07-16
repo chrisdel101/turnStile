@@ -63,13 +63,20 @@ defmodule TurnStile.Patients do
   end
 
   # - there could be multiple users w. the same phone so we return a list
+  # TODO - make more robust search
+  # -needs to check if input number matches also for 1, and +1
+  # -need to check if there is match of input w/ a 1 or +1
   def get_users_by_phone(phone) do
-    q =
-      from(u in User,
-        where: u.phone == ^phone,
-        order_by: [desc: u.inserted_at],
-        preload: [:employee, :organization]
-      )
+    # remove leading 1 and +
+    phone = TurnStile.Utils.remove_first_string_char(phone, "+")
+    phone = TurnStile.Utils.remove_first_string_char(phone, "1")
+      q =
+          from(u in User,
+            where: u.phone == ^phone,
+            order_by: [desc: u.inserted_at],
+            preload: [:employee, :organization]
+          )
+          IO.inspect(q, label: "q")
     Repo.all(q)
   end
 

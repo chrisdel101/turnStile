@@ -195,7 +195,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe",
     last_name: "Schmoe",
     email: "joe1@schmoe.com",
-    phone: "777123456",
+    phone: "3065190138",
     health_card_num: 1234
   }
 
@@ -206,7 +206,7 @@ TurnStile.Repo.transaction(fn ->
     first_name: "Joe2",
     last_name: "Schmoe",
     email: "joe2@schmoe.com",
-    phone: "7777891011",
+    phone: "3067814109",
     health_card_num: 5678
   }
 

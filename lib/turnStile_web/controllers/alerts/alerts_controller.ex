@@ -91,14 +91,19 @@ defmodule TurnStileWeb.AlertController do
 
             {:error, error} ->  # alert save failure
               IO.inspect(error, label: "receive_sms_alert error in save_received_alert")
-              # send respnse to update UI
-              Phoenix.PubSub.broadcast(
-                TurnStile.PubSub,
-                PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                %{user_alert_status: UserAlertStatusTypesMap.get_user_status("ERROR")}
-              )
-
-              send_manual_system_response(
+               case Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("ERROR")) do
+                    {:ok, updated_user} ->
+                      # IO.inspect(updated_user, label: "updated_user")
+                      # send respnse to update UI
+                      Phoenix.PubSub.broadcast(
+                        TurnStile.PubSub,
+                        PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                        %{user_alert_status: updated_user.user_alert_status}
+                      )
+                    {:error, error} -> #udate user account error failure
+                      IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
+                    end
+                send_manual_system_response(
                 conn,
                 "An internal system error occured during message save. Sorry, your message was not processesed."
               )
@@ -145,17 +150,11 @@ defmodule TurnStileWeb.AlertController do
   """
   def match_recieved_sms_to_user(twilio_params) do
     # remove starting "+"
-    number =
-      if String.starts_with?(twilio_params["From"], "+") do
-        # Remove plus sign - change outer number
-        String.slice(twilio_params["From"], 1..-1)
-      else
-        twilio_params["From"]
-      end
+    number = Utils.remove_first_string_char(twilio_params["From"], "+")
 
     # IO.inspect(number, label: "number")
     users_w_number = Patients.get_users_by_phone(number)
-    # IO.inspect(users_w_number, label: "users_w_number")
+    IO.inspect(users_w_number, label: "users_w_number")
     cond do
       # if more than one use w that number
       list_is_greater_than_1(users_w_number) ->

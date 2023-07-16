@@ -169,6 +169,7 @@ defmodule TurnStileWeb.AlertUtils do
                body: alert.body
              ) do
           {:ok, twilio_msg} ->
+            # IO.inspect(twilio_msg, label: "send_SMS_alert")
             {:ok, twilio_msg}
 
           # handle twilio errors
