@@ -28,7 +28,10 @@ defmodule TurnStileWeb.AlertController do
                   case handle_receive_alert_user_update(user, twilio_params) do
                     {:ok, updated_user} ->
                       IO.inspect(updated_user, label: "updated_user")
-                        # physically send resonse
+                      # physically send resonse
+                      Phoenix.PubSub.broadcast(TurnStile.PubSub,"alert_update", %{sending: "HELLO123"
+})
+
                       send_computed_system_response(conn, twilio_params)
 
                     {:error, error} ->
