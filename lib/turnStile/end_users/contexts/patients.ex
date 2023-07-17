@@ -4,8 +4,10 @@ defmodule TurnStile.Patients do
   """
 
   import Ecto.Query, warn: false
+  alias TurnStile.Patients.UserNotifier
   alias TurnStile.Repo
   alias TurnStile.Patients.User
+  alias TurnStile.Patients.UserToken
   alias TurnStile.Roles
 
   @doc """
@@ -70,24 +72,24 @@ defmodule TurnStile.Patients do
     # remove leading 1 and +
     phone = TurnStile.Utils.remove_first_string_char(phone, "+")
     phone = TurnStile.Utils.remove_first_string_char(phone, "1")
-      q =
-          from(u in User,
-            where: u.phone == ^phone,
-            order_by: [desc: u.inserted_at],
-            preload: [:employee, :organization]
-          )
-          IO.inspect(q, label: "q")
+
+    q =
+      from(u in User,
+        where: u.phone == ^phone,
+        order_by: [desc: u.inserted_at],
+        preload: [:employee, :organization]
+      )
     Repo.all(q)
   end
 
   def get_user_most_recently_updated(user_list) do
     Enum.reduce(user_list, hd(user_list), fn user, acc ->
-       dt1 = DateTime.from_naive!(acc.updated_at, "Etc/UTC")
-       dt2 = DateTime.from_naive!(user.updated_at, "Etc/UTC")
-       # if DateTime.compare(user.inserted, acc) == :gt, do: val, else: acc
-     if DateTime.compare(dt1, dt2) == :gt, do: acc, else: user
-     end)
- end
+      dt1 = DateTime.from_naive!(acc.updated_at, "Etc/UTC")
+      dt2 = DateTime.from_naive!(user.updated_at, "Etc/UTC")
+      # if DateTime.compare(user.inserted, acc) == :gt, do: val, else: acc
+      if DateTime.compare(dt1, dt2) == :gt, do: acc, else: user
+    end)
+  end
 
   @doc """
   Creates a user.
@@ -131,12 +133,12 @@ defmodule TurnStile.Patients do
 
     # spread the map into the object; check map type first
     user =
-    if !TurnStile.Utils.is_arrow_map?(user_params) do
-      %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
-    else
-      user_params = TurnStile.Utils.convert_arrow_map_to_atom(user_params)
-      %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
-    end
+      if !TurnStile.Utils.is_arrow_map?(user_params) do
+        %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+      else
+        user_params = TurnStile.Utils.convert_arrow_map_to_atom(user_params)
+        %User{} |> Map.put_new(:__struct__, User) |> Map.merge(user_params)
+      end
 
     # organization = TurnStile.Organizations.get_organization!(user_params["organization_id"] || user_params.organization_id)
     # IO.inspect(user, label: "user")
@@ -350,5 +352,34 @@ defmodule TurnStile.Patients do
      else
         {:error, "Error: update_alert_status: invalid alert status type"}
      end
+  end
+  # confirmation_url_fun is a callback that gets passed a token and returns a url
+  def deliver_user_alert_reply_instructions(%User{} = user, alert, build_url_func) do
+
+      {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+      # IO.puts("CREATING TOKEN")
+      # IO.inspect(encoded_token)
+      # IO.inspect(user_token)
+      case Repo.insert(user_token) do
+        {:ok, _} ->
+          IO.inspect("INSERTED TOKEN")
+          # IO.inspect(user_token)
+          # IO.inspect(encoded_token)
+          # IO.inspect(build_url_func.(encoded_token))
+          case UserNotifier.deliver_custom_alert(
+            user,
+            alert,
+            build_url_func.(alert, user, encoded_token)
+          ) do
+            {:ok, email} ->
+              {:ok, email}
+            {:error, error} ->
+              # IO.inspect(error, label: "error")
+              {:error, error}
+          end
+
+        {:error, error} ->
+          {:error, error}
+      end
   end
 end

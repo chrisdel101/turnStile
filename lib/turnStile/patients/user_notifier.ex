@@ -9,11 +9,14 @@ defmodule TurnStile.Patients.UserNotifier do
       new()
       |> to(alert.to)
       |> from({"TurnStile", "mailgun@#{System.get_env("MAILGUN_DOMAIN")}"})
-      |> subject(alert.title)
-      |> text_body(alert.body)
-
+      |> subject(subject)
+      |> text_body(body)
+      IO.inspect(email, label: "email")
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
+    else
+      {:error, error} ->
+        {:error, error}
     end
   end
   @doc """
@@ -47,9 +50,10 @@ defmodule TurnStile.Patients.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_custom_alert(_user, alert, url) do
-
+    IO.inspect(alert, label: "alert")
+    IO.inspect(url, label: "URL")
     if !is_nil(alert) do
-      deliver(alert, "Custom Alert", """
+      case deliver(alert, "Custom Alert", """
 
       ==============================
 
@@ -62,7 +66,13 @@ defmodule TurnStile.Patients.UserNotifier do
       #{url}
 
       ==============================
-      """)
+      """) do
+        {:ok, email} ->
+          {:ok, email}
+
+        {:error, error} ->
+          {:error, error}
+      end
     else
       IO.puts("Error: deliver_custom_alert inputs nil")
       nil

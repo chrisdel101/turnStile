@@ -263,6 +263,7 @@ defmodule TurnStile.Alerts do
         alert_format \\ AlertFormatTypesMap.get_alert("SMS"),
         opts \\ []
       ) do
+        IO.inspect("build_alert_attrs")
     cond do
       # build custom type alert
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->

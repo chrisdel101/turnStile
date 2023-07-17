@@ -116,8 +116,8 @@ defmodule TurnStileWeb.Router do
 
     delete "/employees/log_out", EmployeeSessionController, :delete
     post "/employees/confirm", EmployeeConfirmationController, :create
-    get "/employees/setup/:token", EmployeeConfirmationController, :setup
-    get "/employees/confirm/:token", EmployeeConfirmationController, :confirm
+    get "/employees/setup/:token", EmployeeConfirmationController, :setup #used for employee setup reply email link
+    get "/employees/confirm/:token", EmployeeConfirmationController, :confirm # used for init employee if confirm email link is reqiured (is same as above. Combine?)
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
     put "/employees/confirm/:token", EmployeeConfirmationController, :update
   end
@@ -126,7 +126,7 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :require_authenticated_employee]
 
     resources "/organizations", OrganizationController, except: [:show, :index, :new, :create] do
-      # show, delete
+      # show, delete - TODO extract these since no point to nest
       resources "/employees", EmployeeController, except: [:new, :edit, :update, :index, :show]
     end
 
@@ -150,11 +150,12 @@ defmodule TurnStileWeb.Router do
         UserLive.Index,
         :alerts, as: :organization_employee_user_alert
 
-        # post(
-        #   "/organizations/:organization_id/employees/:employee_id/users/:user_id/alert",
-        #   AlertController,
-        #   :create
-        # )
+
+  end
+
+  scope "/alert/:id" do
+    # recieves user sent email alert
+    get "/user/:token", UserConfirmationController, :confirm
   end
 
   # employee edit and update req write access

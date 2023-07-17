@@ -41,6 +41,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     render(conn, "setup.html", organization_id: organization_id, token: token, changeset: changeset)
   end
 
+  # TODO- not working - unsure when employee + PW are coming from
   # Do not log in the employee after confirmation to avoid a
   # leaked token giving the employee access to the account.
   def update(conn, params) do

@@ -197,14 +197,12 @@ defmodule TurnStileWeb.AlertUtils do
           alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL"))
           # default :to
           alert =
-            if alert.to do
+            if Map.get(alert, :to) do
               alert
             else
               Map.put(alert, :to, System.get_env("DEV_EMAIL"))
-
             end
-
-          case TurnStile.Patients.deliver_user_confirmation_instructions(user, alert, &TurnStile.Utils.build_user_alert_url(&1, &2, &3)) do
+          case TurnStile.Patients.deliver_user_alert_reply_instructions(user, alert, &TurnStile.Utils.build_user_alert_url(&1, &2, &3)) do
             {:ok, email} ->
               {:ok, email}
 
