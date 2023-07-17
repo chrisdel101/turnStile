@@ -3,6 +3,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
   alias TurnStileWeb.AlertUtils
+  @json TurnStile.Utils.read_json("sms.json")
 
   @impl true
   def update(props, socket) do
@@ -25,6 +26,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     {:ok,
      socket
      |> assign(props)
+     |> assign(:json, @json)
      |> assign(:alerts, alerts)
      |> assign(:title, set_title(props.panel))
      |> assign(:page_title, "Alert Panel")
@@ -135,7 +137,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
     IO.inspect(alert_params, label: "alert_params")
-    IO.inspect(socket, label: "socket")
+    # IO.inspect(socket, label: "socket")
     # save alert to DB
     case  AlertUtils.authenticate_and_save_sent_alert(socket, socket.assigns.changeset, alert_params) do
       {:ok, alert} ->

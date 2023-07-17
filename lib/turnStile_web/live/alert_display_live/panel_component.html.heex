@@ -81,12 +81,12 @@
                   <%= error_tag(f, :from) %>
 
                   <%= label(f, "Subject") %>
-                  <%= text_input(f, :title, value: Kernel.get_in(@changeset.changes, [:title]), placeholder: "Enter a subject line") %>
+                  <%= text_input(f, :title, value: "#{@json["alerts"]["request"]["initial"]["title"]}") %>
                   <%= error_tag(f, :title) %>
 
 
                   <%= label(f, "Message") %>
-                  <%= textarea(f, :body, value: Kernel.get_in(@changeset.changes, [:body]), placeholder: "Enter email body") %>
+                  <%= textarea(f, :body, value: "#{@json["alerts"]["request"]["initial"]["body"]}" ) %>
                   <%= error_tag(f, :body) %>
                 </td>
               <% end %>
