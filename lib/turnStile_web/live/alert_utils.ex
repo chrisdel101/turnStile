@@ -204,7 +204,7 @@ defmodule TurnStileWeb.AlertUtils do
 
             end
 
-          case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
+          case TurnStile.Patients.deliver_user_confirmation_instructions(user, alert, &TurnStile.Utils.build_user_alert_url(&1, &2, &3)) do
             {:ok, email} ->
               {:ok, email}
 

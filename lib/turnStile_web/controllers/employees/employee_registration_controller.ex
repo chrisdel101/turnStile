@@ -83,8 +83,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                     {:error, error}
 
                   {:ok, updated_org} ->
-                    IO.inspect("updated_org")
-                    IO.inspect(updated_org)
+                    # IO.inspect("updated_org")
+                    # IO.inspect(updated_org)
                     # add employee/org role
                     role =
                       TurnStile.Roles.build_role(%{
@@ -106,12 +106,19 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                           )
                       })
 
-                    role = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
-                    role = TurnStile.Roles.assocaiate_role_with_employee(role, updated_org)
+                    role_w_emp = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
+                    role_w_org = TurnStile.Roles.assocaiate_role_with_organization(role_w_emp, updated_org)
 
-                    case TurnStile.Roles.insert_role(role) do
+                    case TurnStile.Roles.insert_role(employee.id, updated_org.id, role_w_org) do
                       {:error, error} ->
-                        {:error, error}
+                        # delete employee prev inserted
+                        Staff.delete_employee(employee)
+                        conn
+                          |> put_flash(:error, "System error occured. Employee creation failed.")
+                          |> redirect(
+                            to:
+                              Routes.employee_registration_path(conn, :new, organization_id)
+                          )
 
                       {:ok, role} ->
                         IO.inspect("YYYYYY")
@@ -212,7 +219,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
               zz =
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
-                  &Routes.employee_confirmation_url(conn, :edit, organization_id, &1)
+                  &Routes.employee_confirmation_url(conn, :confirm, organization_id, &1)
                 )
 
               IO.inspect('zzzzzzzzz')
