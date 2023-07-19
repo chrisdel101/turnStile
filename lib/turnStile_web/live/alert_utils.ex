@@ -150,7 +150,7 @@ defmodule TurnStileWeb.AlertUtils do
                from: System.get_env("TWILIO_PHONE_NUM"),
                body:
                  handle_alert_body_and_title_display(alert.title, alert.body) ||
-                   @json["alerts"]["request"]["initial"]
+                   @json["alerts"]["request"]["sms"]["initial"]
              ) do
           {:ok, twilio_msg} ->
             {:ok, twilio_msg}
@@ -188,7 +188,7 @@ defmodule TurnStileWeb.AlertUtils do
     # use default system setting for email
     user = TurnStile.Patients.get_user(alert.user_id)
 
-    alert = append_dev_title_and_body(alert)
+    alert = maybe_append_to_from_for_development(alert)
     # IO.inspect(alert, label: "EEEEEEalert in send_email_alert")
     cond do
       alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
@@ -211,7 +211,8 @@ defmodule TurnStileWeb.AlertUtils do
         end
     end
   end
-  defp append_dev_title_and_body(alert) do
+  # handle fill-in :to, :from when flag
+  defp maybe_append_to_from_for_development(alert) do
     if System.get_env("EMAIL_ALERT_MODE") === "dev" do
       # make sure alert is set to system TO/FROM settings
       # default :from

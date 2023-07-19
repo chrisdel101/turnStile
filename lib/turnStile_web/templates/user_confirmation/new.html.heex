@@ -1,0 +1,16 @@
+<h1>Choose an Action</h1>
+
+<p>
+  <%= @json["alerts"]["response"]["email"]["confirmation_page"] %>
+</p>
+
+<.form
+  let={f}
+  for={:user}
+  action={Routes.user_confirmation_path(@conn, :update, @alert_id, @token)}
+>
+  <div>
+    <%= submit("Confirm", name: "_action", value: "confirm") %>
+    <%= submit("Cancel", name: "_action", value: "cancel", data: [confirm: "Are you sure?. This cannot be undone."]) %>
+  </div>
+</.form>

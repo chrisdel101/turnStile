@@ -313,8 +313,8 @@ defmodule TurnStile.Alerts do
       #  INITIAL is only SMS type
       alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
         %{
-          title: @json["alerts"]["request"]["initial"]["title"],
-          body: @json["alerts"]["request"]["initial"]["body"],
+          title: @json["alerts"]["request"]["sms"]["initial"]["title"],
+          body: @json["alerts"]["request"]["sms"]["initial"]["body"],
           from: System.get_env("SYSTEM_ALERT_FROM_SMS"),
           to: user.phone,
           alert_format: alert_format,
@@ -335,8 +335,8 @@ defmodule TurnStile.Alerts do
       # test map
       true ->
         %{
-          title: @json["alerts"]["request"]["custom"]["dev_test"]["title"],
-          body: @json["alerts"]["request"]["custom"]["dev_test"]["body"],
+          title: @json["alerts"]["request"]["sms"]["custom"]["dev_test"]["title"],
+          body: @json["alerts"]["request"]["sms"]["custom"]["dev_test"]["body"],
           from: System.get_env("SYSTEM_ALERT_FROM_SMS"),
           to: System.get_env("TEST_NUMBER"),
           alert_format: alert_format,

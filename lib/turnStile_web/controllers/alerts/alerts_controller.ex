@@ -193,7 +193,7 @@ defmodule TurnStileWeb.AlertController do
       # handle user account
       @json["matching_responses"][body]
     else
-      @json["alerts"]["response"]["wrong_response"]
+      @json["alerts"]["response"]["sms"]["wrong_response"]
     end
   end
 

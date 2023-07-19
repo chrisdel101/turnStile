@@ -1,21 +1,28 @@
 {
   "alerts": {
     "request": {
-      "initial": {
-        "title": "This is a Turnstile Alert",
-        "body": "This message is confirm your place in line. You will recieve an alert when it is your turn. Reply with 1 to confirmm, 2 to cancel."
-      },
-      "custom": {
-        "dev_test": {
-          "title": "Custom Dev Fill In Title",
-          "body": "Custom Dev Fill In Body. This is some text to test things. If you've recieved this, it's just a test."
+      "sms": {
+        "initial": {
+          "title": "This is a Turnstile Alert",
+          "body": "This message is confirm your place in line. You will recieve an alert when it is your turn. Reply with 1 to confirmm, 2 to cancel."
+        },
+        "custom": {
+          "dev_test": {
+            "title": "Custom Dev Fill In Title",
+            "body": "Custom Dev Fill In Body. This is some text to test things. If you've recieved this, it's just a test."
+          }
         }
       }
     },
     "response": {
-      "confirm": "You have confirmed your turn. You will recieve an alert when it is your turn.",
-      "cancel": "You have cancelled your turn. You will no longer recieve alerts.",
-      "wrong_response": "Invalid response. Valid responses are \n - 1 to confirm \n - 2 to cancel"
+      "sms": {
+        "confirm": "You have confirmed your turn. You will recieve an alert when it is your turn.",
+        "cancel": "You have cancelled your turn. You will no longer recieve alerts.",
+        "wrong_response": "Invalid response. Valid responses are \n - 1 to confirm \n - 2 to cancel"
+      },
+      "email" : {
+        "confirmation_page": "This action is confirm your place in line. Click a button below to confirm or cancel."
+      }
     }
   },
   "matching_responses": {

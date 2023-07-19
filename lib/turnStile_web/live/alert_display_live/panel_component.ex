@@ -56,8 +56,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
               AlertFormatTypesMap.get_alert("EMAIL"),
               from: alert_params["from"],
               to: alert_params["to"],
-              title: "#{@json["alerts"]["request"]["initial"]["title"]}",
-              body: "#{@json["alerts"]["request"]["initial"]["body"]}"
+              title: "#{@json["alerts"]["request"]["sms"]["initial"]["title"]}",
+              body: "#{@json["alerts"]["request"]["sms"]["initial"]["body"]}"
 
             )
           # sets up changeset for template use
@@ -151,9 +151,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
             # IO.inspect(alert, label: "alert handle_event EmAIl")
 
             case AlertUtils.send_email_alert(alert) do
-              {:ok, email} ->
+              {:ok, _email} ->
                 # IO.inspect(email, label: "alert handle_event EmAIl")
-                # case handle_send_alert_user_update()
                 {
                   :noreply,
                   socket
@@ -195,6 +194,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
                   |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
                 }
               {:error, error} ->
+                IO.p
                 {
                   :noreply,
                   socket
