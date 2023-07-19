@@ -155,7 +155,7 @@ defmodule TurnStileWeb.Router do
 
   scope "/alert/:id" do
     # recieves user sent email alert
-    get "/user/:token", UserConfirmationController, :confirm
+    get "/user/:token", TurnStileWeb.UserConfirmationController, :confirm
   end
 
   # employee edit and update req write access

@@ -55,7 +55,10 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
               AlertCategoryTypesMap.get_alert("CUSTOM"),
               AlertFormatTypesMap.get_alert("EMAIL"),
               from: alert_params["from"],
-              to: alert_params["to"]
+              to: alert_params["to"],
+              title: "#{@json["alerts"]["request"]["initial"]["title"]}",
+              body: "#{@json["alerts"]["request"]["initial"]["body"]}"
+
             )
           # sets up changeset for template use
           changeset =
@@ -110,7 +113,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
           socket.assigns.changeset.data
           |> Alerts.change_alert(alert_params, true)
 
-        # IO.inspect(changeset, label: "changeset HERE2")
+        IO.inspect(changeset, label: "changeset HERE2")
 
         {:noreply, assign(socket, :changeset, changeset)}
 
@@ -136,8 +139,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
-    IO.inspect(alert_params, label: "alert_params")
-    # IO.inspect(socket, label: "socket")
+    # IO.inspect(alert_params, label: "alert_params")
+    # IO.inspect(socket.assigns.changeset, label: "socket")
     # save alert to DB
     case  AlertUtils.authenticate_and_save_sent_alert(socket, socket.assigns.changeset, alert_params) do
       {:ok, alert} ->

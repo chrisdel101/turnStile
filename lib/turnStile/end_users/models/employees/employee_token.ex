@@ -107,8 +107,8 @@ defmodule TurnStile.Staff.EmployeeToken do
   for resetting the password. For verifying requests to change the email,
   see `verify_change_email_token_query/2`.
   """
-  def verify_email_token_query(token, context) do
-    case Base.url_decode64(token, padding: false) do
+  def verify_email_token_query(encoded_token, context) do
+    case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
         days = days_for_context(context)

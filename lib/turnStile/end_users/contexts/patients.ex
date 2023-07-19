@@ -363,9 +363,7 @@ defmodule TurnStile.Patients do
       case Repo.insert(user_token) do
         {:ok, _} ->
           IO.inspect("INSERTED TOKEN")
-          # IO.inspect(user_token)
-          # IO.inspect(encoded_token)
-          # IO.inspect(build_url_func.(encoded_token))
+
           case UserNotifier.deliver_custom_alert(
             user,
             alert,
@@ -381,5 +379,38 @@ defmodule TurnStile.Patients do
         {:error, error} ->
           {:error, error}
       end
+  end
+
+  @doc """
+  Confirms a employee by the given token.
+
+  If the token matches, the employee account is marked as confirmed
+  and the token is deleted.
+  """
+  def confirm_user(token) do
+    # IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
+    # IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
+
+    # {:ok, query} = UserToken.verify_email_token_query(token, "confirm")
+    # a= Repo.all(query)
+    # IO.inspect(a)
+    with {:ok, query} <- UserToken.verify_email_token_query(token, "confirm"),
+         %User{} = user <- Repo.one(query),
+         {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
+      {:ok, user}
+    else
+      _ ->
+        :error
+    end
+  end
+
+  defp confirm_user_multi(user) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:user, User.confirm_changeset(user))
+
+    |> Ecto.Multi.delete_all(
+      :tokens,
+      UserToken.user_and_contexts_query(user, ["confirm"])
+    )
   end
 end

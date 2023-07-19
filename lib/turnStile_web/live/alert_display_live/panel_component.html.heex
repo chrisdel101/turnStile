@@ -81,12 +81,12 @@
                   <%= error_tag(f, :from) %>
 
                   <%= label(f, "Subject") %>
-                  <%= text_input(f, :title, value: "#{@json["alerts"]["request"]["initial"]["title"]}") %>
+                  <%= text_input(f, :title, value: Map.get(@changeset.changes, :title)) %>
                   <%= error_tag(f, :title) %>
 
 
                   <%= label(f, "Message") %>
-                  <%= textarea(f, :body, value: "#{@json["alerts"]["request"]["initial"]["body"]}" ) %>
+                  <%= textarea(f, :body, value: Map.get(@changeset.changes, :body)) %>
                   <%= error_tag(f, :body) %>
                 </td>
               <% end %>

@@ -13,6 +13,7 @@ defmodule TurnStile.Patients.User do
     belongs_to :employee, TurnStile.Staff.Employee # most recent employee to access this user
     has_many :alerts, TurnStile.Alerts.Alert
     belongs_to :organization, TurnStile.Company.Organization
+    field :confirmed_at, :naive_datetime
 
 
 
@@ -25,4 +26,12 @@ defmodule TurnStile.Patients.User do
     |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status])
     |> validate_required([:first_name, :last_name, :email, :phone, :health_card_num, :is_active?, :user_alert_status])
   end
+  @doc """
+  Confirms the account by setting `confirmed_at`.
+  """
+  def confirm_changeset(user) do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    change(user, confirmed_at: now)
+  end
+
 end

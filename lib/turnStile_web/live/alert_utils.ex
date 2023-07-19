@@ -187,42 +187,19 @@ defmodule TurnStileWeb.AlertUtils do
   def send_email_alert(alert) do
     # use default system setting for email
     user = TurnStile.Patients.get_user(alert.user_id)
-    IO.inspect(alert , label: "alertXXXXXX")
 
+    alert = append_dev_title_and_body(alert)
+    # IO.inspect(alert, label: "EEEEEEalert in send_email_alert")
     cond do
       alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
-        if System.get_env("EMAIL_ALERT_MODE") === "dev" do
-          # make sure alert is set to system TO/FROM settings
-          # default :from
-          alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL"))
-          # default :to
-          alert =
-            if Map.get(alert, :to) do
-              alert
-            else
-              Map.put(alert, :to, System.get_env("DEV_EMAIL"))
-            end
+        # put in build_user_alert_url as a callback
           case TurnStile.Patients.deliver_user_alert_reply_instructions(user, alert, &TurnStile.Utils.build_user_alert_url(&1, &2, &3)) do
             {:ok, email} ->
               {:ok, email}
-
             {:error, error} ->
               IO.inspect(error, label: "ERROR: in send_email_alert")
               {:error, error}
           end
-        else
-          # IO.inspect(alert, label: "YYYYYYYYYYY")
-          # get TO/FROM/BODY the input form
-          case UserNotifier.deliver_custom_alert(user, alert, "localhost:4000/test123") do
-            {:ok, email} ->
-              IO.inspect(email, label: "email")
-              {:ok, email}
-
-            {:error, error} ->
-              {:error, error}
-          end
-        end
-
       # initial alert
       true ->
         case UserNotifier.deliver_initial_alert(user, "localhost:4000/test123") do
@@ -234,6 +211,17 @@ defmodule TurnStileWeb.AlertUtils do
         end
     end
   end
+  defp append_dev_title_and_body(alert) do
+    if System.get_env("EMAIL_ALERT_MODE") === "dev" do
+      # make sure alert is set to system TO/FROM settings
+      # default :from
+      alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL")) |> Map.put(:to, System.get_env("DEV_EMAIL"))
+      alert
+    else
+      alert
+    end
+  end
+
 
   defp compute_sms_category_from_body(twilio_params) do
     body = twilio_params["Body"]
