@@ -68,7 +68,7 @@ defmodule TurnStileWeb.Router do
     get "/organizations/:id/employees/register",
         TurnStileWeb.TestController,
         :employee_register_page
-  end
+    end
 
   end
 
@@ -76,7 +76,20 @@ defmodule TurnStileWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
-    get "/clear_sessions", PageController, :clear_sessions
+  end
+
+  if (Mix.env() == :test ||  Mix.env()) == :dev do
+
+      scope "/", TurnStileWeb do
+        pipe_through :browser
+
+        get "/clear_sessions", FunctionsController, :clear_sessions
+        get "/get_sessions", FunctionsController, :get_sessions
+        get "/set_cookie", FunctionsController, :set_cookie
+        get "/get_cookies", FunctionsController, :get_cookies
+        get "/delete_cookie", FunctionsController, :delete_cookie
+      end
+
   end
 
   ## Authentication routes
