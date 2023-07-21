@@ -380,6 +380,23 @@ defmodule TurnStile.Patients do
           {:error, error}
       end
   end
+  # - adds user token outside workflow just for testing
+  # - TODO require env settnigs to use
+  def dev_add_user_email_token(%User{} = user, alert) do
+
+      {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+      IO.puts("CREATING TOKEN")
+      # IO.inspect(encoded_token)
+      # IO.inspect(user_token)
+      case Repo.insert(user_token) do
+        {:ok, _} ->
+          IO.inspect("INSERTED TOKEN")
+          TurnStile.Utils.build_user_alert_url(alert, user, encoded_token)
+
+        {:error, error} ->
+          {:error, error}
+      end
+  end
 
   @doc """
   Confirms a employee by the given token.
@@ -387,7 +404,7 @@ defmodule TurnStile.Patients do
   If the token matches, the employee account is marked as confirmed
   and the token is deleted.
   """
-  def confirm_user(token) do
+  def confirm_user_email_token(token) do
     # IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
     # IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
 
@@ -412,5 +429,31 @@ defmodule TurnStile.Patients do
       :tokens,
       UserToken.user_and_contexts_query(user, ["confirm"])
     )
+  """
+  def generate_and_insert_user_session_token(user) do
+    {token, user_token} = UserToken.build_session_token(user)
+    IO.inspect(token, label: "token")
+    IO.inspect(user_token, label: "user_token")
+    IO.inspect(Base.encode16(token), label: "encoded user_token")
+    Repo.insert!(user_token)
+    {token, user_token}
   end
+
+  @spec get_user_by_session_token(any) :: any
+  @doc """
+  Gets the user with the given signed token.
+  """
+  def get_user_by_session_token(token) do
+    {:ok, query} = UserToken.verify_session_token_query(token)
+    Repo.one(query)
+  end
+
+  @doc """
+  Deletes the signed token with the given context.
+  """
+  def delete_session_token(token) do
+    Repo.delete_all(UserToken.token_and_context_query(token, "session"))
+    :ok
+  end
+
 end

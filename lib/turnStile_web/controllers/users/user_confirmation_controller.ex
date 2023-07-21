@@ -1,12 +1,78 @@
 defmodule TurnStileWeb.UserConfirmationController do
   use TurnStileWeb, :controller
+  import Plug.Conn
 
-  # alias TurnStile.Patients
+  alias TurnStile.Patients
   # alias TurnStile.Patients.User
   # alias TurnStile.Patients.UserToken
   @json TurnStile.Utils.read_json("sms.json")
-  def new(conn, %{"id" => alert_id, "token" => token}) do
-      render(conn, "new.html", alert_id: alert_id, token: token, json: @json)
+
+  @cookie_opts []
+
+  def new(conn, %{"id" => alert_id, "user_id" => user_id, "token" => token}) do
+    # # case fetch_cookies(conn, signed: ~w(my-cookie)) do
+    case handle_cookie_parse(conn, user_id) do
+      user ->
+        IO.inspect(user, label: "USER HERE")
+        # t8Ebou4BMwv6Nc1oAuHop1RFIFxSxG4fwYDoRoKmo7M=
+      nil ->
+        # else
+          # check URL token
+          case Patients.confirm_user_email_token(token) do
+            {:ok, user} ->
+              IO.inspect(user, label: "USER")
+              # # add new cookie token -
+              {bytes_token, user_token} = Patients.generate_and_insert_user_session_token(user)
+              IO.inspect(bytes_token, label: "bytes_token")
+              IO.inspect(user_token, label: "user_token")
+              IO.inspect(Base.encode64(bytes_token), label: "encoded 64 bytes_token")
+              conn
+              |>  encode_and_write_cookie(bytes_token, user.id)
+              |>  render("new.html", alert_id: alert_id, token: token, json: @json, user: user)
+            :not_found ->
+              # no users matching
+              IO.puts("ERROR")
+            end
+
+    end
+    # end
+    # IO.inspect(cookies)
+    # # IO.inspect( conn)
+    # # IO.inspect( token)
+    # first validate user by URL token
+  end
+  def handle_cookie_parse(conn, user_id) do
+    cookies_conn = fetch_cookies(conn)
+    cookies = Map.get(cookies_conn, :cookies)
+    IO.inspect(cookies, label: "COOKIES1")
+
+   Enum.reduce_while(cookies, nil, fn {key, encoded_value}, _acc ->
+      IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
+      # if cookie matching pattern
+      if String.contains?(key, "turnStile-user") do
+        IO.puts("MATCH")
+        IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
+        # decode string to byte
+        {:ok, decoded_bytes_token} = Base.decode64(encoded_value)
+        # get cookie token and query DB
+        user = TurnStile.Patients.get_user_by_session_token(decoded_bytes_token)
+        {:halt, user}
+      else
+        {:cont, nil}
+      end
+    end)
+    # IO.inspect(result, label: "USER")
+
+
+    # # # check for user_id cookie
+    # user_cookie = Map.get(cookies, "user-#{user_id}")
+    # if user_cookie do
+    #   IO.inspect(token)
+    #   IO.inspect(Base.encode64(token), label: "COOKIES found")
+
+    #   user = Patients.get_user_by_session_token(token)
+    #   IO.inspect(user)
+    #   # decode user_cookie
   end
   def update(conn, %{"_action" => "confirm"}) do
     # Handle confirm action
@@ -17,4 +83,33 @@ defmodule TurnStileWeb.UserConfirmationController do
 
   end
 
+  defp ensure_user_token(conn) do
+    if user_token = get_session(conn, :user_token) do
+      {user_token, conn}
+    else
+      conn = fetch_cookies(conn, signed: [@remember_me_cookie])
+
+      if user_token = conn.cookies[@remember_me_cookie] do
+        {user_token, put_session(conn, :user_token, user_token)}
+      else
+        {nil, conn}
+      end
+    end
+  end
+
+  defp maybe_store_return_to(%{method: "GET"} = conn) do
+    put_session(conn, :employee_return_to, current_path(conn))
+  end
+
+  defp maybe_store_return_to(conn), do: conn
+
+  defp encode_and_write_cookie(conn, token, user_id) do
+    encoded_token = Base.encode64(token)
+    IO.inspect(encoded_token)
+    # put_resp_cookie(conn, key, value, opts \\ [])
+    put_resp_cookie(conn, "turnStile-user-#{user_id}", encoded_token, @cookie_opts)
+  end
+  # defp delete_cookies(conn, token, user_id) do
+  #   # delete_resp_cookie(conn, key, opts \\ [])
+  # end
 end

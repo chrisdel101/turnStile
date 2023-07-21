@@ -1,13 +1,13 @@
-<h1>Hello <%= Map.get(@user, :first_name) %>. Choose an Action</h1>
+<h1>Choose an Action</h1>
 
 <p>
   <%= @json["alerts"]["response"]["email"]["confirmation_page"] %>
 </p>
 
 <.form
-  let={_f}
+  let={f}
   for={:user}
-  action={Routes.user_confirmation_path(@conn, :update, @alert_id, @user.id, @token)}
+  action={Routes.user_confirmation_path(@conn, :update, @alert_id, @token)}
 >
   <div>
     <%= submit("Confirm", name: "_action", value: "confirm") %>

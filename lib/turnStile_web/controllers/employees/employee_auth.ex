@@ -178,6 +178,8 @@ defmodule TurnStileWeb.EmployeeAuth do
   and remember me token.
   """
   def fetch_current_employee(conn, _opts) do
+    # IO.inspect(conn.assigns)
+    # IO.inspect(get_session(conn, :employee_token))
     {employee_token, conn} = ensure_employee_token(conn)
     employee = employee_token && Staff.get_employee_by_session_token(employee_token)
     assign(conn, :current_employee, employee)
@@ -391,7 +393,7 @@ defmodule TurnStileWeb.EmployeeAuth do
   check current employee has greater-equal persmissions to edit
   -used in employee controller: update
   """
-  def has_employee_edit_permissions?(conn, employee_struct, params \\ %{}) do
+  def has_employee_edit_permissions?(conn, employee_struct, _params \\ %{}) do
     # check employee trying to edit
     current_employee = conn.assigns[:current_employee]
     # IO.inspect(employee_struct)

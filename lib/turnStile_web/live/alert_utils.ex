@@ -188,7 +188,7 @@ defmodule TurnStileWeb.AlertUtils do
     # use default system setting for email
     user = TurnStile.Patients.get_user(alert.user_id)
 
-    alert = maybe_append_to_from_for_development(alert)
+    alert = maybe_append_development_fields(alert)
     # IO.inspect(alert, label: "EEEEEEalert in send_email_alert")
     cond do
       alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
@@ -212,7 +212,7 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
   # handle fill-in :to, :from when flag
-  defp maybe_append_to_from_for_development(alert) do
+  defp maybe_append_development_fields(alert) do
     if System.get_env("EMAIL_ALERT_MODE") === "dev" do
       # make sure alert is set to system TO/FROM settings
       # default :from

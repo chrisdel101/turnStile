@@ -169,9 +169,9 @@ defmodule TurnStileWeb.Router do
   scope "/alert/:id", TurnStileWeb do
     pipe_through :browser
     # recieves user sent email alert
-    get "/user/:token", UserConfirmationController, :new
+    get "/user/:user_id/:token", UserConfirmationController, :new
 
-    post "/user/:token", UserConfirmationController, :update
+    post "/user/:user_id/:token", UserConfirmationController, :update
   end
 
   # employee edit and update req write access
