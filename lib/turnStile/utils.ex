@@ -164,10 +164,27 @@ defmodule TurnStile.Utils do
       string
     end
   end
-  def build_user_alert_url(alert, user, user_token) do
+  def build_user_alert_url(alert, user, encoded_user_token) do
       base_url =  TurnStileWeb.Endpoint.url()
-      confirmation_url = "#{base_url}/alert/#{Map.get(alert, :id)}/user/#{user.id}/#{user_token}"
+      confirmation_url = "#{base_url}/alert/#{Map.get(alert, :id)}/user/#{user.id}/#{encoded_user_token}"
       # Further processing
       confirmation_url
+  end
+  # check if user cookie exists; return user or nil
+  def check_if_user_cookie(cookies_map) do
+    Enum.reduce_while(cookies_map, nil, fn {key, encoded_value}, _acc ->
+      IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
+      # if cookie matching pattern
+      if String.contains?(key, "turnStile-user") do
+        # IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
+        # decode string to byte
+        {:ok, decoded_bytes_token} = Base.decode64(encoded_value)
+        # get cookie token and query DB
+        user = TurnStile.Patients.get_user_by_session_token(decoded_bytes_token)
+        {:halt, {user, encoded_value}}
+      else
+        {:cont, nil}
+      end
+    end)
   end
 end

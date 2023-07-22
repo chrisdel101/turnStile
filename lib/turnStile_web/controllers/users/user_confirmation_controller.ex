@@ -3,21 +3,20 @@ defmodule TurnStileWeb.UserConfirmationController do
   import Plug.Conn
 
   alias TurnStile.Patients
-  # alias TurnStile.Patients.User
-  # alias TurnStile.Patients.UserToken
+  alias TurnStile.Patients.User
   @json TurnStile.Utils.read_json("sms.json")
 
   @cookie_opts []
 
-  def new(conn, %{"id" => alert_id, "user_id" => user_id, "token" => token}) do
-    # # case fetch_cookies(conn, signed: ~w(my-cookie)) do
-    case handle_cookie_parse(conn, user_id) do
-      user ->
+  def new(conn, %{"user_id" => _user_id, "token" => token}) do
+    case handle_cookie_parse(conn) do
+      {%User{} = user, encoded_token} ->
         IO.inspect(user, label: "USER HERE")
-        # t8Ebou4BMwv6Nc1oAuHop1RFIFxSxG4fwYDoRoKmo7M=
+        conn
+        |> render("new.html", token: token, json: @json, user: user)
+        |> halt()
       nil ->
-        # else
-          # check URL token
+          # check URL token - match url to hashed-token in DB
           case Patients.confirm_user_email_token(token) do
             {:ok, user} ->
               IO.inspect(user, label: "USER")
@@ -28,39 +27,20 @@ defmodule TurnStileWeb.UserConfirmationController do
               IO.inspect(Base.encode64(bytes_token), label: "encoded 64 bytes_token")
               conn
               |>  encode_and_write_cookie(bytes_token, user.id)
-              |>  render("new.html", alert_id: alert_id, token: token, json: @json, user: user)
+              |>  render("new.html", token: token, json: @json, user: user)
             :not_found ->
               # no users matching
-              IO.puts("ERROR")
+              IO.puts("user not_found")
             end
 
     end
-    # end
-    # IO.inspect(cookies)
-    # # IO.inspect( conn)
-    # # IO.inspect( token)
     # first validate user by URL token
   end
-  def handle_cookie_parse(conn, user_id) do
+  def handle_cookie_parse(conn) do
     cookies_conn = fetch_cookies(conn)
     cookies = Map.get(cookies_conn, :cookies)
     IO.inspect(cookies, label: "COOKIES1")
-
-   Enum.reduce_while(cookies, nil, fn {key, encoded_value}, _acc ->
-      IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
-      # if cookie matching pattern
-      if String.contains?(key, "turnStile-user") do
-        IO.puts("MATCH")
-        IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
-        # decode string to byte
-        {:ok, decoded_bytes_token} = Base.decode64(encoded_value)
-        # get cookie token and query DB
-        user = TurnStile.Patients.get_user_by_session_token(decoded_bytes_token)
-        {:halt, user}
-      else
-        {:cont, nil}
-      end
-    end)
+    TurnStile.Utils.check_if_user_cookie(cookies)
     # IO.inspect(result, label: "USER")
 
 
@@ -74,6 +54,7 @@ defmodule TurnStileWeb.UserConfirmationController do
     #   IO.inspect(user)
     #   # decode user_cookie
   end
+
   def update(conn, %{"_action" => "confirm"}) do
     # Handle confirm action
   end

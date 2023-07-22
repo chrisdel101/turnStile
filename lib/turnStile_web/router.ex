@@ -20,6 +20,7 @@ defmodule TurnStileWeb.Router do
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
     plug TurnStileWeb.Plugs.EmptyParams
     plug :set_test_current_employee
+    plug TurnStileWeb.Plugs.CheckUserCookie
 
   end
 
@@ -166,12 +167,12 @@ defmodule TurnStileWeb.Router do
 
   end
 
-  scope "/alert/:id", TurnStileWeb do
+  scope "/user", TurnStileWeb do
     pipe_through :browser
     # recieves user sent email alert
-    get "/user/:user_id/:token", UserConfirmationController, :new
-
-    post "/user/:user_id/:token", UserConfirmationController, :update
+    get "/:user_id/:token", UserConfirmationController, :new
+    # sends conf/cancel request on page
+    post "/:user_id/:token", UserConfirmationController, :update
   end
 
   # employee edit and update req write access

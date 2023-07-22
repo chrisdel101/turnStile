@@ -385,13 +385,13 @@ defmodule TurnStile.Patients do
   def dev_add_user_email_token(%User{} = user, alert) do
 
       {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
-      IO.puts("CREATING TOKEN")
+      # IO.puts("CREATING TOKEN")
       # IO.inspect(encoded_token)
       # IO.inspect(user_token)
       case Repo.insert(user_token) do
-        {:ok, _} ->
-          IO.inspect("INSERTED TOKEN")
-          TurnStile.Utils.build_user_alert_url(alert, user, encoded_token)
+        {:ok, token} ->
+          # IO.inspect(token, label: "INSERTED TOKEN")
+          {TurnStile.Utils.build_user_alert_url(alert, user, encoded_token), token}
 
         {:error, error} ->
           {:error, error}
@@ -400,8 +400,8 @@ defmodule TurnStile.Patients do
 
   @doc """
   Confirms a employee by the given token.
-
-  If the token matches, the employee account is marked as confirmed
+  - takes a token string and checks it hashed token in DB
+  If the token matches, the employee user is marked as confirmed
   and the token is deleted.
   """
   def confirm_user_email_token(token) do
@@ -416,8 +416,9 @@ defmodule TurnStile.Patients do
          {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
       {:ok, user}
     else
+
       _ ->
-        :error
+        :not_found
     end
   end
 
