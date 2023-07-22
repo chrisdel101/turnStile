@@ -3,7 +3,6 @@ defmodule TurnStileWeb.Plugs.CheckUserCookie do
   use TurnStileWeb, :controller
 
 
-  alias TurnStileWeb.UserConfirmationController
   alias TurnStile.Patients.User
 
   def init(default), do: default

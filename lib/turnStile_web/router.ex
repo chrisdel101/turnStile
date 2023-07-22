@@ -5,6 +5,7 @@ defmodule TurnStileWeb.Router do
 
   import TurnStileWeb.TestController
   import TurnStileWeb.EmployeeAuth
+  import TurnStileWeb.UserAuth
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -15,12 +16,11 @@ defmodule TurnStileWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_admin
+    plug :fetch_current_user
     plug :fetch_current_employee
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
     plug TurnStileWeb.Plugs.EmptyParams
-    plug :set_test_current_employee
-    plug TurnStileWeb.Plugs.CheckUserCookie
 
   end
 
@@ -169,10 +169,17 @@ defmodule TurnStileWeb.Router do
 
   scope "/user", TurnStileWeb do
     pipe_through :browser
-    # recieves user sent email alert
+    # user uses to validate email token; this activates session
     get "/:user_id/:token", UserConfirmationController, :new
+  end
+
+  scope "/user", TurnStileWeb do
+    pipe_through [:browser, :require_authenticated_user
+  ]
+    # after session is active
+    get "/:user_id", UserConfirmationController, :new
     # sends conf/cancel request on page
-    post "/:user_id/:token", UserConfirmationController, :update
+    post "/:user_id", UserConfirmationController, :update
   end
 
   # employee edit and update req write access

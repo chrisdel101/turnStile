@@ -4,30 +4,38 @@ defmodule TurnStileWeb.UserConfirmationController do
 
   alias TurnStile.Patients
   alias TurnStile.Patients.User
+  alias TurnStileWeb.UserAuth
   @json TurnStile.Utils.read_json("sms.json")
 
   @cookie_opts []
 
+
   def new(conn, %{"user_id" => _user_id, "token" => token}) do
-    case handle_cookie_parse(conn) do
-      {%User{} = user, encoded_token} ->
-        IO.inspect(user, label: "USER HERE")
-        conn
-        |> render("new.html", token: token, json: @json, user: user)
-        |> halt()
-      nil ->
+    current_user = conn.assigns[:current_user]
+   if current_user do
+    IO.inspect(current_user, label: "USER top")
+
+    conn
+    |> redirect(to: Routes.user_confirmation_path(conn, :new, current_user.id))
+   else
+
           # check URL token - match url to hashed-token in DB
           case Patients.confirm_user_email_token(token) do
             {:ok, user} ->
               IO.inspect(user, label: "USER")
               # # add new cookie token -
-              {bytes_token, user_token} = Patients.generate_and_insert_user_session_token(user)
-              IO.inspect(bytes_token, label: "bytes_token")
-              IO.inspect(user_token, label: "user_token")
-              IO.inspect(Base.encode64(bytes_token), label: "encoded 64 bytes_token")
+              # {bytes_token, user_token} = Patients.generate_and_insert_user_session_token(user)
+              # IO.inspect(bytes_token, label: "bytes_token")
+              # IO.inspect(user_token, label: "user_token")
+              # IO.inspect(Base.encode64(bytes_token), label: "encoded 64 bytes_token")
+
               conn
-              |>  encode_and_write_cookie(bytes_token, user.id)
-              |>  render("new.html", token: token, json: @json, user: user)
+              # |>  encode_and_write_cookie(bytes_token, user.id)
+              # |>  render("new.html", token: token, json: @json, user: user)
+              # |> redirect(to: "/")
+              |> UserAuth.log_in_user(user)
+              |> halt()
+              # IO.puts("USER LOGGED IN")
             :not_found ->
               # no users matching
               IO.puts("user not_found")
@@ -35,6 +43,11 @@ defmodule TurnStileWeb.UserConfirmationController do
 
     end
     # first validate user by URL token
+  end
+  def new(conn, %{"user_id" => _user_id}) do
+    user = conn.assigns[:current_user]
+    conn
+    |> render("new.html", json: @json, user: user)
   end
   def handle_cookie_parse(conn) do
     cookies_conn = fetch_cookies(conn)

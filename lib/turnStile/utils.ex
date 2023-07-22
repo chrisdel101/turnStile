@@ -166,7 +166,7 @@ defmodule TurnStile.Utils do
   end
   def build_user_alert_url(alert, user, encoded_user_token) do
       base_url =  TurnStileWeb.Endpoint.url()
-      confirmation_url = "#{base_url}/alert/#{Map.get(alert, :id)}/user/#{user.id}/#{encoded_user_token}"
+      confirmation_url = "#{base_url}/user/#{user.id}/#{encoded_user_token}"
       # Further processing
       confirmation_url
   end

@@ -6,7 +6,7 @@
 <.form
   let={_f}
   for={:user}
-  action={Routes.user_confirmation_path(@conn, :update,  @user.id, @token)}
+  action={Routes.user_confirmation_path(@conn, :update,  @user.id)}
 >
   <div>
     <%= submit("Confirm", name: "_action", value: "confirm") %>

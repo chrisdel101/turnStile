@@ -5,10 +5,10 @@ defmodule TurnStileWeb.UserAuth do
   alias TurnStile.Patients
   alias TurnStileWeb.Router.Helpers, as: Routes
 
-  # Make the remember me cookie valid for 60 days.
+  # Make the remember me cookie valid for 6 hours.
   # If you want bump or reduce this value, also change
   # the token expiry itself in UserToken.
-  @max_age 60 * 60 * 24 * 60
+  @max_age 60 * 60 * 6
   @remember_me_cookie "_turn_stile_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
@@ -27,13 +27,12 @@ defmodule TurnStileWeb.UserAuth do
   def log_in_user(conn, user, params \\ %{}) do
     {token, _token_struct} = Patients.generate_and_insert_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
-
     conn
     |> renew_session()
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: signed_in_main_path(conn, user) || user_return_to )
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -42,6 +41,39 @@ defmodule TurnStileWeb.UserAuth do
 
   defp maybe_write_remember_me_cookie(conn, _token, _params) do
     conn
+  end
+
+  @doc """
+  Used for routes that require the user to be authenticated.
+
+  Mean user has activated email token and now is in timed session - no login required
+  """
+  def require_authenticated_user(conn, _opts) do
+
+    id = conn.path_params["user_id"]
+    current_user = conn.assigns[:current_user]
+    IO.inspect(current_user, label: "HERE")
+    if conn.assigns[:current_user] do
+      IO.puts("require_authenticated_user: passed")
+      conn
+    else
+      if id do
+        conn
+        |> put_flash(:error, "You must log in to access this page.")
+        |> maybe_store_return_to()
+        |> redirect(to: Routes.employee_session_path(conn, :new, id))
+        |> halt()
+      else
+        # handle no ID case - terrible syntax but nicer kept breaking
+        IO.puts("require_authenticated_employee: failed")
+
+        conn
+        |> put_flash(:info, "You tried to access a authencated route.")
+        |> maybe_store_return_to()
+        |> redirect(to: "/")
+        |> halt()
+      end
+    end
   end
 
   # This function renews the session ID and erases the whole
@@ -90,6 +122,7 @@ defmodule TurnStileWeb.UserAuth do
   """
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
+    # IO.inspect(user_token, label: "USER TOKEN")
     user = user_token && Patients.get_user_by_session_token(user_token)
     assign(conn, :current_user, user)
   end
@@ -114,30 +147,13 @@ defmodule TurnStileWeb.UserAuth do
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
       conn
-      |> redirect(to: signed_in_path(conn))
+      |> redirect(to: signed_in_main_path(conn, Map.get(conn.assigns[:current_user], :id)))
       |> halt()
     else
       conn
     end
   end
 
-  @doc """
-  Used for routes that require the user to be authenticated.
-
-  If you want to enforce the user email is confirmed before
-  they use the application at all, here would be a good place.
-  """
-  def require_authenticated_user(conn, _opts) do
-    if conn.assigns[:current_user] do
-      conn
-    else
-      conn
-      |> put_flash(:error, "You must log in to access this page.")
-      |> maybe_store_return_to()
-      |> redirect(to: Routes.user_session_path(conn, :new))
-      |> halt()
-    end
-  end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :user_return_to, current_path(conn))
@@ -145,5 +161,6 @@ defmodule TurnStileWeb.UserAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(_conn), do: "/"
+
+  defp signed_in_main_path(conn, current_user), do: Routes.user_confirmation_path(conn, :new, current_user.id)
 end
