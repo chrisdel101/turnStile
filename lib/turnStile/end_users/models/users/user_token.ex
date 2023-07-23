@@ -147,10 +147,10 @@ defmodule TurnStile.Patients.UserToken do
   end
     # takes a query
 
-  def verify_email_token_valid_query_w_query(%Ecto.Query{} = query, context) do
+  def verify_email_token_valid_query(%Ecto.Query{} = query, context) do
      hours = hours_for_context(context)
       query = from user in query,
-      where: user.inserted_at > ago(1, "hour")
+      where: user.inserted_at > ago(30, "second")
       {:ok, query}
     end
   defp days_for_context("confirm"), do: @confirm_validity_in_days

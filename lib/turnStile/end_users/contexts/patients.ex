@@ -412,8 +412,9 @@ defmodule TurnStile.Patients do
     # a= Repo.all(query)
     # IO.inspect(a)
       with {:ok, query} <- UserToken.verify_email_token_exists_query(encoded_token, "confirm"),
+
           %User{} = user <- Repo.one(query),
-          {:ok, query2} <- UserToken.verify_email_token_valid_query_w_query(query , "confirm"),
+          {:ok, query2} <- UserToken.verify_email_token_valid_query(query , "confirm"),
           %User{} = user <- Repo.one(query2) do
       case Keyword.fetch(opts, :skip) do
         {:ok, true} ->
