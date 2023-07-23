@@ -110,7 +110,24 @@ defmodule TurnStile.Patients.UserToken do
     # - for <, checks if compared comes before x days, and so is less
     # - so if the > then it's actually past the ago time and is actually false, if < then it's before the ago time and is true
   """
-  def verify_email_token_query(token, context) do
+  def verify_email_token_exists_query(encoded_token, context) do
+    case Base.url_decode64(encoded_token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        hours = hours_for_context(context)
+        # IO.inspect(token)
+        query =
+          from token in token_and_context_query(hashed_token, context),
+            join: user in assoc(token, :user),
+            select: user
+
+        {:ok, query}
+      :error ->
+        # no users matching token
+        :invalid_token
+    end
+  end
+  def verify_email_token_valid_query(token, context) do
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
@@ -119,13 +136,13 @@ defmodule TurnStile.Patients.UserToken do
         query =
           from token in token_and_context_query(hashed_token, context),
             join: user in assoc(token, :user),
-            # where: token.inserted_at > ago(^hours  , "hour"),
+            where: token.inserted_at > ago(^hours  , "hour"),
             select: user
 
         {:ok, query}
       :error ->
         # no users matching token
-        :error
+        :expired_token
     end
   end
   # def test do

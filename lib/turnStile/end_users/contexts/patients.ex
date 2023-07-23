@@ -32,6 +32,7 @@ defmodule TurnStile.Patients do
         preload: [:employee, :organization],
         order_by: [desc: u.inserted_at]
       )
+
     Repo.all(q)
   end
 
@@ -355,48 +356,47 @@ defmodule TurnStile.Patients do
   end
   # confirmation_url_fun is a callback that gets passed a token and returns a url
   def deliver_user_alert_reply_instructions(%User{} = user, alert, build_url_func) do
+    # {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+    # IO.puts("CREATING TOKEN")
+    # IO.inspect(encoded_token)
+    # IO.inspect(user_token)
+    case build_and_insert_email_token(user, alert) do
+      {_tokenized_url, _token, encoded_token} ->
+        IO.inspect("INSERTED TOKEN")
 
-      {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
-      # IO.puts("CREATING TOKEN")
-      # IO.inspect(encoded_token)
-      # IO.inspect(user_token)
-      case Repo.insert(user_token) do
-        {:ok, _} ->
-          IO.inspect("INSERTED TOKEN")
+        case UserNotifier.deliver_custom_alert(
+               user,
+               alert,
+               build_url_func.(alert, user, encoded_token)
+             ) do
+          {:ok, email} ->
+            {:ok, email}
 
-          case UserNotifier.deliver_custom_alert(
-            user,
-            alert,
-            build_url_func.(alert, user, encoded_token)
-          ) do
-            {:ok, email} ->
-              {:ok, email}
-            {:error, error} ->
-              # IO.inspect(error, label: "error")
-              {:error, error}
-          end
+          {:error, error} ->
+            # IO.inspect(error, label: "error")
+            {:error, error}
+        end
 
-        {:error, error} ->
-          {:error, error}
-      end
+      {:error, error} ->
+        {:error, error}
+    end
   end
-  # - adds user token outside workflow just for testing
-  # - TODO require env settnigs to use
-  def dev_add_user_email_token(%User{} = user, alert) do
 
-      {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
-      # IO.puts("CREATING TOKEN")
-      # IO.inspect(encoded_token)
-      # IO.inspect(user_token)
-      case Repo.insert(user_token) do
-        {:ok, token} ->
-          # IO.inspect(token, label: "INSERTED TOKEN")
-          {TurnStile.Utils.build_user_alert_url(alert, user, encoded_token), token}
+  def build_and_insert_email_token(%User{} = user, alert) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+    # IO.puts("CREATING TOKEN")
+    # IO.inspect(encoded_token)
+    # IO.inspect(user_token)
+    case Repo.insert(user_token) do
+      {:ok, token} ->
+        # IO.inspect(token, label: "INSERTED TOKEN")
+        {TurnStile.Utils.build_user_alert_url(alert, user, encoded_token), token, encoded_token}
 
-        {:error, error} ->
-          {:error, error}
-      end
+      {:error, error} ->
+        {:error, error}
+    end
   end
+
 
   @doc """
   Confirms a employee by the given token.
@@ -404,24 +404,41 @@ defmodule TurnStile.Patients do
   If the token matches, the employee user is marked as confirmed
   and the token is deleted.
   """
-  def confirm_user_email_token(token) do
+  def confirm_user_email_token(encoded_token, opts \\ []) do
     # IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
     # IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
 
     # {:ok, query} = UserToken.verify_email_token_query(token, "confirm")
     # a= Repo.all(query)
     # IO.inspect(a)
-    with {:ok, query} <- UserToken.verify_email_token_query(token, "confirm"),
+    with {:ok, query} <- UserToken.verify_email_token_exists_query(encoded_token, "confirm"),
          %User{} = user <- Repo.one(query),
-         {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
-      {:ok, user}
+         {:ok, query2} <- UserToken.verify_email_token_valid_query(encoded_token, "confirm"),
+         %User{} = user <- Repo.one(query2) do
+      case Keyword.fetch(opts, :skip) do
+        {:ok, true} ->
+          # return user
+         user
+        _ ->
+          # run multi
+          with {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
+            {:ok, user}
+          end
+      end
     else
+      :expired_token ->
+        :expired_token
 
-      _ ->
-        :not_found
+      :invalid_token ->
+        :invalid_token
+
+      {:error, error} ->
+        IO.inspect(error, label: "error")
+        {:error, error}
     end
   end
 
+  # skip - don't run multi in testing
   defp confirm_user_multi(user) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.confirm_changeset(user))
@@ -431,6 +448,7 @@ defmodule TurnStile.Patients do
       UserToken.user_and_contexts_query(user, ["confirm"])
     )
   end
+
   @doc """
   Generates a session token.
   """
@@ -459,5 +477,4 @@ defmodule TurnStile.Patients do
     Repo.delete_all(UserToken.token_and_context_query(token, "session"))
     :ok
   end
-
 end
