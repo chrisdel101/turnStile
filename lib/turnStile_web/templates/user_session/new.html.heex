@@ -1,0 +1,17 @@
+<h1>Hello <%= Map.get(@user, :first_name) %>. Choose an Action</h1>
+<p>
+  <%= @json["alerts"]["response"]["email"]["confirmation_page"] %>
+</p>
+
+<.form
+  let={_f}
+  for={:user}
+  action={Routes.user_confirmation_path(@conn, :update,  @user.id)}
+>
+  <div>
+    <%= submit("Confirm", name: "_action", value: "confirm") %>
+    <%= submit("Cancel", name: "_action", value: "cancel", data: [confirm: "Are you sure?. This cannot be undone."]) %>
+  </div>
+  <%!-- TODO delete later --%>
+   <%= link("Log out", to: Routes.user_session_path(@conn, :delete, @user.id), method: :delete) %>
+</.form>

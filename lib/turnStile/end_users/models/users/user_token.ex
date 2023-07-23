@@ -187,7 +187,6 @@ defmodule TurnStile.Patients.UserToken do
   def user_and_contexts_query(user, :all) do
     if !is_nil(user) && !is_nil(user.id) do
       query = from t in UserToken, where: t.user_id == ^user.id
-      # IO.inspect(query, label: "Generated Query")
       query
     end
   end

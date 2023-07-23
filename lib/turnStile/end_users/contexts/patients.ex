@@ -430,6 +430,9 @@ defmodule TurnStile.Patients do
       :tokens,
       UserToken.user_and_contexts_query(user, ["confirm"])
     )
+  end
+  @doc """
+  Generates a session token.
   """
   def generate_and_insert_user_session_token(user) do
     {token, user_token} = UserToken.build_session_token(user)

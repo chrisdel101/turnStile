@@ -6,7 +6,7 @@ defmodule TurnStileWeb.PageController do
 
 
   def index(conn, _params) do
-    IO.inspect(conn)
+    IO.inspect("index page")
       conn
       |> assign(:employees?, Staff.list_all_employees())
       |> render("index.html")

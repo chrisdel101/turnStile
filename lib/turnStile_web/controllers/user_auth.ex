@@ -2,6 +2,7 @@ defmodule TurnStileWeb.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
+
   alias TurnStile.Patients
   alias TurnStileWeb.Router.Helpers, as: Routes
 
@@ -50,29 +51,17 @@ defmodule TurnStileWeb.UserAuth do
   """
   def require_authenticated_user(conn, _opts) do
 
-    id = conn.path_params["user_id"]
     current_user = conn.assigns[:current_user]
-    IO.inspect(current_user, label: "HERE")
+    # IO.inspect(current_user, label: "current_user: require_authenticated_user")
     if conn.assigns[:current_user] do
       IO.puts("require_authenticated_user: passed")
       conn
     else
-      if id do
+      IO.puts("require_authenticated_user: failed")
         conn
-        |> put_flash(:error, "You must log in to access this page.")
-        |> maybe_store_return_to()
-        |> redirect(to: Routes.employee_session_path(conn, :new, id))
-        |> halt()
-      else
-        # handle no ID case - terrible syntax but nicer kept breaking
-        IO.puts("require_authenticated_employee: failed")
-
-        conn
-        |> put_flash(:info, "You tried to access a authencated route.")
+        |> put_flash(:info, "You're session is expired or you tried to access an authencated route.")
         |> maybe_store_return_to()
         |> redirect(to: "/")
-        |> halt()
-      end
     end
   end
 
@@ -147,7 +136,7 @@ defmodule TurnStileWeb.UserAuth do
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
       conn
-      |> redirect(to: signed_in_main_path(conn, Map.get(conn.assigns[:current_user], :id)))
+      |> redirect(to: signed_in_main_path(conn, conn.assigns[:current_user]))
       |> halt()
     else
       conn
@@ -162,5 +151,5 @@ defmodule TurnStileWeb.UserAuth do
   defp maybe_store_return_to(conn), do: conn
 
 
-  defp signed_in_main_path(conn, current_user), do: Routes.user_confirmation_path(conn, :new, current_user.id)
+  defp signed_in_main_path(conn, current_user), do: Routes.user_confirmation_path(conn, :new, Map.get(current_user, :id))
 end

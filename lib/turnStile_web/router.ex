@@ -3,9 +3,9 @@ defmodule TurnStileWeb.Router do
 
   import TurnStileWeb.AdminAuth
 
-  import TurnStileWeb.TestController
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.UserAuth
+  alias TurnStileWeb.UserAuth
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -26,7 +26,7 @@ defmodule TurnStileWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-    # This is the line that should be added
+
     post "/sms_messages", TurnStileWeb.AlertController, :receive_sms_alert
   end
 
@@ -168,18 +168,23 @@ defmodule TurnStileWeb.Router do
   end
 
   scope "/user", TurnStileWeb do
-    pipe_through :browser
+    pipe_through [:browser, :redirect_if_user_is_authenticated]
     # user uses to validate email token; this activates session
-    get "/:user_id/:token", UserConfirmationController, :new
+    # - equlivalent to /log_in
+    get "/:user_id/:token", UserSessionController, :new
   end
 
   scope "/user", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user
   ]
-    # after session is active
-    get "/:user_id", UserConfirmationController, :new
-    # sends conf/cancel request on page
+     # uses same as prev but without token; renders same template but w.o token
+    # - equlivalent to /log_in
+    get "/:user_id", UserSessionController, :new
+    # sends conf/cancel buttons request on page
+    delete "/:user_id/log_out", UserSessionController, :delete
+    # sends conf/cancel buttons request on page
     post "/:user_id", UserConfirmationController, :update
+
   end
 
   # employee edit and update req write access

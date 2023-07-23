@@ -56,7 +56,6 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     current_employee = conn.assigns[:current_employee]
 
     if current_employee do
-      IO.puts("HERE update current_employee")
       # check confirm token is NOT same as logged in
       current_token = EmployeeAuth.get_employee_token(conn)
 
