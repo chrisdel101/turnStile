@@ -405,42 +405,47 @@ defmodule TurnStile.Patients do
   - timeout is checked with query; not set on the token itself
   """
   def confirm_user_email_token(encoded_token, opts \\ []) do
-    # IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
-    # IO.inspect(Repo.all(elem(EmployeeToken.verify_email_token_query(token, "confirm"), 1)))
+    # check if user exists
+    case UserToken.verify_email_token_exists_query(encoded_token, "confirm") do
+      {:ok, query} ->
+        case Repo.one(query) do
+          %User{} = user ->
+            IO.inspect(user, label: "user")
+            # check if user is expired
+            case UserToken.verify_email_token_valid_query(query, "confirm") do
+              {:ok, query} ->
+                case Repo.one(query) do
+                  %User{} = user ->
+                    {:ok, user}
+                    # run multi based on flag
+                    case Keyword.fetch(opts, :skip) do
+                      {:ok, true} ->
+                        # return user
+                        user
+                      _ ->
+                        # run multi
+                        with {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
+                          {:ok, user}
+                        end
+                    end
 
-    # {:ok, query} = UserToken.verify_email_token_query(token, "confirm")
-    # a= Repo.all(query)
-    # IO.inspect(a)
-      with {:ok, query} <- UserToken.verify_email_token_exists_query(encoded_token, "confirm"),
+                  nil ->
+                    IO.puts("confirm_user_email_token:User Expired")
+                    nil
+                end
 
-          %User{} = user <- Repo.one(query),
-          {:ok, query2} <- UserToken.verify_email_token_valid_query(query , "confirm"),
-          %User{} = user <- Repo.one(query2) do
-      case Keyword.fetch(opts, :skip) do
-        {:ok, true} ->
-          # return user
-         user
-        _ ->
-          # run multi
-          with {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
-            {:ok, user}
-          end
-      end
-    else
-      nil ->
-        IO.puts("confirm_user_email_token: No User found")
-        nil
+            end
+
+          nil ->
+              IO.puts("confirm_user_email_token: No User found")
+              nil
+        end
+
       :invalid_input_token ->
         :invalid_input_token
-
-      :invalid_token ->
-        :invalid_token
-
-      {:error, error} ->
-        IO.inspect(error, label: "error")
-        {:error, error}
     end
   end
+
 
   # skip - don't run multi in testing
   defp confirm_user_multi(user) do

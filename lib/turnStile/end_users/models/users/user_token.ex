@@ -124,7 +124,7 @@ defmodule TurnStile.Patients.UserToken do
         {:ok, query}
       :error ->
         # no users matching token
-        :invalid_token
+        :invalid_input_token
     end
   end
   # takes a token
@@ -141,8 +141,7 @@ defmodule TurnStile.Patients.UserToken do
 
         {:ok, query}
       :error ->
-        # no users matching token
-        :expired_token
+        :invalid_input_token
     end
   end
     # takes a query
