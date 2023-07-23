@@ -400,9 +400,9 @@ defmodule TurnStile.Patients do
 
   @doc """
   Confirms a employee by the given token.
-  - takes a token string and checks it hashed token in DB
-  If the token matches, the employee user is marked as confirmed
-  and the token is deleted.
+  - takes a encoded token string and checks if hashed token in DB matches
+  - If token matches user is marked as confirmed; token is deleted.
+  - timeout is checked with query; not set on the token itself
   """
   def confirm_user_email_token(encoded_token, opts \\ []) do
     # IO.inspect(EmployeeToken.verify_email_token_query(token, "confirm"))
@@ -411,10 +411,10 @@ defmodule TurnStile.Patients do
     # {:ok, query} = UserToken.verify_email_token_query(token, "confirm")
     # a= Repo.all(query)
     # IO.inspect(a)
-    with {:ok, query} <- UserToken.verify_email_token_exists_query(encoded_token, "confirm"),
-         %User{} = user <- Repo.one(query),
-         {:ok, query2} <- UserToken.verify_email_token_valid_query(encoded_token, "confirm"),
-         %User{} = user <- Repo.one(query2) do
+      with {:ok, query} <- UserToken.verify_email_token_exists_query(encoded_token, "confirm"),
+          %User{} = user <- Repo.one(query),
+          {:ok, query2} <- UserToken.verify_email_token_valid_query_w_query(query , "confirm"),
+          %User{} = user <- Repo.one(query2) do
       case Keyword.fetch(opts, :skip) do
         {:ok, true} ->
           # return user
@@ -426,8 +426,11 @@ defmodule TurnStile.Patients do
           end
       end
     else
-      :expired_token ->
-        :expired_token
+      nil ->
+        IO.puts("confirm_user_email_token: No User found")
+        nil
+      :invalid_input_token ->
+        :invalid_input_token
 
       :invalid_token ->
         :invalid_token
@@ -452,7 +455,7 @@ defmodule TurnStile.Patients do
   @doc """
   Generates a session token.
   """
-  def generate_and_insert_user_session_token(user) do
+  def build_and_insert_user_session_token(user) do
     {token, user_token} = UserToken.build_session_token(user)
     IO.inspect(token, label: "token")
     IO.inspect(user_token, label: "user_token")

@@ -8,6 +8,7 @@ defmodule TurnStile.Patients.UserToken do
 
   @confirm_validity_in_days 1
   @confirm_validity_in_hours 6
+  @confirm_validity_in_seconds 30
 
   schema "user_tokens" do
     field :token, :binary
@@ -82,7 +83,8 @@ defmodule TurnStile.Patients.UserToken do
   defp build_hashed_token(user, context, sent_to) do
     token = :crypto.strong_rand_bytes(@rand_size)
     hashed_token = :crypto.hash(@hash_algorithm, token)
-
+    IO.inspect(hashed_token, label: "tokenBH")
+    IO.inspect(Base.url_encode64(token, padding: false), label: "encoded_tokenBH")
     {Base.url_encode64(token, padding: false),
      %UserToken{
        token: hashed_token,
@@ -111,15 +113,13 @@ defmodule TurnStile.Patients.UserToken do
     # - so if the > then it's actually past the ago time and is actually false, if < then it's before the ago time and is true
   """
   def verify_email_token_exists_query(encoded_token, context) do
-    case Base.url_decode64(encoded_token, padding: false) do
+      case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-        hours = hours_for_context(context)
-        # IO.inspect(token)
         query =
           from token in token_and_context_query(hashed_token, context),
-            join: user in assoc(token, :user),
-            select: user
+          join: user in assoc(token, :user),
+          select: user
 
         {:ok, query}
       :error ->
@@ -127,12 +127,12 @@ defmodule TurnStile.Patients.UserToken do
         :invalid_token
     end
   end
-  def verify_email_token_valid_query(token, context) do
-    case Base.url_decode64(token, padding: false) do
+  # takes a token
+  def verify_email_token_valid_query(token, context) when is_binary(token) do
+        case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
         hours = hours_for_context(context)
-        # IO.inspect(token)
         query =
           from token in token_and_context_query(hashed_token, context),
             join: user in assoc(token, :user),
@@ -145,17 +145,14 @@ defmodule TurnStile.Patients.UserToken do
         :expired_token
     end
   end
-  # def test do
-  #   user = TurnStile.Patients.get_user(1)
-  #   IO.inspect(user.inserted_at)
+    # takes a query
 
-  #   query =
-  #     from u in TurnStile.Patients.User,
-  #       where: u.inserted_at > ago(@confirm_validity_in_hours, "hour"),
-  #       select: u
-  #       IO.inspect(query)
-  #     TurnStile.Repo.all(query)
-  # end
+  def verify_email_token_valid_query_w_query(%Ecto.Query{} = query, context) do
+     hours = hours_for_context(context)
+      query = from user in query,
+      where: user.inserted_at > ago(1, "hour")
+      {:ok, query}
+    end
   defp days_for_context("confirm"), do: @confirm_validity_in_days
   defp hours_for_context("confirm"), do: @confirm_validity_in_hours
   defp days_for_context("reset_password"), do: @reset_password_validity_in_days
