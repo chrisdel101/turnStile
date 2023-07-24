@@ -37,3 +37,4 @@ npm-debug.log
 .env
 o.ex
 t.exs
+sessions_loader.exs

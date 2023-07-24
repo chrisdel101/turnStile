@@ -11,8 +11,10 @@ defmodule TurnStileWeb.UserAuth do
   # the token expiry itself in UserToken.
   @max_age_hours 60 * 60 * 6
   @max_age_seconds 30
+  @expiration_cookie "_turn_stile_web_user_expiration"
   @remember_me_cookie "_turn_stile_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age_hours, same_site: "Lax"]
+  @expiration_me_options [sign: true, max_age: @max_age_seconds, same_site: "Lax"]
 
   @doc """
   Logs the user in.
@@ -33,6 +35,7 @@ defmodule TurnStileWeb.UserAuth do
     |> renew_session()
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
+    |> maybe_write_expiration_cookie(token, params)
     |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: signed_in_main_path(conn, user) || user_return_to )
   end
@@ -42,6 +45,14 @@ defmodule TurnStileWeb.UserAuth do
   end
 
   defp maybe_write_remember_me_cookie(conn, _token, _params) do
+    conn
+
+  end
+    defp maybe_write_expiration_cookie(conn, token, %{"expirtation" => "true"}) do
+      put_resp_cookie(conn, @expiration_cookie, token, @expiration_me_options)
+    end
+
+  defp maybe_write_expiration_cookie(conn, _token, _params) do
     conn
   end
 
@@ -103,7 +114,27 @@ defmodule TurnStileWeb.UserAuth do
     conn
     |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
+    |> delete_resp_cookie(@expiration_cookie)
     |> redirect(to: "/")
+  end
+  @doc """
+  Logs the user out.
+
+  It clears all session data for safety. See renew_session.
+  """
+  def log_out_expired_user(conn) do
+    user_token = get_session(conn, :user_token)
+    user_token && Patients.delete_session_token(user_token)
+
+    if live_socket_id = get_session(conn, :live_socket_id) do
+      TurnStileWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+    end
+
+    conn
+    |> renew_session()
+    |> delete_resp_cookie(@remember_me_cookie)
+    |> delete_resp_cookie(@expiration_cookie)
+
   end
 
   @doc """
@@ -118,17 +149,32 @@ defmodule TurnStileWeb.UserAuth do
   end
 
   defp ensure_user_token(conn) do
+    # check for user token
     if user_token = get_session(conn, :user_token) do
       {user_token, conn}
     else
+      # if not found, check cookie since it could also be there
       conn = fetch_cookies(conn, signed: [@remember_me_cookie])
 
       if user_token = conn.cookies[@remember_me_cookie] do
         {user_token, put_session(conn, :user_token, user_token)}
       else
+      # else invalid
         {nil, conn}
       end
     end
+  end
+  # call right after fetch_current_user
+  def ensure_user_not_expired(conn, _opts) do
+    # if logged in user
+    if conn.assigns[:current_user] do
+      conn = fetch_cookies(conn, signed: [@expirtation])
+      if !Map.get(conn.cookies, "_turn_stile_web_user_expiration") do
+        IO.puts("user expired")
+        log_out_expired_user(conn)
+      end
+    end
+    conn
   end
 
   @doc """
@@ -152,5 +198,5 @@ defmodule TurnStileWeb.UserAuth do
   defp maybe_store_return_to(conn), do: conn
 
 
-  defp signed_in_main_path(conn, current_user), do: Routes.user_confirmation_path(conn, :new, Map.get(current_user, :id))
+  defp signed_in_main_path(conn, current_user), do: Routes.user_session_path(conn, :new, Map.get(current_user, :id))
 end

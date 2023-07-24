@@ -17,6 +17,7 @@ defmodule TurnStileWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_admin
     plug :fetch_current_user
+    plug :ensure_user_not_expired
     plug :fetch_current_employee
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"

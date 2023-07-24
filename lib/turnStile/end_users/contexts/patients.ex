@@ -404,13 +404,19 @@ defmodule TurnStile.Patients do
   - If token matches user is marked as confirmed; token is deleted.
   - timeout is checked with query; not set on the token itself
   """
-  def confirm_user_email_token(encoded_token, opts \\ []) do
+  def confirm_user_email_token(encoded_token, user_id, opts \\ []) do
     # check if user exists
     case UserToken.verify_email_token_exists_query(encoded_token, "confirm") do
       {:ok, query} ->
         case Repo.one(query) do
           %User{} = user ->
             IO.inspect(user, label: "user")
+
+            if user.id != TurnStile.Utils.convert_to_int() do
+              IO.puts("confirm_user_email_token: User param ID does not match token")
+              {nil, :not_matched}
+            else
+              # IO.puts("confirm_user_email_token: User Found")
             # check if user is expired
             case UserToken.verify_email_token_valid_query(query, "confirm") do
               {:ok, query} ->
@@ -431,14 +437,15 @@ defmodule TurnStile.Patients do
 
                   nil ->
                     IO.puts("confirm_user_email_token:User Expired")
-                    nil
+                    {nil, :expired}
                 end
 
-            end
 
+            end
+          end
           nil ->
               IO.puts("confirm_user_email_token: No User found")
-              nil
+              {nil, :not_found}
         end
 
       :invalid_input_token ->

@@ -5,7 +5,7 @@ defmodule TurnStileWeb.UserSessionController do
   alias TurnStileWeb.UserAuth
   @json TurnStile.Utils.read_json("sms.json")
 
-  def new(conn, %{"user_id" => _user_id, "token" => token}) do
+  def new(conn, %{"user_id" => user_id, "token" => token}) do
     current_user = conn.assigns[:current_user]
 
     if current_user do
@@ -14,18 +14,29 @@ defmodule TurnStileWeb.UserSessionController do
       |> redirect(to: Routes.user_confirmation_path(conn, :new, current_user.id))
     else
       # check URL token - match url to hashed-token in DB
-      case Patients.confirm_user_email_token(token) do
+      case Patients.confirm_user_email_token(token, user_id) do
         {:ok, user} ->
           # IO.inspect(user, label: "USER")
           conn
-          |> UserAuth.log_in_user(user)
+          # log in and set session token for future requests
+          |> UserAuth.log_in_user(user, %{"expirtation" => "true"})
 
-        :not_found ->
+        {nil, :not_matched} ->
+           IO.puts("user not_matched: User param ID does not match the token")
+           conn
+           |> put_flash(:error, "Sorry, your URL link has matching errors. Verify it is correct and try again.")
+           |> redirect(to: "/")
+        {nil, :not_found} ->
           # no users matching
           IO.puts("user not_found: user_seesion_controller new")
           conn
-          |> put_flash(:error, "Sorry, invalid or expired URL token.")
+          |> put_flash(:error, "Sorry, your URL link is invalid.")
           |> redirect(to: "/")
+        {nil, :expired} ->
+           IO.puts("token expired: user_seesion_controller new")
+           conn
+           |> put_flash(:error, "Sorry, your link has expired. Contact your provider to resend new link.")
+           |> redirect(to: "/")
       end
     end
   end
