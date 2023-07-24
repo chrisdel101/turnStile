@@ -27,7 +27,7 @@ defmodule TurnStileWeb.AlertController do
               case Alerts.update_alert(alert, system_response_map) do
                 {:ok, _updated_alert} ->
                   # IO.inspect(updated_alert, label: "updated_alert")
-                  user_alert_status = compute_user_alert_status(twilio_params)
+
                   user_alert_status = compute_user_alert_status(twilio_params)
                   # update user account
                   case Patients.update_alert_status(user,user_alert_status) do

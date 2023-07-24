@@ -51,7 +51,16 @@ defmodule TurnStile.Company do
 
   def get_organization_by_name(slug) do
     if not is_nil(slug) do
-      TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
+      query = from o in Organization, where: o.slug == ^slug
+      orgs = TurnStile.Repo.all(query)
+      # return most recent one
+      if length(orgs) > 1 do
+        List.last(orgs)
+        # orgs
+      else
+        hd(orgs)
+      end
+      # TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
     end
   end
 
@@ -72,8 +81,8 @@ defmodule TurnStile.Company do
   """
   def insert_and_preload_organization(attrs \\ %{}) do
     org_changeset = Organization.changeset(%Organization{}, attrs)
-    # IO.inspect("insert_and_preload_organization")
-    # IO.inspect(org_changeset)
+    IO.inspect("insert_and_preload_organization")
+    IO.inspect(org_changeset)
     case Repo.insert(org_changeset) do
       {:ok, new_org} ->
         org_preload =
@@ -138,7 +147,7 @@ defmodule TurnStile.Company do
   # same as above but takes a formed struct
   def update_organization(organization) do
     u_organization = Ecto.Changeset.change(organization)
-    u = Repo.update(u_organization)
+    Repo.update(u_organization)
   end
 
   # takes a formed changeset and updates table

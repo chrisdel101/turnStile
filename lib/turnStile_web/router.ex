@@ -5,7 +5,7 @@ defmodule TurnStileWeb.Router do
 
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.UserAuth
-  alias TurnStileWeb.UserAuth
+  # alias TurnStileWeb.UserAuth
   import Phoenix.LiveView.Router
 
   pipeline :browser do

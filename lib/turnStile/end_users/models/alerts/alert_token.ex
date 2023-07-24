@@ -5,7 +5,8 @@ defmodule TurnStile.Alerts.AlertToken do
 
   @hash_algorithm :sha256
   @rand_size 32
-
+  @session_validity_in_days 30
+  @change_email_validity_in_days 1
 
   schema "alert_tokens" do
     field :token, :binary

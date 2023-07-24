@@ -8,7 +8,6 @@ defmodule TurnStile.Patients.UserToken do
 
   @confirm_validity_in_days 1
   @confirm_validity_in_hours 6
-  @confirm_validity_in_seconds 30
 
   schema "user_tokens" do
     field :token, :binary
@@ -146,15 +145,12 @@ defmodule TurnStile.Patients.UserToken do
   end
     # takes a query
 
-  def verify_email_token_valid_query(%Ecto.Query{} = query, context) do
-     hours = hours_for_context(context)
+  def verify_email_token_valid_query(%Ecto.Query{} = query, _context) do
       query = from user in query,
       where: user.inserted_at > ago(30, "second")
       {:ok, query}
     end
-  defp days_for_context("confirm"), do: @confirm_validity_in_days
   defp hours_for_context("confirm"), do: @confirm_validity_in_hours
-  defp days_for_context("reset_password"), do: @reset_password_validity_in_days
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.

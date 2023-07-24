@@ -404,7 +404,7 @@ defmodule TurnStile.Patients do
   - If token matches user is marked as confirmed; token is deleted.
   - timeout is checked with query; not set on the token itself
   """
-  def confirm_user_email_token(encoded_token, user_id, opts \\ []) do
+  def confirm_user_email_token(encoded_token, _user_id, opts \\ []) do
     # check if user exists
     case UserToken.verify_email_token_exists_query(encoded_token, "confirm") do
       {:ok, query} ->

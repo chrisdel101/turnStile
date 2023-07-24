@@ -59,13 +59,13 @@ defmodule TurnStile.Staff.Employee do
     |> hash_password(opts)
   end
 
-  @doc """
-  handle_timezone_insert
-  # use custome timezone, else add one from organization
-  -takes timezone from organization if employee has not set one
-  -employee can override organization timezone in settings(TODO)
-  -CLI use: current_organization_login_id must be set maually
-  """
+
+  # handle_timezone_insert
+  # # use custome timezone, else add one from organization
+  # -takes timezone from organization if employee has not set one
+  # -employee can override organization timezone in settings(TODO)
+  # -CLI use: current_organization_login_id must be set maually
+
   defp handle_timezone_insert(changeset) do
     # IO.inspect(changeset, label: "changeset in handle_timezone")
     # if employee has not explieitly set timezone, use organization timezone
@@ -98,11 +98,10 @@ defmodule TurnStile.Staff.Employee do
     end
   end
 
-  @doc """
-  remove_current_organization_login_id
-  -on registration current_organization_login_id is used to set timezone
-  -after registration it is set back to nil unitl login
-  """
+
+  # remove_current_organization_login_id
+  # -on registration current_organization_login_id is used to set timezone
+  # -after registration it is set back to nil unitl login
   # reset field to nil; set when employee logs in
   defp remove_current_organization_login_id(changeset) do
     # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id")
@@ -110,7 +109,7 @@ defmodule TurnStile.Staff.Employee do
     changeset =
       changeset
       |> put_change(:current_organization_login_id, nil)
-
+    changeset
     # IO.inspect(changeset, label: "changeset in remove_current_organization_login_id after")
   end
 
@@ -120,7 +119,7 @@ defmodule TurnStile.Staff.Employee do
     changeset =
       changeset
       |> put_change(:current_organization_login_id, organization_id)
-
+    changeset
     # IO.inspect(changeset, label: "changeset in set_current_organization_login_id after")
   end
 
