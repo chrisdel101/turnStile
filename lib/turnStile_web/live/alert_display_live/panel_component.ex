@@ -56,8 +56,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
               AlertFormatTypesMap.get_alert("EMAIL"),
               from: alert_params["from"],
               to: alert_params["to"],
-              title: "#{@json["alerts"]["request"]["sms"]["initial"]["title"]}",
-              body: "#{@json["alerts"]["request"]["sms"]["initial"]["body"]}"
+              title: "#{@json["alerts"]["request"]["email"]["initial"]["title"]}",
+              body: "#{@json["alerts"]["request"]["email"]["initial"]["body"]}"
 
             )
           # sets up changeset for template use
@@ -117,7 +117,6 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
         {:noreply, assign(socket, :changeset, changeset)}
 
-      # end
       alert_params["alert_format"] === AlertFormatTypesMap.get_alert("SMS") ->
         # IO.inspect(alert_params, label: "SMS")
         # manually reassign category
@@ -152,6 +151,9 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
             case AlertUtils.send_email_alert(alert) do
               {:ok, _email} ->
+                #  case AlertUtils.handle_updating_user_alert_send_status(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM")) do
+
+                #  end
                 # IO.inspect(email, label: "alert handle_event EmAIl")
                 {
                   :noreply,

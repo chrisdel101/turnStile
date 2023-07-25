@@ -19,7 +19,8 @@ defmodule TurnStile.Patients do
       [%User{}, ...]
 
   """
-  # ADMIN ONLY function
+  # ADMIN ONLY function- no accessible by employees
+  # TODO- remove this and add to admin
   def list_all_users do
     Repo.all(User)
   end
@@ -258,7 +259,7 @@ defmodule TurnStile.Patients do
     end
   end
 
-  def user_assoc_in_organization?(user_struct, organization_id) do
+  def check_user_assoc_in_organization(user_struct, organization_id) do
     # # make sure user is associated with organization
     cond do
       !Ecto.assoc_loaded?(user_struct.organization) ->
@@ -318,10 +319,12 @@ defmodule TurnStile.Patients do
       {:error, %Ecto.Changeset{}}
 
   """
+  # Admin mgmt only; delete priveleges required
   def delete_user(%User{} = user) do
     Repo.delete(user)
   end
 
+  # sets user to inactive; keeps on file
   def deactivate_user(%User{} = user) do
     IO.inspect(user, label: "user")
     # new_user = change_user(user, %{is_active?: false})
@@ -404,7 +407,7 @@ defmodule TurnStile.Patients do
   - If token matches user is marked as confirmed; token is deleted.
   - timeout is checked with query; not set on the token itself
   """
-  def confirm_user_email_token(encoded_token, _user_id, opts \\ []) do
+  def confirm_user_email_token(encoded_token, user_id, opts \\ []) do
     # check if user exists
     case UserToken.verify_email_token_exists_query(encoded_token, "confirm") do
       {:ok, query} ->
@@ -412,7 +415,7 @@ defmodule TurnStile.Patients do
           %User{} = user ->
             IO.inspect(user, label: "user")
 
-            if user.id != TurnStile.Utils.convert_to_int() do
+            if user.id != TurnStile.Utils.convert_to_int(user_id) do
               IO.puts("confirm_user_email_token: User param ID does not match token")
               {nil, :not_matched}
             else
@@ -492,5 +495,9 @@ defmodule TurnStile.Patients do
   def delete_session_token(token) do
     Repo.delete_all(UserToken.token_and_context_query(token, "session"))
     :ok
+  end
+
+  def reset_user_alert_status(user) do
+    update_user(user, %{user_alert_status: "unalerted"})
   end
 end

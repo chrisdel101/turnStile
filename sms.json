@@ -12,6 +12,13 @@
             "body": "Custom Dev Fill In Body. This is some text to test things. If you've recieved this, it's just a test."
           }
         }
+      },
+      "email" : {
+        "general_title": "This is a Turnstile Alert",
+        "initial": {
+          "title": "This is a Turnstile Alert",
+          "body": "Follow the link below to manage your visit. If you've received this message in error please ignore it."
+        }
       }
     },
     "response": {

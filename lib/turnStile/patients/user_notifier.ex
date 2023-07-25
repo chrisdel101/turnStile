@@ -1,6 +1,7 @@
 defmodule TurnStile.Patients.UserNotifier do
   import Swoosh.Email
   alias TurnStile.Mailer
+  @json TurnStile.Utils.read_json("sms.json")
 
   # Delivers the email using the application mailer - called by the funcs belo
   def deliver(alert, subject, body) do
@@ -24,7 +25,7 @@ defmodule TurnStile.Patients.UserNotifier do
   """
   def deliver_initial_alert(user, url) do
     if !is_nil(user) && !is_nil(user.email) do
-      deliver(user.email, "Initial Alert", """
+      deliver(user.email, @json["alerts"]["request"]["email"]["subject_line"], """
 
       ==============================
 
@@ -53,7 +54,7 @@ defmodule TurnStile.Patients.UserNotifier do
     IO.inspect(alert, label: "alert")
     IO.inspect(url, label: "URL")
     if !is_nil(alert) do
-      case deliver(alert, "Custom Alert", """
+      case deliver(alert, alert.title, """
 
       ==============================
 
