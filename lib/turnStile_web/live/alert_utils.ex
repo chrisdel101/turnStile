@@ -253,6 +253,21 @@ defmodule TurnStileWeb.AlertUtils do
           user,
           UserAlertStatusTypesMap.get_user_status("PENDING")
         )
+      AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
+        update_status = Keyword.get(opts, :update_status)
+        if update_status do
+          # set to manual status
+          TurnStile.Patients.update_alert_status(
+            user,
+            UserAlertStatusTypesMap.get_user_status(String.upcase(update_status))
+          )
+        else
+        #  assume inital alert (i.e email) and set to pending
+          TurnStile.Patients.update_alert_status(
+            user,
+            UserAlertStatusTypesMap.get_user_status("PENDING")
+          )
+        end
       # emails is in this category; takes opts to handle actual custom case else is treated as initial
       AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
         if

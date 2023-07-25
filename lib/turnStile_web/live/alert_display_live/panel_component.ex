@@ -3,6 +3,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
   alias TurnStileWeb.AlertUtils
+  alias TurnStileWeb.UserLive.Index
   @json TurnStile.Utils.read_json("sms.json")
 
   @impl true
@@ -138,7 +139,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
-    # IO.inspect(alert_params, label: "alert_params")
+    # IO.inspect(Index, label: "alert_params")
     # IO.inspect(socket.assigns.changeset, label: "socket")
     # save alert to DB
     case  AlertUtils.authenticate_and_save_sent_alert(socket, socket.assigns.changeset, alert_params) do
@@ -155,6 +156,22 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
                 #  end
                 # IO.inspect(email, label: "alert handle_event EmAIl")
+                case AlertUtils.handle_send_alert_user_update(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM"), update_status: "expired") do
+                  {:ok, user} ->
+                    # IO.inspect(user, label: "user in handle_event")
+                    Index.handle_info(:update, socket)
+                    {
+                      :noreply,
+                      socket
+                      |> put_flash(:success, "Alert sent successfully")
+                    }
+                  {:error, error} ->
+                    {
+                      :noreply,
+                      socket
+                      |> put_flash(:error, "Failure in alert send. #{error}")
+                    }
+                end
                 {
                   :noreply,
                   socket

@@ -491,7 +491,7 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body1",
-    title: "alert1",
+    title: "alert5",
     to: user5.phone,
     from: System.get_env("SYSTEM_ALERT_FROM_SMS")
   }
@@ -515,7 +515,7 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "email",
     body: "some body2",
-    title: "alert2",
+    title: "alert7",
     to: user7.email,
     from: System.get_env("SYSTEM_ALERT_FROM_EMAIL")
   }
@@ -527,7 +527,7 @@ TurnStile.Repo.transaction(fn ->
     alert_category: "initial",
     alert_format: "sms",
     body: "some body3",
-    title: "alert3",
+    title: "alert8",
     to: user8.phone,
     from: System.get_env("SYSTEM_ALERT_FROM_SMS")
 
