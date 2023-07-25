@@ -9,6 +9,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Alerts.Alert
 
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
+  @interval 10000
   @impl true
   def mount(_params, session, socket) do
     # TODO - cannot be null
@@ -53,13 +54,17 @@ defmodule TurnStileWeb.UserLive.Index do
     end
 
     def handle_info(:update_and_reschedule, socket) do
-    Process.send_after(self(), :update, 30000)
+      # IO.inspect(:update, label: "XXXXXXXX")
+    Process.send_after(self(), :update, 10000)
     users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
     # IO.inspect(users, label: "XXXXXXXX")
     {:noreply, assign(socket, :users, users)}
   end
 
   def handle_info(:update, socket) do
+    # IO.inspect(:update, label: "XXXXXXXX")
+    Process.send_after(self(), :update,  @interval)
+
     # Process.send(self(), :update, 30000)
     users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
     # IO.inspect(users, label: "XXXXXXXX")

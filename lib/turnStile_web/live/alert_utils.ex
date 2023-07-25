@@ -243,8 +243,8 @@ defmodule TurnStileWeb.AlertUtils do
       end
     end
   end
-
-  def handle_send_alert_user_update(user, alert_category) do
+  # opts [:update_status]
+  def handle_send_alert_user_update(user, alert_category, opts \\ []) do
     cond do
       AlertCategoryTypesMap.get_alert("INITIAL") === alert_category ->
         # update user account
@@ -252,6 +252,21 @@ defmodule TurnStileWeb.AlertUtils do
           user,
           UserAlertStatusTypesMap.get_user_status("PENDING")
         )
+      AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
+        update_status = Keyword.get(opts, :update_status)
+        if update_status do
+          # set to manual status
+          TurnStile.Patients.update_alert_status(
+            user,
+            UserAlertStatusTypesMap.get_user_status(String.upcase(update_status))
+          )
+        else
+        #  assume inital alert (i.e email) and set to pending
+          TurnStile.Patients.update_alert_status(
+            user,
+            UserAlertStatusTypesMap.get_user_status("PENDING")
+          )
+        end
 
       true ->
         {:error, "Error: invalid alert_category in handle_send_alert_user_update"}
