@@ -4,7 +4,7 @@
   <%= if @live_action in [:new, :edit_all] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
       <.live_component
-        module={TurnStileWeb.UserLive.FormComponent}
+        module={TurnStileWeb.UserLive.UpsertFormComponent}
         id={@user.id || :new}~
         action={@live_action}
         current_employee={@current_employee}
@@ -13,9 +13,9 @@
       />
     </.modal>
     <% end %>
-    <%= if @live_action in [:alerts] do %> 
+    <%= if @live_action in [:alerts] do %>
      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
-     
+
       <.live_component
         module={TurnStileWeb.AlertDisplayLive.PanelComponent}
         id={@user.id || :new}~
@@ -47,7 +47,7 @@
     </thead>
     <tbody id="users">
       <%= for user <- @users do %>
-  
+
         <tr id={"user-#{user.id}"}>
           <% {:ok, shifted_datetime} = TurnStile.Utils.shift_datetime(user.inserted_at, @current_employee.timezone) %>
           <td><%= String.capitalize(user.user_alert_status) %></td>
@@ -59,10 +59,10 @@
 
           <td>
             <span>
-                <button 
+                <button
                   title="Send Initial Alert"
-                  class={"btn btn-primary #{if !user.phone do 'disable' end}"} 
-                  phx-click={:send_initial_SMS_alert} 
+                  class={"btn btn-primary #{if !user.phone do 'disable' end}"}
+                  phx-click={:send_initial_SMS_alert}
                   value={user.id}> Send SMS Alert
                 </button>
             </span>
@@ -78,7 +78,7 @@
           <td>
             <span><%= live_redirect "Show", to: Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, user) %></span>
           </td>
-          
+
           <%= if TurnStileWeb.EmployeeAuth.has_user_delete_permissions?(@socket, @current_employee) do %>
           <td>
             <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: user.id, data: [confirm: "Are you sure?"] %></span>
@@ -94,6 +94,5 @@
     </tbody>
   </table>
 <% else %>
-  <p>Not authorized</p> 
+  <p>Not authorized</p>
 <% end %>
-

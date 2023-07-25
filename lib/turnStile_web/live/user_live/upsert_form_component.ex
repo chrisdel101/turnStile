@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.UserLive.FormComponent do
+defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # handles the logic for the modals
   use TurnStileWeb, :live_component
 

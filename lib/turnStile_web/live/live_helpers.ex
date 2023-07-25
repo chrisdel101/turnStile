@@ -14,7 +14,7 @@ defmodule TurnStileWeb.LiveHelpers do
 
       <.modal return_to={Routes.user_index_path(@socket, :index)}>
         <.live_component
-          module={TurnStileWeb.UserLive.FormComponent}
+          module={TurnStileWeb.UserLive.UpsertFormComponent}
           id={@user.id || :new}
           title={@page_title}
           action={@live_action}

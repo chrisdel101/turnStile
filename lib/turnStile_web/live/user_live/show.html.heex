@@ -3,7 +3,7 @@
 <%= if @live_action in [:edit] do %>
   <.modal return_to={Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, @user)}>
     <.live_component
-      module={TurnStileWeb.UserLive.FormComponent}
+      module={TurnStileWeb.UserLive.UpsertFormComponent}
       id={@user.id}
       title={@page_title}
       action={@live_action}
@@ -43,6 +43,6 @@
 
 </ul>
  <%= if TurnStileWeb.EmployeeAuth.has_user_edit_permissions?(nil, @current_employee) do %>
-  <span><%= live_patch "Edit", to: Routes.user_show_path(@socket, :edit, @current_employee.current_organization_login_id, @current_employee.id, @user) %></span> 
+  <span><%= live_patch "Edit", to: Routes.user_show_path(@socket, :edit, @current_employee.current_organization_login_id, @current_employee.id, @user) %></span>
 <% end %>
 <span><%= live_redirect "Back", to: Routes.user_index_path(@socket, :index, @organization_id, @employee_id) %></span>
