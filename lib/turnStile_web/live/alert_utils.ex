@@ -36,7 +36,7 @@ defmodule TurnStileWeb.AlertUtils do
             true ->
               IO.puts("Employee has correct permissions")
               # check user is part of organization
-              case TurnStile.Patients.user_assoc_in_organization?(
+              case TurnStile.Patients.check_user_assoc_in_organization(
                      user,
                      current_employee.current_organization_login_id
                    ) do
@@ -139,7 +139,7 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  # sends SMS via twilio
+  # sends SMS via twilio; limited to verfied nums w trial account
   def send_SMS_alert(alert) do
     if System.get_env("TWILIO_ALERT_MODE") === "off" do
       {:ok, "FAKE ALERT. Twilio alert mode is off."}
@@ -183,7 +183,7 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  # sends SMS via twilio
+  # sends email via mailgun; limited to verfied address w trial account
   def send_email_alert(alert) do
     # use default system setting for email
     user = TurnStile.Patients.get_user(alert.user_id)
@@ -243,9 +243,10 @@ defmodule TurnStileWeb.AlertUtils do
       end
     end
   end
-  # opts [:update_status]
-  def handle_send_alert_user_update(user, alert_category, opts \\ []) do
+
+  def handle_updating_user_alert_send_status(user, alert_category, opts \\ []) do
     cond do
+      # send intital alert w instructions
       AlertCategoryTypesMap.get_alert("INITIAL") === alert_category ->
         # update user account
         TurnStile.Patients.update_alert_status(
@@ -267,9 +268,17 @@ defmodule TurnStileWeb.AlertUtils do
             UserAlertStatusTypesMap.get_user_status("PENDING")
           )
         end
+      # emails is in this category; takes opts to handle actual custom case else is treated as initial
+      AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
+        if
+        # update user account
+        TurnStile.Patients.update_alert_status(
+          user,
+          UserAlertStatusTypesMap.get_user_status("PENDING")
+        )
 
       true ->
-        {:error, "Error: invalid alert_category in handle_send_alert_user_update"}
+        {:error, "Error: invalid alert_category in handle_updating_user_alert_send_status"}
     end
   end
 

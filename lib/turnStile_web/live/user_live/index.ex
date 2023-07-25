@@ -8,6 +8,8 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
 
+  @interval 10000
+
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
   @interval 10000
   @impl true
@@ -18,9 +20,9 @@ defmodule TurnStileWeb.UserLive.Index do
     # use to get logged in user
     current_employee = Staff.get_employee_by_session_token(employee_token)
     organization_id = current_employee.current_organization_login_id
-    # check for DB updates - leave out for now
-    # if connected?(socket), do: Process.send_after(self(), :update, 30000)
-    # subscribe
+    # on interval call :update func below
+    # if connected?(socket), do: Process.send_after(self(), :update, @interval)
+    # subscribe - broadcast is in alert controller
     Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE"))
 
     {:ok,
@@ -54,9 +56,9 @@ defmodule TurnStileWeb.UserLive.Index do
     end
 
     def handle_info(:update_and_reschedule, socket) do
-      # IO.inspect(:update, label: "XXXXXXXX")
-    Process.send_after(self(), :update, 10000)
-    users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
+      IO.puts("calling :update_and_reschedule")
+      Process.send_after(self(), :update, @interval)
+      users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
     # IO.inspect(users, label: "XXXXXXXX")
     {:noreply, assign(socket, :users, users)}
   end
@@ -67,7 +69,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
     # Process.send(self(), :update, 30000)
     users = Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
-    # IO.inspect(users, label: "XXXXXXXX")
+    # IO.inspect(users, label: "YYYYYYY")
     {:noreply, assign(socket, :users, users)}
   end
 
@@ -77,7 +79,7 @@ defmodule TurnStileWeb.UserLive.Index do
     # assign user to socket
     socket = assign(socket, :user, Patients.get_user(user_id))
     # make sure user has has phone number, else no text can be sent
-    if !Map.get(socket.assigns, :user) || (!!socket.assigns.user && !Map.get(socket.assigns.user, :phone)) do
+    if !Map.get(socket.assigns, :user) || (!!Map.get(socket.assigns, :user) && !Map.get(socket.assigns.user, :phone)) do
       {
         :noreply,
         socket
@@ -99,7 +101,7 @@ defmodule TurnStileWeb.UserLive.Index do
           case AlertUtils.send_SMS_alert(alert) do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg)
-              case AlertUtils.handle_send_alert_user_update(socket.assigns.user, AlertCategoryTypesMap.get_alert("INITIAL")) do
+              case AlertUtils.handle_updating_user_alert_send_status(socket.assigns.user, AlertCategoryTypesMap.get_alert("INITIAL")) do
                 {:ok, _user} ->
                   # call :update for DB/page updates
                   if connected?(socket), do: Process.send(self(), :update, [:noconnect])

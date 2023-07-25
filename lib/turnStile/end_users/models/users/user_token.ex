@@ -135,7 +135,7 @@ defmodule TurnStile.Patients.UserToken do
         query =
           from token in token_and_context_query(hashed_token, context),
             join: user in assoc(token, :user),
-            where: token.inserted_at > ago(^hours  , "hour"),
+            where: token.inserted_at > ago(30  , "second"),
             select: user
 
         {:ok, query}

@@ -35,7 +35,7 @@ defmodule TurnStileWeb.UserSessionController do
         {nil, :expired} ->
            IO.puts("token expired: user_seesion_controller new")
            conn
-           |> put_flash(:error, "Sorry, your link has expired. Contact your provider to resend new link.")
+           |> put_flash(:error, "Sorry, your link has expired. Contact your provider to resend a new link.")
            |> redirect(to: "/")
       end
     end

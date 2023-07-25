@@ -3,7 +3,6 @@ defmodule TurnStileWeb.AlertController do
   alias TurnStile.Utils
   alias TurnStile.Patients
   alias TurnStileWeb.AlertUtils
-  alias TurnStile.Alerts.Alert
   alias TurnStile.Alerts
   @json Utils.read_json("sms.json")
 
@@ -29,11 +28,11 @@ defmodule TurnStileWeb.AlertController do
                   # IO.inspect(updated_alert, label: "updated_alert")
 
                   user_alert_status = compute_user_alert_status(twilio_params)
-                  # update user account
+                  # update user account in DB
                   case Patients.update_alert_status(user,user_alert_status) do
                     {:ok, updated_user} ->
                       # IO.inspect(updated_user, label: "updated_user")
-                      # send valid respnse to update UI
+                      # send valid respnse to update UI - changes status on the page to match
                       Phoenix.PubSub.broadcast(
                         TurnStile.PubSub,
                         PubSubTopicsMap.get_topic("STATUS_UPDATE"),
@@ -45,11 +44,11 @@ defmodule TurnStileWeb.AlertController do
 
                     {:error, error} ->
                       IO.inspect(error, label: "receive_sms_alert error in update_user")
-                      # update user accoint as ERROR status
+                      # update user account as ERROR status
                       case Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("ERROR")) do
                         {:ok, updated_user} ->
                           # IO.inspect(updated_user, label: "updated_user")
-                          # send respnse to update UI
+                          # send respnse to update UI; match the DB status
                           Phoenix.PubSub.broadcast(
                             TurnStile.PubSub,
                             PubSubTopicsMap.get_topic("STATUS_UPDATE"),
@@ -72,7 +71,7 @@ defmodule TurnStileWeb.AlertController do
                   case Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("ERROR")) do
                     {:ok, updated_user} ->
                       # IO.inspect(updated_user, label: "updated_user")
-                      # send respnse to update UI
+                      # send respnse to update UI, match DB
                       Phoenix.PubSub.broadcast(
                         TurnStile.PubSub,
                         PubSubTopicsMap.get_topic("STATUS_UPDATE"),
@@ -91,10 +90,11 @@ defmodule TurnStileWeb.AlertController do
 
             {:error, error} ->  # alert save failure
               IO.inspect(error, label: "receive_sms_alert error in save_received_alert")
+              # update user account as ERROR status in DB
                case Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("ERROR")) do
                     {:ok, updated_user} ->
                       # IO.inspect(updated_user, label: "updated_user")
-                      # send respnse to update UI
+                        # send respnse to update UI, match DB
                       Phoenix.PubSub.broadcast(
                         TurnStile.PubSub,
                         PubSubTopicsMap.get_topic("STATUS_UPDATE"),
