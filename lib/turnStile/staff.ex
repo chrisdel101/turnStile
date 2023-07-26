@@ -8,7 +8,6 @@ defmodule TurnStile.Staff do
   alias TurnStile.Roles
   alias TurnStile.Company
   alias TurnStile.Staff.{Employee, EmployeeToken, EmployeeNotifier}
-  alias TurnsStileWeb.EmployeeAuth
 
   ## Database getters
 

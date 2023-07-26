@@ -270,7 +270,6 @@ defmodule TurnStileWeb.AlertUtils do
         end
       # emails is in this category; takes opts to handle actual custom case else is treated as initial
       AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
-        if
         # update user account
         TurnStile.Patients.update_alert_status(
           user,

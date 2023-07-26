@@ -16,24 +16,63 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
 
   @impl true
-  # def handle_event(param1, %{"user" => user_params}, socket) do
-  #   changeset =
-  #     socket.assigns.user
-  #     |> Patients.change_user(user_params)
-  #     |> Map.put(:action, :validate)
-
-  #   {:noreply, assign(socket, :changeset, changeset)}
-  # end
-
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset =
       socket.assigns.user
       |> Patients.change_user(user_params)
       |> Map.put(:action, :validate)
 
-    IO.inspect("changeset", label: "VALIDATE")
+    # IO.inspect(changeset, label: "VALIDATE")
 
     {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  # only fires on change- handles changing the form based on radio button selection
+  def handle_event("radio_click", %{"user" => %{"alert_format_set" => alert_format}}, socket) do
+
+    IO.inspect(socket.assigns.changeset, label: "alert_format")
+    IO.inspect(socket.assigns.changeset, label: "alert_format")
+
+    # # check for changes when radio click
+    if alert_format && Map.has_key?(socket.assigns.changeset, :data) do
+      # IO.inspect(alert_params, label: "alert_params")
+      # check which type of alert to change
+      cond do
+        # radio - flip to email form
+        alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
+
+          # IO.inspect(socket.assigns.changeset, label: "click HERE radio")
+
+          # sets up changeset for template use
+          # changeset =
+          #   socket.assigns.changeset
+          #   |> Patients.change_user(%{alert_format_set: alert_format})
+          changeset =
+          socket.assigns.changeset
+          |> Ecto.Changeset.change(alert_format_set: alert_format)
+
+
+          # IO.inspect(changeset, label: "changeset HERE radio")
+
+          {:noreply, assign(socket, :changeset, changeset)}
+
+        # end
+        alert_format === AlertFormatTypesMap.get_alert("SMS") ->
+          # IO.inspect(alert_params, label: "SMS")
+
+          changeset =
+          socket.assigns.changeset
+          |> Ecto.Changeset.change(alert_format_set: alert_format)
+
+          # IO.inspect(changeset, label: "changeset in validate")
+
+          {:noreply, assign(socket, :changeset, changeset)}
+
+        #  end
+        true ->
+          {:noreply, socket}
+      end
+    end
   end
 
   # handle save for new and edit
@@ -76,25 +115,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
-  # index edit form
-  defp save_user(socket, :edit_all, user_params) do
-    case Patients.update_user(socket.assigns.user, user_params) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "User updated successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        socket =
-          socket
-          |> put_flash(:error, "User not created")
-
-        {:noreply, assign(socket, :changeset, changeset)}
-    end
-  end
-
-  # show edit form
+  # edit from show - main edit current function
   defp save_user(socket, :edit, user_params) do
     case Patients.update_user(socket.assigns.user, user_params) do
       {:ok, _user} ->
@@ -112,9 +133,10 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
+  # add new user from index page
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
-    # IO.inspect(user_params, label: "user_params: save_user")
+    IO.inspect(user_params, label: "user_params: save_user")
 
     # check employee has organization role
     case TurnStile.Staff.check_employee_matches_organization(current_employee) do
@@ -156,11 +178,31 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
           false ->
             IO.puts("Employee does not have correct permissions")
+
             socket =
               socket
               |> put_flash(:error, "Insuffient employee permissions to perform user add")
-              {:noreply, socket}
+
+            {:noreply, socket}
         end
+    end
+  end
+
+  # edit from index - not currently used
+  defp save_user(socket, :edit_all, user_params) do
+    case Patients.update_user(socket.assigns.user, user_params) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "User updated successfully")
+         |> push_redirect(to: socket.assigns.return_to)}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        socket =
+          socket
+          |> put_flash(:error, "User not created")
+
+        {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 end

@@ -15,31 +15,38 @@
     <% end %> --%>
     <main class="container">
       <p class="alert alert-info" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+        phx-click="lv:clear-flash"
+        phx-value-key="info"><%= live_flash(@flash, :info) %></p>
       <p class="alert alert-success" role="alert"
-          phx-click="lv:clear-flash"
-          phx-value-key="info"><%= live_flash(@flash, :success) %></p>
+        phx-click="lv:clear-flash"
+        phx-value-key="info"><%= live_flash(@flash, :success) %></p>
       <p class="alert alert-danger" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+        phx-click="lv:clear-flash"
+        phx-value-key="error"><%= live_flash(@flash, :error) %></p>
     </main>
 
    <%= label f, :first_name %>
-    <%= text_input f, :first_name %>
+    <%= text_input f, :first_name, value: Map.get(@changeset.changes, :first_name)  %>
     <%= error_tag f, :first_name %>
 
     <%= label f, :last_name %>
-    <%= text_input f, :last_name %>
+    <%= text_input f, :last_name, value:  Map.get(@changeset.changes, :last_name) %>
     <%= error_tag f, :last_name %>
 
     <%= label f, :email %>
-    <%= text_input f, :email %>
+    <%= text_input f, :email, value: Map.get(@changeset.changes, :email)  %>
     <%= error_tag f, :email %>
 
     <%= label f, :phone %>
-    <%= text_input f, :phone %>
+    <%= text_input f, :phone, value: Map.get(@changeset.changes, :phone)  %>
     <%= error_tag f, :phone %>
+
+    <%= label(f, "Choose main alert type:") %>
+
+    <%= label(f, :alert_format_set, "SMS") %>
+    <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click")%>
+    <%= label(f, :alert_format_set, "Email") %>
+    <%= radio_button(f, :alert_format_set, :email,phx_change: "radio_click") %>
 
     <%= label f, :health_card_num %>
     <%= number_input f, :health_card_num %>

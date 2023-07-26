@@ -152,12 +152,9 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
 
             case AlertUtils.send_email_alert(alert) do
               {:ok, _email} ->
-                #  case AlertUtils.handle_updating_user_alert_send_status(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM")) do
 
-                #  end
-                # IO.inspect(email, label: "alert handle_event EmAIl")
-                case AlertUtils.handle_send_alert_user_update(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM"), update_status: "expired") do
-                  {:ok, user} ->
+                case AlertUtils.handle_updating_user_alert_send_status(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM"), update_status: "expired") do
+                  {:ok, _user} ->
                     # IO.inspect(user, label: "user in handle_event")
                     Index.handle_info(:update, socket)
                     {
