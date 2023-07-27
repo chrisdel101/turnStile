@@ -6,13 +6,21 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   alias TurnStile.Patients
 
   @impl true
+  # empty user struct getting passed as props; see index apply_action(:new)
   def update(%{user: user} = assigns, socket) do
+    IO.inspect(assigns, label: "assigns")
+    # build default user changeset
     changeset = Patients.change_user(user)
     # IO.inspect(changeset, label: "changeset")
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:changeset, changeset)}
+  end
+
+  def handle_info(msg, socket) do
+    IO.inspect(socket.assigns.changeset, label: "Changeset in handle_info")
+    {:noreply, socket}
   end
 
   @impl true
@@ -22,16 +30,15 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       |> Patients.change_user(user_params)
       |> Map.put(:action, :validate)
 
-    # IO.inspect(changeset, label: "VALIDATE")
-
+      changeset = validate_choose_alert_type_field(changeset)
+      IO.inspect(changeset, label: "VALIDATE")
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   # only fires on change- handles changing the form based on radio button selection
   def handle_event("radio_click", %{"user" => %{"alert_format_set" => alert_format}}, socket) do
 
-    IO.inspect(socket.assigns.changeset, label: "alert_format")
-    IO.inspect(socket.assigns.changeset, label: "alert_format")
+    IO.inspect(socket.assigns.changeset, label: "radio_click")
 
     # # check for changes when radio click
     if alert_format && Map.has_key?(socket.assigns.changeset, :data) do
@@ -47,29 +54,27 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
           # changeset =
           #   socket.assigns.changeset
           #   |> Patients.change_user(%{alert_format_set: alert_format})
-          changeset =
-          socket.assigns.changeset
-          |> Ecto.Changeset.change(alert_format_set: alert_format)
+          changeset = Ecto.Changeset.change(socket.assigns.changeset, alert_format_set: "email")
+
+          |> Ecto.Changeset.change(alert_format_set: "email")
 
 
-          # IO.inspect(changeset, label: "changeset HERE radio")
+          IO.inspect(changeset, label: "changeset radio email")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
         # end
         alert_format === AlertFormatTypesMap.get_alert("SMS") ->
-          # IO.inspect(alert_params, label: "SMS")
+          IO.inspect(alert_format, label: "SMS")
 
-          changeset =
-          socket.assigns.changeset
-          |> Ecto.Changeset.change(alert_format_set: alert_format)
-
-          # IO.inspect(changeset, label: "changeset in validate")
+          changeset = Ecto.Changeset.change(socket.assigns.changeset, alert_format_set: "sms")
+          IO.inspect(changeset, label: "changeset radio SMS")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
         #  end
         true ->
+          IO.puts("NO keys")
           {:noreply, socket}
       end
     end
@@ -203,6 +208,36 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
           |> put_flash(:error, "User not created")
 
         {:noreply, assign(socket, :changeset, changeset)}
+    end
+  end
+
+  defp validate_choose_alert_type_field(changeset) do
+    # IO.inspect(changeset.data, label: "yyyyy")
+    alert_format_changes = Ecto.Changeset.get_change(changeset, :alert_format_set)
+    phone_setting = Map.get(changeset.data, :alert_format_set)
+    email = Ecto.Changeset.get_change(changeset, :email)
+    phone = Ecto.Changeset.get_change(changeset, :phone)
+    # IO.inspect(changeset.data, label: "xxxxxxxxxxxxxx")
+    # IO.inspect(phone, label: "xxxxxxxxxxxxxx")
+    cond do
+      # check for email change
+      alert_format_changes === AlertFormatTypesMap.get_alert("EMAIL") && is_nil(email) ->
+        IO.puts("FIRED1")
+        changeset
+        |> Ecto.Changeset.add_error(:email, "Email type is chosen. Must have an email.")
+        # Clear errors for phone field when switching to email
+        |> Ecto.Changeset.clear_change(:phone)
+      # check for default setting and no email change; needs phone
+      alert_format_changes !== AlertFormatTypesMap.get_alert("EMAIL") &&
+        is_nil(phone) ->
+        IO.puts("FIRED2")
+        changeset
+        |> Ecto.Changeset.add_error(:phone, "SMS type is chosen. Must have a phone number.")
+        # Clear errors for email field when switching to SMS
+        |> Ecto.Changeset.clear_change(:email)
+      true ->
+         IO.puts("FIRED1")
+        changeset
     end
   end
 end
