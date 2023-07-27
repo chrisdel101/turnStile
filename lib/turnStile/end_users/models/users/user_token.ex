@@ -6,8 +6,15 @@ defmodule TurnStile.Patients.UserToken do
   @hash_algorithm :sha256
   @rand_size 32
 
-  @confirm_validity_in_days 1
-  @confirm_validity_in_hours 6
+   # TOKEN LIFE SETTINGS for app
+   @email_token_validity_hours 60
+   @get_session_cookie_max_age_seconds 60
+
+   def get_email_token_validity_hours(), do: @email_token_validity_hours
+
+   def get_session_cookie_max_age_seconds(), do: @session_max_age_seconds
+
+
 
   schema "user_tokens" do
     field :token, :binary
@@ -54,7 +61,7 @@ defmodule TurnStile.Patients.UserToken do
     query =
       from token in token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
-        # where: token.inserted_at > ago(@confirm_validity_in_hours, "hour"),
+        # where: token.inserted_at > ago(@get_session_cookie_max_age_seconds, "hour"),
         select: user
 
     {:ok, query}
@@ -131,7 +138,7 @@ defmodule TurnStile.Patients.UserToken do
         case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-        hours = hours_for_context(context)
+        hours = email_hours_for_context(context)
         query =
           from token in token_and_context_query(hashed_token, context),
             join: user in assoc(token, :user),
@@ -143,14 +150,15 @@ defmodule TurnStile.Patients.UserToken do
         :invalid_input_token
     end
   end
-    # takes a query
-
+  # verify_email_token_valid_query
+    # same result as above but is piped a query- takes result of first query adds time limit via ago
   def verify_email_token_valid_query(%Ecto.Query{} = query, _context) do
       query = from user in query,
-      where: user.inserted_at > ago(30, "second")
+      where: user.inserted_at > ago(@email_token_validity_hours, "hour")
       {:ok, query}
     end
-  defp hours_for_context("confirm"), do: @confirm_validity_in_hours
+  defp email_hours_for_context("confirm"), do: @email_token_validity_hours
+  defp session_hours_for_context("confirm"), do: @email_token_validity_hours
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
@@ -164,7 +172,7 @@ defmodule TurnStile.Patients.UserToken do
 
   The given token is valid if it matches its hashed counterpart in the
   database and if it has not expired (after @confirm_validity_in_days).
-  database and if it has not expired (after @confirm_validity_in_hours).
+  database and if it has not expired (after @email_token_validity_hours).
   The context must always start with "change:".
   """
   def verify_change_email_token_query(encoded_token, "change:" <> _ = context) do
@@ -174,7 +182,7 @@ defmodule TurnStile.Patients.UserToken do
 
         query =
           from token in token_and_context_query(hashed_token, context),
-            where: token.inserted_at > ago(@confirm_validity_in_days, "day")
+            where: token.inserted_at > ago(@email_token_validity_hours, "day")
 
         {:ok, query}
 

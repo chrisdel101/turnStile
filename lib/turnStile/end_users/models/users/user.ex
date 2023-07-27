@@ -22,10 +22,17 @@ defmodule TurnStile.Patients.User do
   end
 
   @doc false
-  def changeset(user, attrs) do
+  def create_changeset(user, attrs) do
     user
     |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
     |> apply_defaults(attrs)
+    |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
+    |> validate_alert_format_matches_alert_format_set()
+  end
+  # same as create but w/ not default - since overwrites changes
+  def update_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
     |> validate_alert_format_matches_alert_format_set()
   end

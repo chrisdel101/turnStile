@@ -4,17 +4,12 @@ defmodule TurnStileWeb.UserAuth do
 
 
   alias TurnStile.Patients
+  alias TurnStile.Patients.UserToken
   alias TurnStileWeb.Router.Helpers, as: Routes
 
-  # Make the remember me cookie valid for 6 hours.
-  # If you want bump or reduce this value, also change
-  # the token expiry itself in UserToken.
-  @max_age_hours 60 * 60 * 6
-  @max_age_seconds 30
-  @expiration_cookie "_turn_stile_web_user_expiration"
-  @remember_me_cookie "_turn_stile_web_user_remember_me"
-  @remember_me_options [sign: true, max_age: @max_age_hours, same_site: "Lax"]
-  @expiration_me_options [sign: true, max_age: @max_age_seconds, same_site: "Lax"]
+  @session_max_age_second UserToken.get_session_cookie_max_age_seconds()
+  @expiration_cookie "_turn_stile_web_user_expiration" # used to control user session
+  @expiration_me_options [sign: true, max_age: @session_max_age_seconds, same_site: "Lax"]
 
   @doc """
   Logs the user in.
@@ -36,16 +31,7 @@ defmodule TurnStileWeb.UserAuth do
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_expiration_cookie(token, params)
-    |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: signed_in_main_path(conn, user) || user_return_to )
-  end
-
-  defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
-    put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
-  end
-
-  defp maybe_write_remember_me_cookie(conn, _token, _params) do
-    conn
 
   end
     defp maybe_write_expiration_cookie(conn, token, %{"expirtation" => "true"}) do
@@ -113,7 +99,6 @@ defmodule TurnStileWeb.UserAuth do
 
     conn
     |> renew_session()
-    |> delete_resp_cookie(@remember_me_cookie)
     |> delete_resp_cookie(@expiration_cookie)
     |> redirect(to: "/")
   end
@@ -132,14 +117,12 @@ defmodule TurnStileWeb.UserAuth do
 
     conn
     |> renew_session()
-    |> delete_resp_cookie(@remember_me_cookie)
     |> delete_resp_cookie(@expiration_cookie)
 
   end
 
   @doc """
   Authenticates the user by looking into the session
-  and remember me token.
   """
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
@@ -153,15 +136,7 @@ defmodule TurnStileWeb.UserAuth do
     if user_token = get_session(conn, :user_token) do
       {user_token, conn}
     else
-      # if not found, check cookie since it could also be there
-      conn = fetch_cookies(conn, signed: [@remember_me_cookie])
-
-      if user_token = conn.cookies[@remember_me_cookie] do
-        {user_token, put_session(conn, :user_token, user_token)}
-      else
-      # else invalid
-        {nil, conn}
-      end
+      {nil, conn}
     end
   end
   # call right after fetch_current_user

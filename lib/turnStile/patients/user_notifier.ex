@@ -30,19 +30,11 @@ defmodule TurnStile.Patients.UserNotifier do
   def deliver_initial_alert(_user, alert, url) do
     if !is_nil(alert) do
       case deliver(alert, alert.title, """
-
-           if !is_nil(user) && !is_nil(user.email) do
-           deliver(user.email, @json["alerts"]["request"]["email"]["subject_line"], """
-
            ==============================
 
            Hi #{alert.to},
 
-           This is your initial alert from TurnStile.
-           r
-           You will be upated here when it is your turn to be admitted.
-
-           To cancel your stop, visit the link below to 'cancel'
+           #{@json["alerts"]["request"]["email"]["initial"]["body"]}
 
            #{url}
 

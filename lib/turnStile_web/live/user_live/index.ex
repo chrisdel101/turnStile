@@ -141,13 +141,11 @@ defmodule TurnStileWeb.UserLive.Index do
             if alert.alert_format == AlertFormatTypesMap.get_alert("EMAIL") do
               case AlertUtils.send_email_alert(alert) do
                 {:ok, _email_msg} ->
-                  x = AlertUtils.handle_updating_user_alert_send_status(
+
+                  case AlertUtils.handle_updating_user_alert_send_status(
                     socket.assigns.user,
-                    AlertCategoryTypesMap.get_alert("INITIAL"))
-                    IO.inspect(socket.assigns.user, label: "XXXXX")
-                  case x do
+                    AlertCategoryTypesMap.get_alert("INITIAL")) do
                     {:ok, _user} ->
-                      IO.puts("HERE1")
                       # call :update for DB/page updates
                       if connected?(socket), do: Process.send(self(), :update, [:noconnect])
 

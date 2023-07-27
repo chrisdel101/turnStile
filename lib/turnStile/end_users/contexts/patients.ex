@@ -107,7 +107,7 @@ defmodule TurnStile.Patients do
   """
   def create_user(attrs \\ %{}) do
     %User{}
-    |> User.changeset(attrs)
+    |> User.create_changeset(attrs)
     |> Repo.insert()
   end
 
@@ -294,7 +294,7 @@ defmodule TurnStile.Patients do
   def update_user(%User{} = user, attrs) do
     changeset =
       user
-      |> User.changeset(attrs)
+      |> User.update_changeset(attrs)
       IO.inspect(user.alert_format_set, label: "Patients.update_user attrs")
     case Repo.update(changeset) do
       {:ok, user} ->
@@ -342,7 +342,7 @@ defmodule TurnStile.Patients do
 
   """
   def change_user(%User{} = user, attrs \\ %{}) do
-    User.changeset(user, attrs)
+    User.update_changeset(user, attrs)
   end
 
   #  NO preloading - may cause error later
