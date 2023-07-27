@@ -9,7 +9,6 @@ defmodule TurnStile.Patients.User do
     field :last_name, :string
     field :phone, :string
     field :is_active?, :boolean, default: true
-
     field :user_alert_status, :string,
       default: UserAlertStatusTypesMap.get_user_status("UNALERTED")
     field :alert_format_set, :string
@@ -39,15 +38,12 @@ defmodule TurnStile.Patients.User do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     change(user, confirmed_at: now)
   end
-
+  # validate field matches alert_format_set on upsert form
   def validate_alert_format_matches_alert_format_set(changeset) do
 
     alert_format_changes = get_change(changeset, :alert_format_set)
-    # phone_setting = Map.get(changeset.data, :alert_format_set)
     email = get_change(changeset, :email)
     phone = get_change(changeset, :phone)
-    # IO.inspect(changeset.data, label: "xxxxxxxxxxxxxx")
-    # IO.inspect(phone, label: "xxxxxxxxxxxxxx")
     cond do
       # check for email change
       alert_format_changes === AlertFormatTypesMap.get_alert("EMAIL") && is_nil(email) ->
@@ -55,26 +51,15 @@ defmodule TurnStile.Patients.User do
         changeset
 
       # check for default setting and no email change; needs phone
-      alert_format_changes !== AlertFormatTypesMap.get_alert("EMAIL") &&
-          is_nil(phone) ->
-        IO.puts("FIRED1")
+      alert_format_changes === AlertFormatTypesMap.get_alert("SMS") && is_nil(phone) ->
         changeset = add_error(changeset, :phone, "SMS type is chosen. Must have a phone number.")
         changeset
-
-      # Clear the error for the email field when switching to SMS
-      alert_format_changes !== AlertFormatTypesMap.get_alert("EMAIL") &&
-          !is_nil(email) ->
-        changeset
-        |> delete_change(:email)
-        |> put_change(:email, nil)
-
       true ->
         changeset
       end
     end
-
+    # apply value to alert_format_set here; setting default on model causes an error
     defp apply_defaults(changeset, attrs) do
-      IO.inspect(attrs, label: "attrs- user apply_defaults")
       if (Map.get(attrs, :alert_format_set) ||  Map.get(attrs, "alert_format_set")) || get_change(changeset, :alert_format_set) do
         # :alert_format_set has already been set, no need to change the default value
         changeset

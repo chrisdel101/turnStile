@@ -191,7 +191,7 @@ defmodule TurnStile.Patients do
         if Roles.role_has_add_user_permission?(org_employee_role) do
           organization_struct = TurnStile.Company.get_organization(organization_id)
           user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
-          IO.inspect(user_struct, label: "organization struct123")
+          # IO.inspect(user_struct, label: "organization struct123")
           {:ok, user_struct}
         else
           {:error, "Employee lacks permissions to add users"}
@@ -239,7 +239,7 @@ defmodule TurnStile.Patients do
 
         organization_struct = TurnStile.Company.get_organization(organization_id)
         user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
-        IO.inspect(user_struct, label: "organization struct123")
+        # IO.inspect(user_struct, label: "organization struct123")
         {:ok, user_struct}
     end
   end
