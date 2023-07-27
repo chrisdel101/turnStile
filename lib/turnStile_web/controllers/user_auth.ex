@@ -140,7 +140,7 @@ defmodule TurnStileWeb.UserAuth do
     end
   end
   # call right after fetch_current_user
-  def ensure_user_not_expired(conn, _opts) do
+  def ensure_user_cookie_not_expired(conn, _opts) do
     # if logged in user
     if conn.assigns[:current_user] do
       conn = fetch_cookies(conn, signed: [@expirtation])

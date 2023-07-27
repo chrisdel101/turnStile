@@ -7,12 +7,12 @@ defmodule TurnStile.Patients.UserToken do
   @rand_size 32
 
    # TOKEN LIFE SETTINGS for app
-   @email_token_validity_hours 60
-   @get_session_cookie_max_age_seconds 60
+   @email_token_validity_hours 6
+   @get_session_cookie_max_age_seconds 10
 
    def get_email_token_validity_hours(), do: @email_token_validity_hours
 
-   def get_session_cookie_max_age_seconds(), do: @session_max_age_seconds
+   def get_session_cookie_max_age_seconds, do: @get_session_cookie_max_age_seconds
 
 
 
@@ -54,19 +54,21 @@ defmodule TurnStile.Patients.UserToken do
 
   The query returns the user found by the token, if any.
 
-  The token is valid if it matches the value in the database and it has
-  not expired (after @session_validity_in_days).
+  The token is valid if it matches the value in the database
   """
-  def verify_session_token_query(token) do
+  def verify_session_token_exists_query(token) do
     query =
       from token in token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
-        # where: token.inserted_at > ago(@get_session_cookie_max_age_seconds, "hour"),
         select: user
 
     {:ok, query}
   end
-
+  def verify_session_token_valid_query(%Ecto.Query{} = query) do
+    query = from user in query,
+    where: user.inserted_at > ago(@get_session_cookie_max_age_seconds, "second")
+    {:ok, query}
+  end
 
   @doc """
   Builds a token and its hash to be delivered to the user's email.

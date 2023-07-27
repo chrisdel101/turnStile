@@ -367,7 +367,7 @@ defmodule TurnStile.Patients do
     # IO.puts("CREATING TOKEN")
     # IO.inspect(encoded_token)
     # IO.inspect(user_token)
-    case build_and_insert_email_token(user, alert) do
+    case build_and_insert_email_token(user) do
       {_tokenized_url, _token, encoded_token} ->
         IO.inspect("INSERTED TOKEN")
       cond do
@@ -375,7 +375,7 @@ defmodule TurnStile.Patients do
           case UserNotifier.deliver_initial_alert(
                  user,
                  alert,
-                 build_url_func.(alert, user, encoded_token)
+                 build_url_func.(user, encoded_token)
                ) do
             {:ok, email} ->
               {:ok, email}
@@ -413,7 +413,7 @@ defmodule TurnStile.Patients do
   - inserts token into DB
   - returns tokenized url, token, and encoded token; usable in iex w tokenized_url
   """
-  def build_and_insert_email_token(%User{} = user, alert) do
+  def build_and_insert_email_token(%User{} = user) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
     # IO.puts("CREATING TOKEN")
     # IO.inspect(encoded_token)
@@ -421,7 +421,7 @@ defmodule TurnStile.Patients do
     case Repo.insert(user_token) do
       {:ok, token} ->
         # IO.inspect(token, label: "INSERTED TOKEN")
-        {TurnStile.Utils.build_user_alert_url(alert, user, encoded_token), token, encoded_token}
+        {TurnStile.Utils.build_user_alert_url( user, encoded_token), token, encoded_token}
 
       {:error, error} ->
         {:error, error}
@@ -435,6 +435,40 @@ defmodule TurnStile.Patients do
   - If token matches user is marked as confirmed; token is deleted.
   - timeout is checked with query; not set on the token itself
   """
+  def confirm_user_session_token(token, opts \\ []) do
+    # check if user exists
+    # token = Base.encode64(token)
+    case UserToken.verify_session_token_exists_query(token) do
+      {:ok, query} ->
+        # IO.inspect(query, label: "query")
+        case Repo.one(query) do
+          %User{} = user ->
+            # IO.inspect(user, label: "HERE user")
+
+
+              # IO.puts("confirm_user_email_token: User Found")
+            # check if user is expired
+            case UserToken.verify_session_token_valid_query(query) do
+              {:ok, query} ->
+                case Repo.one(query) do
+                  %User{} = user ->
+                    {:ok, user}
+
+                  nil ->
+                    IO.puts("confirm_user_email_token:User Expired")
+                    {nil, :expired}
+            end
+          end
+          nil ->
+              IO.puts("confirm_user_email_token: No User found")
+              {nil, :not_found}
+        end
+
+      :invalid_input_token ->
+        :invalid_input_token
+    end
+  end
+
   def confirm_user_email_token(encoded_token, user_id, opts \\ []) do
     # check if user exists
     case UserToken.verify_email_token_exists_query(encoded_token, "confirm") do
@@ -501,20 +535,29 @@ defmodule TurnStile.Patients do
   """
   def build_and_insert_user_session_token(user) do
     {token, user_token} = UserToken.build_session_token(user)
-    IO.inspect(token, label: "token")
-    IO.inspect(user_token, label: "user_token")
-    IO.inspect(Base.encode16(token), label: "encoded user_token")
+    # IO.inspect(token, label: "token")
+    # IO.inspect(user_token, label: "user_token")
+    # IO.inspect(Base.encode16(token), label: "encoded user_token")
     Repo.insert!(user_token)
     {token, user_token}
   end
 
-  @spec get_user_by_session_token(any) :: any
   @doc """
   Gets the user with the given signed token.
   """
   def get_user_by_session_token(token) do
-    {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query)
+    case confirm_user_session_token(token) do
+      {:ok, user} ->
+        user
+      {nil, :expired} ->
+        nil
+      {nil, :not_found} ->
+        nil
+      :invalid_input_token ->
+        IO.puts("Error: get_user_by_session_token: invalid input token")
+        nil
+    end
+    # {:ok, query} = UserToken.verify_session_token_exists_query(token)
   end
 
   @doc """

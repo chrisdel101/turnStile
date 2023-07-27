@@ -70,7 +70,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   def handle_info(:update, socket) do
-    # IO.inspect(:update, label: "XXXXXXXX")
+    IO.inspect(:update, label: "PubSub update")
     Process.send_after(self(), :update, @interval)
 
     # Process.send(self(), :update, 30000)

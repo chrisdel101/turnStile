@@ -32,8 +32,16 @@ defmodule TurnStileWeb.UserSessionController do
           conn
           |> put_flash(:error, "Sorry, your URL link is invalid.")
           |> redirect(to: "/")
-        {nil, :expired} ->
-           IO.puts("token expired: user_seesion_controller new")
+          {nil, :expired} ->
+            IO.puts("token expired: user_seesion_controller new")
+            user = Patients.get_user_by_id(user_id)
+            {:ok, updated_user} = Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("EXPIRED"))
+            IO.inspect(updated_user, label: "updated_user")
+           Phoenix.PubSub.broadcast(
+            TurnStile.PubSub,
+            PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+            %{user_alert_status: updated_user.user_alert_status}
+                      )
            conn
            |> put_flash(:error, "Sorry, your link has expired. Contact your provider to resend a new link.")
            |> redirect(to: "/")

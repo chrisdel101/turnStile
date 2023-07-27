@@ -195,7 +195,7 @@ defmodule TurnStileWeb.AlertUtils do
     case TurnStile.Patients.deliver_user_email_alert_reply_instructions(
            user,
            alert,
-           &TurnStile.Utils.build_user_alert_url(&1, &2, &3)
+           &TurnStile.Utils.build_user_alert_url(&1, &2)
          ) do
       {:ok, email} ->
         {:ok, email}
