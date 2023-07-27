@@ -42,8 +42,6 @@
     <%= error_tag f, :phone %>
 
     <%= label(f, "Choose main alert type:") %>
-    <% IO.inspect(@changeset, label: "INNER") %>
-    <% IO.inspect(@changeset.data, label: "INNER") %>
     <%= label(f, :alert_format_set, "SMS") %>
     <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click")%>
     <%= label(f, :alert_format_set, "Email") %>

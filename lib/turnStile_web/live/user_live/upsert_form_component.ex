@@ -18,19 +18,16 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
      |> assign(:changeset, changeset)}
   end
 
-  def handle_info(msg, socket) do
-    IO.inspect(socket.assigns.changeset, label: "Changeset in handle_info")
-    {:noreply, socket}
-  end
-
   @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do
+    IO.inspect(socket.assigns.changeset, label: "changeset")
+    IO.inspect(user_params, label: "user_params")
     changeset =
       socket.assigns.user
       |> Patients.change_user(user_params)
       |> Map.put(:action, :validate)
 
-      changeset = validate_choose_alert_type_field(changeset)
+      # changeset = validate_choose_alert_type_field(changeset)
       IO.inspect(changeset, label: "VALIDATE")
     {:noreply, assign(socket, :changeset, changeset)}
   end
@@ -39,6 +36,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   def handle_event("radio_click", %{"user" => %{"alert_format_set" => alert_format}}, socket) do
 
     IO.inspect(socket.assigns.changeset, label: "radio_click")
+    IO.inspect(alert_format, label: "radio_click")
 
     # # check for changes when radio click
     if alert_format && Map.has_key?(socket.assigns.changeset, :data) do
@@ -56,7 +54,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
           #   |> Patients.change_user(%{alert_format_set: alert_format})
           changeset = Ecto.Changeset.change(socket.assigns.changeset, alert_format_set: "email")
 
-          |> Ecto.Changeset.change(alert_format_set: "email")
+          # |> Ecto.Changeset.change(alert_format_set: "email")
 
 
           IO.inspect(changeset, label: "changeset radio email")
@@ -83,7 +81,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
-    # IO.inspect(socket, label: "action")
+    IO.inspect(socket.assigns, label: "action")
     # no submit if validation errors
     if !socket.assigns.changeset.valid? do
       handle_event("validate", %{"user" => user_params}, socket)
@@ -224,17 +222,14 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       alert_format_changes === AlertFormatTypesMap.get_alert("EMAIL") && is_nil(email) ->
         IO.puts("FIRED1")
         changeset
-        |> Ecto.Changeset.add_error(:email, "Email type is chosen. Must have an email.")
+        # |> Ecto.Changeset.add_error(:email, "Email type is chosen. Must have an email.")
         # Clear errors for phone field when switching to email
-        |> Ecto.Changeset.clear_change(:phone)
       # check for default setting and no email change; needs phone
       alert_format_changes !== AlertFormatTypesMap.get_alert("EMAIL") &&
         is_nil(phone) ->
         IO.puts("FIRED2")
         changeset
-        |> Ecto.Changeset.add_error(:phone, "SMS type is chosen. Must have a phone number.")
-        # Clear errors for email field when switching to SMS
-        |> Ecto.Changeset.clear_change(:email)
+        # |> Ecto.Changeset.add_error(:phone, "SMS type is chosen. Must have a phone number.")
       true ->
          IO.puts("FIRED1")
         changeset
