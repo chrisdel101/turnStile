@@ -5,6 +5,7 @@ defmodule TurnStile.Patients.UserNotifier do
 
   # Delivers the email using the application mailer - called by the funcs belo
   def deliver(alert, subject, body) do
+    IO.inspect(alert, label: "alert")
 
     email =
       new()
@@ -12,7 +13,9 @@ defmodule TurnStile.Patients.UserNotifier do
       |> from({"TurnStile", "mailgun@#{System.get_env("MAILGUN_DOMAIN")}"})
       |> subject(subject)
       |> text_body(body)
-      IO.inspect(email, label: "email")
+
+    IO.inspect(email, label: "email")
+
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     else
@@ -20,27 +23,37 @@ defmodule TurnStile.Patients.UserNotifier do
         {:error, error}
     end
   end
+
   @doc """
   Deliver instructions to confirm account.
   """
-  def deliver_initial_alert(user, url) do
-    if !is_nil(user) && !is_nil(user.email) do
-      deliver(user.email, @json["alerts"]["request"]["email"]["subject_line"], """
+  def deliver_initial_alert(_user, alert, url) do
+    if !is_nil(alert) do
+      case deliver(alert, alert.title, """
 
-      ==============================
+           if !is_nil(user) && !is_nil(user.email) do
+           deliver(user.email, @json["alerts"]["request"]["email"]["subject_line"], """
 
-      Hi #{user.email},
+           ==============================
 
-      This is your initial alert from TurnStile.
+           Hi #{alert.to},
 
-      You will be upated here when it is your turn to be admitted.
+           This is your initial alert from TurnStile.
+           r
+           You will be upated here when it is your turn to be admitted.
 
-      To cancel your stop, visit the link below to 'cancel'
+           To cancel your stop, visit the link below to 'cancel'
 
-      #{url}
+           #{url}
 
-      ==============================
-      """)
+           ==============================
+           """) do
+        {:ok, email} ->
+          {:ok, email}
+
+        {:error, error} ->
+          {:error, error}
+      end
     else
       IO.puts("Error: deliver_initial_alert user inputs nil")
       nil
@@ -51,23 +64,23 @@ defmodule TurnStile.Patients.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_custom_alert(_user, alert, url) do
-    IO.inspect(alert, label: "alert")
-    IO.inspect(url, label: "URL")
+    # IO.inspect(alert, label: "alert")
+    # IO.inspect(url, label: "URL")
     if !is_nil(alert) do
       case deliver(alert, alert.title, """
 
-      ==============================
+           ==============================
 
-      Hi #{alert.to},
+           Hi #{alert.to},
 
-      #{alert.title}.
+           #{alert.title}.
 
-      #{alert.body}
+           #{alert.body}
 
-      #{url}
+           #{url}
 
-      ==============================
-      """) do
+           ==============================
+           """) do
         {:ok, email} ->
           {:ok, email}
 

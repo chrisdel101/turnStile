@@ -315,8 +315,8 @@ defmodule TurnStile.Alerts do
         %{
           title: @json["alerts"]["request"]["sms"]["initial"]["title"],
           body: @json["alerts"]["request"]["sms"]["initial"]["body"],
-          from: System.get_env("SYSTEM_ALERT_FROM_SMS"),
-          to: user.phone,
+          from: (if alert_format === AlertFormatTypesMap.get_alert("EMAIL"), do: System.get_env("SYSTEM_ALERT_FROM_EMAIL"), else: System.get_env("SYSTEM_ALERT_FROM_SMS")),
+          to: (if alert_format === AlertFormatTypesMap.get_alert("EMAIL"), do: user.email, else: user.phone),
           alert_format: alert_format,
           alert_category: alert_category
         }

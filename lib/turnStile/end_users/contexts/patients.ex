@@ -292,10 +292,10 @@ defmodule TurnStile.Patients do
 
   """
   def update_user(%User{} = user, attrs) do
-    IO.inspect(attrs, label: "attrs")
     changeset =
       user
-    |> User.changeset(attrs)
+      |> User.changeset(attrs)
+      IO.inspect(user.alert_format_set, label: "Patients.update_user attrs")
     case Repo.update(changeset) do
       {:ok, user} ->
         {:ok,
@@ -357,8 +357,12 @@ defmodule TurnStile.Patients do
         {:error, "Error: update_alert_status: invalid alert status type"}
      end
   end
-  # confirmation_url_fun is a callback that gets passed a token and returns a url
-  def deliver_user_alert_reply_instructions(%User{} = user, alert, build_url_func) do
+  @doc """
+  deliver_user_email_alert_reply_instructions
+  - handles the
+  """
+  # confirmation_url_fun is a callback that gets passed a token and returns a url (i.e &TurnStile.Utils.build_user_alert_url(&1, &2, &3)))
+  def deliver_user_email_alert_reply_instructions(%User{} = user, alert, build_url_func) do
     # {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
     # IO.puts("CREATING TOKEN")
     # IO.inspect(encoded_token)
@@ -366,25 +370,49 @@ defmodule TurnStile.Patients do
     case build_and_insert_email_token(user, alert) do
       {_tokenized_url, _token, encoded_token} ->
         IO.inspect("INSERTED TOKEN")
+      cond do
+        alert.alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
+          case UserNotifier.deliver_initial_alert(
+                 user,
+                 alert,
+                 build_url_func.(alert, user, encoded_token)
+               ) do
+            {:ok, email} ->
+              {:ok, email}
 
-        case UserNotifier.deliver_custom_alert(
-               user,
-               alert,
-               build_url_func.(alert, user, encoded_token)
-             ) do
-          {:ok, email} ->
-            {:ok, email}
+            {:error, error} ->
+              # IO.inspect(error, label: "error")
+              {:error, error}
+          end
+        alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
+          case UserNotifier.deliver_custom_alert(
+                 user,
+                 alert,
+                 build_url_func.(alert, user, encoded_token)
+               ) do
+            {:ok, email} ->
+              {:ok, email}
 
-          {:error, error} ->
-            # IO.inspect(error, label: "error")
-            {:error, error}
-        end
+            {:error, error} ->
+              # IO.inspect(error, label: "error")
+              {:error, error}
+          end
+        true ->
+          {:error, "Error: deliver_user_email_alert_reply_instructions: invalid alert category type. Only INITIAL and CUSTOM are valid."}
+
+      end
+
 
       {:error, error} ->
         {:error, error}
     end
   end
-
+  @doc """
+  build_and_insert_email_token
+  - takes user and alert and builds token to handle email alert URL
+  - inserts token into DB
+  - returns tokenized url, token, and encoded token; usable in iex w tokenized_url
+  """
   def build_and_insert_email_token(%User{} = user, alert) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
     # IO.puts("CREATING TOKEN")

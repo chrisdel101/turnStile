@@ -45,7 +45,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
           # sets up changeset for template use
           changeset = Ecto.Changeset.change(socket.assigns.changeset, alert_format_set:  alert_format)
 
-          IO.inspect(changeset, label: "changeset radio email")
+          # IO.inspect(changeset, label: "changeset radio email")
 
           {:noreply, assign(socket, :changeset, changeset)}
 
@@ -57,7 +57,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
           {:noreply, assign(socket, :changeset, changeset)}
         true ->
-          IO.puts("NO keys")
+          IO.puts("upsert handle_event: NO keys")
           {:noreply, socket}
       end
     end
@@ -66,7 +66,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
-    IO.inspect(socket.assigns, label: "action")
+    # IO.inspect(socket.assigns, label: "action")
     # no submit if validation errors
     if !socket.assigns.changeset.valid? do
       handle_event("validate", %{"user" => user_params}, socket)
@@ -124,7 +124,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # add new user from index page
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
-    IO.inspect(user_params, label: "user_params: save_user")
+    # IO.inspect(user_params, label: "user_params: save_user")
 
     # check employee has organization role
     case TurnStile.Staff.check_employee_matches_organization(current_employee) do

@@ -73,7 +73,8 @@ defmodule TurnStileWeb.AlertUtils do
       end
     end
   end
-    @doc """
+
+  @doc """
   save_received_alert
   -take twilio params as arrow map
   -No auth for incoming alerts needed; match is checked before this call
@@ -189,40 +190,36 @@ defmodule TurnStileWeb.AlertUtils do
     user = TurnStile.Patients.get_user(alert.user_id)
 
     alert = maybe_append_development_fields(alert)
-    # IO.inspect(alert, label: "EEEEEEalert in send_email_alert")
-    cond do
-      alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
-        # put in build_user_alert_url as a callback
-          case TurnStile.Patients.deliver_user_alert_reply_instructions(user, alert, &TurnStile.Utils.build_user_alert_url(&1, &2, &3)) do
-            {:ok, email} ->
-              {:ok, email}
-            {:error, error} ->
-              IO.inspect(error, label: "ERROR: in send_email_alert")
-              {:error, error}
-          end
-      # initial alert
-      true ->
-        case UserNotifier.deliver_initial_alert(user, "localhost:4000/test123") do
-          {:ok, email} ->
-            {:ok, email}
 
-          {:error, error} ->
-            {:error, error}
-        end
+    # put in build_user_alert_url as a callback
+    case TurnStile.Patients.deliver_user_email_alert_reply_instructions(
+           user,
+           alert,
+           &TurnStile.Utils.build_user_alert_url(&1, &2, &3)
+         ) do
+      {:ok, email} ->
+        {:ok, email}
+
+      {:error, error} ->
+        IO.inspect(error, label: "ERROR: in send_email_alert")
+        {:error, error}
     end
   end
+
   # handle fill-in :to, :from when flag
   defp maybe_append_development_fields(alert) do
     if System.get_env("EMAIL_ALERT_MODE") === "dev" do
       # make sure alert is set to system TO/FROM settings
       # default :from
-      alert = Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL")) |> Map.put(:to, System.get_env("DEV_EMAIL"))
+      alert =
+        Map.put(alert, :from, System.get_env("SYSTEM_ALERT_FROM_EMAIL"))
+        |> Map.put(:to, System.get_env("DEV_EMAIL"))
+
       alert
     else
       alert
     end
   end
-
 
   defp compute_sms_category_from_body(twilio_params) do
     body = twilio_params["Body"]
@@ -262,12 +259,13 @@ defmodule TurnStileWeb.AlertUtils do
             UserAlertStatusTypesMap.get_user_status(String.upcase(update_status))
           )
         else
-        #  assume inital alert (i.e email) and set to pending
+          #  assume inital alert (i.e email) and set to pending
           TurnStile.Patients.update_alert_status(
             user,
             UserAlertStatusTypesMap.get_user_status("PENDING")
           )
         end
+
       # emails is in this category; takes opts to handle actual custom case else is treated as initial
       AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
         # update user account

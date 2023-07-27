@@ -156,6 +156,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
                 case AlertUtils.handle_updating_user_alert_send_status(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM"), update_status: "expired") do
                   {:ok, _user} ->
                     # IO.inspect(user, label: "user in handle_event")
+                    # make a call to Index liveview to update the state - works but could be fluke
                     Index.handle_info(:update, socket)
                     {
                       :noreply,

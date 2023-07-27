@@ -44,15 +44,16 @@ defmodule TurnStile.Patients.User do
     alert_format_changes = get_change(changeset, :alert_format_set)
     email = get_change(changeset, :email)
     phone = get_change(changeset, :phone)
+    IO.inspect(alert_format_changes, label: "alert_format_changes")
     cond do
       # check for email change
       alert_format_changes === AlertFormatTypesMap.get_alert("EMAIL") && is_nil(email) ->
-        changeset = add_error(changeset, :email, "Email type is chosen. Must have an email.")
+        changeset = add_error(changeset, :email, "Email type is chosen on User. Must have an email.")
         changeset
 
       # check for default setting and no email change; needs phone
       alert_format_changes === AlertFormatTypesMap.get_alert("SMS") && is_nil(phone) ->
-        changeset = add_error(changeset, :phone, "SMS type is chosen. Must have a phone number.")
+        changeset = add_error(changeset, :phone, "SMS type is chosen on User. Must have a phone number.")
         changeset
       true ->
         changeset

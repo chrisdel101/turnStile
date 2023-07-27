@@ -59,12 +59,22 @@
 
           <td>
             <span>
+            <%= if user.alert_format_set === AlertFormatTypesMap.get_alert("EMAIL") do %>
                 <button
-                  title="Send Initial Alert"
-                  class={"btn btn-primary #{if !user.phone do 'disable' end}"}
-                  phx-click={:send_initial_SMS_alert}
-                  value={user.id}> Send SMS Alert
+                  title="send initial email alert"
+                  class={"btn btn-primary #{if !user.email do 'disable' end}"}
+                  phx-click={:send_initial_alert} phx-value-user-id={user.id}, phx-value-alert-format={AlertFormatTypesMap.get_alert("EMAIL")}> 
+                    Send Email Alert
                 </button>
+            <% else %>
+                <button
+                  title="send initial SMS alert"
+                  class={"btn btn-primary #{if !user.phone do 'disable' end}"}
+                  phx-click={:send_initial_alert} phx-value-user-id={user.id}, phx-value-alert-format={AlertFormatTypesMap.get_alert("SMS")}> 
+                  Send SMS Alert
+                </button>
+
+            <% end %>
             </span>
               <span>
                 <%= live_patch "Custom_Alert", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "dispatch"}) %>
