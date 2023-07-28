@@ -193,6 +193,22 @@ defmodule TurnStile.Patients.UserToken do
     end
   end
 
+  # returns full token from encoded email hash
+  def encoded_token_and_context_query(encoded_token, context) do
+    case Base.url_decode64(encoded_token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        query =
+          from token in token_and_context_query(hashed_token, context),
+          join: user in assoc(token, :user),
+          select: token
+        {:ok, query}
+
+      :error ->
+       # invalid input token - no query made
+        :invalid_input_token
+    end
+  end
   @doc """
   Returns the token struct for the given token value and context.
   """

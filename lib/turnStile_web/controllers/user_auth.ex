@@ -7,7 +7,7 @@ defmodule TurnStileWeb.UserAuth do
   alias TurnStile.Patients.UserToken
   alias TurnStileWeb.Router.Helpers, as: Routes
 
-  @session_max_age_second UserToken.get_session_cookie_max_age_seconds()
+  @session_max_age_seconds UserToken.get_session_cookie_max_age_seconds()
   @expiration_cookie "_turn_stile_web_user_expiration" # used to control user session
   @expiration_me_options [sign: true, max_age: @session_max_age_seconds, same_site: "Lax"]
 
@@ -25,7 +25,6 @@ defmodule TurnStileWeb.UserAuth do
   """
   def log_in_user(conn, user, params \\ %{}) do
     {token, _token_struct} = Patients.build_and_insert_user_session_token(user)
-    user_return_to = get_session(conn, :user_return_to)
     conn
     |> renew_session()
     |> put_session(:user_token, token)
@@ -33,6 +32,7 @@ defmodule TurnStileWeb.UserAuth do
     |> maybe_write_expiration_cookie(token, params)
 
   end
+  # if set to true make sure to put ensure_user_cookie_not_expired in routuer plug pipeline
     defp maybe_write_expiration_cookie(conn, token, %{"expirtation" => "true"}) do
       put_resp_cookie(conn, @expiration_cookie, token, @expiration_me_options)
     end
@@ -48,7 +48,7 @@ defmodule TurnStileWeb.UserAuth do
   """
   def require_authenticated_user(conn, _opts) do
 
-    current_user = conn.assigns[:current_user]
+    # current_user = conn.assigns[:current_user]
     # IO.inspect(current_user, label: "current_user: require_authenticated_user")
     if conn.assigns[:current_user] do
       conn
@@ -163,7 +163,7 @@ defmodule TurnStileWeb.UserAuth do
   def ensure_user_cookie_not_expired(conn, _opts) do
     # if logged in user
     if conn.assigns[:current_user] do
-      conn = fetch_cookies(conn, signed: [@expirtation])
+      conn = fetch_cookies(conn, signed: [@expirtation_cookie])
       if !Map.get(conn.cookies, "_turn_stile_web_user_expiration") do
         # IO.puts("user cookie expired: log out user")
         log_out_expired_user(conn)
@@ -195,19 +195,19 @@ defmodule TurnStileWeb.UserAuth do
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
-      IO.puts("Redirect if user is authenticated: passed")
+      IO.puts("Redirect if user is authenticated: redirecting")
       conn
       |> redirect(to: signed_in_main_path(conn, conn.assigns[:current_user]))
       |> halt()
     else
-      IO.puts("Redirect if user is authenticated: failed")
+      IO.puts("Redirect if user is authenticated: not authenicated")
       conn
     end
   end
 
   # puts path like /user/:id as :user_return_to
   defp maybe_store_return_to(%{method: "GET"} = conn) do
-    conn = put_session(conn, :user_return_to, current_path(conn))
+    put_session(conn, :user_return_to, current_path(conn))
   end
 
   defp maybe_store_return_to(conn), do: conn

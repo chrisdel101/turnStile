@@ -1,47 +1,65 @@
 defmodule TurnStileWeb.UserSessionController do
+  alias TurnStile.Patients.UserToken
   use TurnStileWeb, :controller
 
   alias TurnStile.Patients
   alias TurnStileWeb.UserAuth
   @json TurnStile.Utils.read_json("sms.json")
 
-  # - if logged in user, redirect to confirmation page new/2
-  # - else confirm email token + log in; log in handles redirect back to new/2
+  # handle_validate_email_token
+  # - handles request if user if not logged yet
+  # - if logged in user calls this redirect them to new/1 below
+  # - else confirm email token + log in and redirect to new/1
   # - if not confirmed email send err val and redirect
-  def handle_validate_email_token(conn, %{"user_id" => user_id, "token" => token}) do
-    IO.puts("handle_validate_email_token 1")
+  # - handles all cases of email token errors
+  # - if email token expired sends status update to UI
+  def handle_validate_email_token(conn, %{"user_id" => user_id, "token" => encoded_token}) do
     current_user = conn.assigns[:current_user]
 
     if current_user do
       conn
-      |> redirect(to: Routes.user_confirmation_path(conn, :new, current_user.id))
+      |> redirect(to: Routes.user_session_path(conn, :new, current_user.id))
     else
-      # check URL token - match url to hashed-token in DB
-      case Patients.confirm_user_email_token(token, user_id) do
+      # check URL encoded_token - match url to hashed-token in DB
+      case Patients.confirm_user_email_token(encoded_token, user_id) do
         {:ok, user} ->
           # IO.inspect(user, label: "USER")
           conn
           # log in and set session token for future requests
-          |> UserAuth.log_in_user(user, %{"expirtation" => "true"})
+          |> UserAuth.log_in_user(user)
           |> redirect(to: UserAuth.signed_in_main_path(conn, user) || get_session(conn, :user_return_to) )
 
 
         {nil, :not_matched} ->
-           IO.puts("user not_matched: User param ID does not match the token")
+           # user does match but - url :id is not correct for user token
+          IO.puts("user_session_controller: user not_matched: User param :id does not match the token user id")
            conn
-           |> put_flash(:error, "Sorry, your URL link has matching errors. Verify it is correct and try again.")
+           |> put_flash(:error, "Sorry, your URL link has errors. Verify it is correct and try again, or contact your provider for a new link.")
            |> redirect(to: "/")
         {nil, :not_found} ->
-          # no users matching
-          IO.puts("user not_found: user_session_controller new")
+          # no users matching - b/c user session does not match any users
+          IO.puts("user_session_controller:  not_found")
           conn
           |> put_flash(:error, "Sorry, your URL link is invalid.")
           |> redirect(to: "/")
+        :invalid_input_token ->
+          # error on func call - b/c user has a malfromed URL i.e. extra quote at end
+          IO.puts("user_session_controller:  :invalid_input_token")
+          conn
+          |> put_flash(:error, "Sorry, your URL link contains errors and is invalid. Confirm it is correct and try again, or contact your provider for a new link.")
+          |> redirect(to: "/")
         {nil, :expired} ->
-          IO.puts("token expired: user_session_controller new")
-          user = Patients.get_user_by_id(user_id)
+           # valid request but expired - will be deleted on this call
+          # fetch full user token struct
+          {:ok, query}  = UserToken.encoded_token_and_context_query(encoded_token, "confirm")
+          user_token = TurnStile.Repo.one(query)
+          # delete expirted token
+          Patients.delete_email_token(user_token)
+          IO.puts("user_session_controller:  token expired and deleted")
+          # update user alert status
+          user = Patients.get_user(user_id)
           {:ok, updated_user} = Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("EXPIRED"))
-          IO.inspect(updated_user, label: "updated_user")
+          # send respnse to update UI; match the DB status
 
           Phoenix.PubSub.broadcast(
           TurnStile.PubSub,

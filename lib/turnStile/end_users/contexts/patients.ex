@@ -571,6 +571,13 @@ defmodule TurnStile.Patients do
   end
 
   @doc """
+  Deletes the passed in token; when expired token is accessed it is deleted
+  """
+  def delete_email_token(token) do
+    Repo.delete(token)
+  end
+
+  @doc """
   Deletes the signed token with the given context.
   """
   def delete_session_token(token) do

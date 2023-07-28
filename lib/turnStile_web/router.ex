@@ -18,8 +18,6 @@ defmodule TurnStileWeb.Router do
     plug :fetch_current_admin
     plug :fetch_current_user
     plug :require_non_expired_user_session
-    # check of user cookie, or log out
-    # plug :ensure_user_cookie_not_expired
     plug :fetch_current_employee
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
