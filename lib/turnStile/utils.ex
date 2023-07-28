@@ -170,8 +170,8 @@ defmodule TurnStile.Utils do
       # Further processing
       confirmation_url
   end
-  # check if user cookie exists; return user or nil
-  def check_if_user_cookie(cookies_map) do
+  # check if user cookie exists; return user or nil; UNUSED
+  def _check_if_user_cookie(cookies_map) do
     Enum.reduce_while(cookies_map, nil, fn {key, encoded_value}, _acc ->
       IO.puts("KEY: #{key}, VALUE: #{encoded_value}")
       # if cookie matching pattern

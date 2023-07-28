@@ -31,7 +31,6 @@ defmodule TurnStileWeb.UserAuth do
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
     |> maybe_write_expiration_cookie(token, params)
-    |> redirect(to: signed_in_main_path(conn, user) || user_return_to )
 
   end
     defp maybe_write_expiration_cookie(conn, token, %{"expirtation" => "true"}) do
@@ -52,7 +51,6 @@ defmodule TurnStileWeb.UserAuth do
     current_user = conn.assigns[:current_user]
     # IO.inspect(current_user, label: "current_user: require_authenticated_user")
     if conn.assigns[:current_user] do
-      IO.puts("require_authenticated_user: passed")
       conn
     else
       IO.puts("require_authenticated_user: failed")
@@ -60,9 +58,28 @@ defmodule TurnStileWeb.UserAuth do
         |> put_flash(:info, "You're session is expired or you tried to access an authencated route.")
         |> maybe_store_return_to()
         |> redirect(to: "/")
+        |> halt()
     end
   end
-
+  # if expired logs out user; will be caught by later plugs for redirect
+  def require_non_expired_user_session(conn, _params) do
+    if conn.assigns[:current_user] do
+      if !is_user_session_exprired?(conn) do
+        # IO.puts("require_non_expired_user_session: passed")
+        conn
+      else
+        # user is expried
+        IO.puts("require_non_expired_user_session: expired")
+        conn
+        |> put_flash(:info, "You're session has expired. Contact your provider again to receive a new link.")
+        |> log_out_expired_user()
+        |> redirect(to: Routes.page_path(conn, :index))
+        |> halt()
+      end
+    else
+      conn
+    end
+  end
   # This function renews the session ID and erases the whole
   # session to avoid fixation attacks. If there is any data
   # in the session you may want to preserve after log in/log out,
@@ -123,15 +140,18 @@ defmodule TurnStileWeb.UserAuth do
 
   @doc """
   Authenticates the user by looking into the session
+  - Checks for existence only; no expiration check here - keeping the flow simple
   """
   def fetch_current_user(conn, _opts) do
-    {user_token, conn} = ensure_user_token(conn)
-    # IO.inspect(user_token, label: "USER TOKEN")
-    user = user_token && Patients.get_user_by_session_token(user_token)
+    {user_token, conn} = ensure_user_session_token(conn)
+    # IO.inspect(user_token, label: "fetch_current_user USER TOKEN")
+    # - queries for exists and valid
+    user = user_token && Patients.confirm_user_session_token_exists(user_token)
     assign(conn, :current_user, user)
+    # halt(conn)
   end
-
-  defp ensure_user_token(conn) do
+  # first run: looks up user by email token; should fail b/c no user in seesion yet
+  defp ensure_user_session_token(conn) do
     # check for user token
     if user_token = get_session(conn, :user_token) do
       {user_token, conn}
@@ -139,39 +159,59 @@ defmodule TurnStileWeb.UserAuth do
       {nil, conn}
     end
   end
-  # call right after fetch_current_user
+  # call right after fetch_current_user- if cookie is expired it will not be w/in the request from browser
   def ensure_user_cookie_not_expired(conn, _opts) do
     # if logged in user
     if conn.assigns[:current_user] do
       conn = fetch_cookies(conn, signed: [@expirtation])
       if !Map.get(conn.cookies, "_turn_stile_web_user_expiration") do
-        IO.puts("user expired")
+        # IO.puts("user cookie expired: log out user")
         log_out_expired_user(conn)
       end
     end
     conn
   end
-
+  # - checks if user token still valid
+  # prev plug checked user exists
+  defp is_user_session_exprired?(conn) do
+    user_token = get_session(conn, :user_token)
+    case user_token && Patients.confirm_user_session_token(user_token) do
+      {:ok, _user} ->
+        # IO.puts("is_user_session_exprired: user session not expired")
+        false
+      {nil, :not_matched} ->
+        IO.puts("is_user_session_exprired: user session error")
+        true
+      {nil, :not_found} ->
+        IO.puts("is_user_session_exprired: user session error")
+        true
+      {nil, :expired} ->
+        # IO.puts("is_user_session_exprired: user session expired")
+        true
+    end
+  end
   @doc """
   Used for routes that require the user to not be authenticated.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
+      IO.puts("Redirect if user is authenticated: passed")
       conn
       |> redirect(to: signed_in_main_path(conn, conn.assigns[:current_user]))
       |> halt()
     else
+      IO.puts("Redirect if user is authenticated: failed")
       conn
     end
   end
 
-
+  # puts path like /user/:id as :user_return_to
   defp maybe_store_return_to(%{method: "GET"} = conn) do
-    put_session(conn, :user_return_to, current_path(conn))
+    conn = put_session(conn, :user_return_to, current_path(conn))
   end
 
   defp maybe_store_return_to(conn), do: conn
 
 
-  defp signed_in_main_path(conn, current_user), do: Routes.user_session_path(conn, :new, Map.get(current_user, :id))
+  def signed_in_main_path(conn, current_user), do: Routes.user_session_path(conn, :new, Map.get(current_user, :id))
 end

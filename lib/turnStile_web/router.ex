@@ -17,7 +17,9 @@ defmodule TurnStileWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_admin
     plug :fetch_current_user
-    plug :ensure_user_cookie_not_expired
+    plug :require_non_expired_user_session
+    # check of user cookie, or log out
+    # plug :ensure_user_cookie_not_expired
     plug :fetch_current_employee
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
@@ -172,7 +174,7 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
     # user uses to validate email token; this activates session
     # - equlivalent to /log_in
-    get "/:user_id/:token", UserSessionController, :new
+    get "/:user_id/:token", UserSessionController, :handle_validate_email_token
   end
 
   scope "/user", TurnStileWeb do
@@ -181,7 +183,7 @@ defmodule TurnStileWeb.Router do
      # uses same as prev but without token; renders same template but w.o token
     # - equlivalent to /log_in
     get "/:user_id", UserSessionController, :new
-    # sends conf/cancel buttons request on page
+
     delete "/:user_id/log_out", UserSessionController, :delete
     # sends conf/cancel buttons request on page
     post "/:user_id", UserConfirmationController, :update

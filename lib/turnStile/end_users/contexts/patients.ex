@@ -443,19 +443,18 @@ defmodule TurnStile.Patients do
         # IO.inspect(query, label: "query")
         case Repo.one(query) do
           %User{} = user ->
-            # IO.inspect(user, label: "HERE user")
-
-
-              # IO.puts("confirm_user_email_token: User Found")
+            # IO.inspect(user, label: "user EXISTS confirm_user_session_token
+            #   ")
             # check if user is expired
             case UserToken.verify_session_token_valid_query(query) do
               {:ok, query} ->
                 case Repo.one(query) do
                   %User{} = user ->
+                    # IO.inspect(user, label: "user VALID confirm_user_session_token
+                    # ")
                     {:ok, user}
-
                   nil ->
-                    IO.puts("confirm_user_email_token:User Expired")
+                    # IO.puts("confirm_user_session_token: User Found but Expired")
                     {nil, :expired}
             end
           end
@@ -466,6 +465,15 @@ defmodule TurnStile.Patients do
 
       :invalid_input_token ->
         :invalid_input_token
+    end
+  end
+  # - checks for user token existence but ignores expiration
+  def confirm_user_session_token_exists(token, opts \\ []) do
+    # check if user exists
+    # token = Base.encode64(token)
+    case UserToken.verify_session_token_exists_query(token) do
+      {:ok, query} ->
+        Repo.one(query)
     end
   end
 
@@ -544,8 +552,10 @@ defmodule TurnStile.Patients do
 
   @doc """
   Gets the user with the given signed token.
+  - essentially just calls confirm_user_session_token and returns user or nil; handles confirm_user_session_token return values
   """
   def get_user_by_session_token(token) do
+    # IO.puts("get_user_by_session_token fired")
     case confirm_user_session_token(token) do
       {:ok, user} ->
         user
