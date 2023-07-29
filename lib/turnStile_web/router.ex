@@ -5,7 +5,6 @@ defmodule TurnStileWeb.Router do
 
   import TurnStileWeb.EmployeeAuth
   import TurnStileWeb.UserAuth
-  # alias TurnStileWeb.UserAuth
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -170,16 +169,14 @@ defmodule TurnStileWeb.Router do
 
   scope "/user", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
-    # user uses to validate email token; this activates session
-    # - equlivalent to /log_in
-    get "/:user_id/:token", UserSessionController, :handle_validate_email_token
+  #  init call by user; redirects after token confirmation
+    get "/:user_id/:token", UserAuth, :handle_validate_email_token
   end
 
   scope "/user", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user
   ]
-     # uses same as prev but without token; renders same template but w.o token
-    # - equlivalent to /log_in
+
     get "/:user_id", UserSessionController, :new
 
     delete "/:user_id/log_out", UserSessionController, :delete

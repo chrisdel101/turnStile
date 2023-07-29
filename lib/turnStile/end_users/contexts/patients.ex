@@ -435,14 +435,14 @@ defmodule TurnStile.Patients do
   - If token matches user is marked as confirmed; token is deleted.
   - timeout is checked with query; not set on the token itself
   """
-  def confirm_user_session_token(token, opts \\ []) do
+  def confirm_user_session_token(token, _opts \\ []) do
     # check if user exists
     # token = Base.encode64(token)
     case UserToken.verify_session_token_exists_query(token) do
       {:ok, query} ->
         # IO.inspect(query, label: "query")
         case Repo.one(query) do
-          %User{} = user ->
+          %User{} = _user ->
             # IO.inspect(user, label: "user EXISTS confirm_user_session_token
             #   ")
             # check if user is expired
@@ -468,7 +468,7 @@ defmodule TurnStile.Patients do
     end
   end
   # - checks for user token existence but ignores expiration
-  def confirm_user_session_token_exists(token, opts \\ []) do
+  def confirm_user_session_token_exists(token, _opts \\ []) do
     # check if user exists
     # token = Base.encode64(token)
     case UserToken.verify_session_token_exists_query(token) do
