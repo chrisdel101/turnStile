@@ -159,35 +159,6 @@ defmodule TurnStileWeb.UserAuth do
       {nil, conn}
     end
   end
-  # call right after fetch_current_user- if cookie is expired it will not be w/in the request from browser
-  def ensure_user_cookie_not_expired(conn, _opts) do
-    # if logged in user
-    if conn.assigns[:current_user] do
-      conn = fetch_cookies(conn, signed: [@expiration_cookie])
-      if !Map.get(conn.cookies, "_turn_stile_web_user_expiration") do
-        # IO.puts("user cookie expired: log out user")
-        log_out_expired_user(conn)
-      end
-    end
-    conn
-  end
-  # is_user_session_exprired?
-  # - checks if user token still valid
-  # prev plug checked user exists
-  defp is_user_session_exprired?(conn) do
-    user_token = get_session(conn, :user_token)
-    case user_token && Patients.confirm_user_session_token(user_token) do
-      {:ok, _user} ->
-        IO.puts("is_user_session_exprired: user session not expired")
-        false
-      {nil, :not_found} ->
-        IO.puts("is_user_session_exprired: user session error")
-        true
-      {nil, :expired} ->
-        IO.puts("is_user_session_exprired: user session expired")
-        true
-    end
-  end
   @doc """
   Used for routes that require the user to not be authenticated.
   """
