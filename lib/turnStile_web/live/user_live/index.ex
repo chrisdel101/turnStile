@@ -8,10 +8,10 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
 
-  @interval 10000
 
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
-  @interval 10000
+  @interval 30000
+
   @impl true
   def mount(_params, session, socket) do
     # TODO - cannot be null
@@ -21,7 +21,7 @@ defmodule TurnStileWeb.UserLive.Index do
     current_employee = Staff.get_employee_by_session_token(employee_token)
     organization_id = current_employee.current_organization_login_id
     # on interval call :update func below
-    # if connected?(socket), do: Process.send_after(self(), :update, @interval)
+    if connected?(socket), do: Process.send_after(self(), :update, @interval)
     # subscribe - broadcast is in alert controller
     Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE"))
 
@@ -50,7 +50,7 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
 
   def handle_info(%{user_alert_status: user_alert_status}, socket) do
-    IO.inspect(user_alert_status, label: "message in handle_info")
+    IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
       Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
@@ -70,8 +70,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   def handle_info(:update, socket) do
-    IO.inspect(:update, label: "PubSub update")
-    Process.send_after(self(), :update, @interval)
+    if connected?(socket), do: Process.send_after(self(), :update, @interval)
 
     # Process.send(self(), :update, 30000)
     users =

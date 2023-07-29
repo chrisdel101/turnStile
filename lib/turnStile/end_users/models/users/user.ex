@@ -14,7 +14,7 @@ defmodule TurnStile.Patients.User do
     field :alert_format_set, :string
     # most recent employee to access this user
     belongs_to :employee, TurnStile.Staff.Employee
-    has_many :alerts, TurnStile.Alerts.Alert
+    has_many :alerts, TurnStile.Alerts.Alert , on_delete: :delete_all
     belongs_to :organization, TurnStile.Company.Organization
     field :confirmed_at, :naive_datetime
 
@@ -51,7 +51,7 @@ defmodule TurnStile.Patients.User do
     alert_format_changes = get_change(changeset, :alert_format_set)
     email = get_change(changeset, :email)
     phone = get_change(changeset, :phone)
-    IO.inspect(alert_format_changes, label: "alert_format_changes")
+    # IO.inspect(alert_format_changes, label: "alert_format_changes")
     cond do
       # check for email change
       alert_format_changes === AlertFormatTypesMap.get_alert("EMAIL") && is_nil(email) ->

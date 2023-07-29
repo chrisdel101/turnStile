@@ -8,11 +8,12 @@ defmodule TurnStile.Patients.UserToken do
 
    # TOKEN LIFE SETTINGS for app
    @email_token_validity_hours 6
-   @get_session_cookie_max_age_seconds 10
+   @email_token_validity_seconds 1 # unused
+   @session_token_validity_seconds 5
 
-   def get_email_token_validity_hours(), do: @email_token_validity_hours
+   def get_email_token_validity_hours, do: @email_token_validity_hours
 
-   def get_session_cookie_max_age_seconds, do: @get_session_cookie_max_age_seconds
+   def get_session_token_validity_seconds, do: @session_token_validity_seconds
 
 
 
@@ -66,7 +67,7 @@ defmodule TurnStile.Patients.UserToken do
   end
   def verify_session_token_valid_query(%Ecto.Query{} = query) do
     query = from user in query,
-    where: user.inserted_at > ago(@get_session_cookie_max_age_seconds, "second")
+    where: user.inserted_at > ago(@session_cookie_validity_seconds, "second")
     {:ok, query}
   end
 
@@ -160,7 +161,6 @@ defmodule TurnStile.Patients.UserToken do
       {:ok, query}
     end
   defp email_hours_for_context("confirm"), do: @email_token_validity_hours
-  defp session_hours_for_context("confirm"), do: @email_token_validity_hours
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.

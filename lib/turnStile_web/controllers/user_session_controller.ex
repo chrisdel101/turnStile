@@ -59,8 +59,7 @@ defmodule TurnStileWeb.UserSessionController do
           # update user alert status
           user = Patients.get_user(user_id)
           {:ok, updated_user} = Patients.update_alert_status(user,UserAlertStatusTypesMap.get_user_status("EXPIRED"))
-          # send respnse to update UI; match the DB status
-
+          # send respnse to update UI; match the DB status - opts pushes it to index liveView handler
           Phoenix.PubSub.broadcast(
           TurnStile.PubSub,
           PubSubTopicsMap.get_topic("STATUS_UPDATE"),

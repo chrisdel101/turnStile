@@ -7,7 +7,7 @@ defmodule TurnStileWeb.UserAuth do
   alias TurnStile.Patients.UserToken
   alias TurnStileWeb.Router.Helpers, as: Routes
 
-  @session_max_age_seconds UserToken.get_session_cookie_max_age_seconds()
+  @session_max_age_seconds UserToken.get_session_token_validity_seconds()
   @expiration_cookie "_turn_stile_web_user_expiration" # used to control user session
   @expiration_me_options [sign: true, max_age: @session_max_age_seconds, same_site: "Lax"]
 
@@ -32,7 +32,7 @@ defmodule TurnStileWeb.UserAuth do
     |> maybe_write_expiration_cookie(token, params)
 
   end
-  # if set to true make sure to put ensure_user_cookie_not_expired in routuer plug pipeline
+  # if set to true make sure to put ensure_user_cookie_not_expired in routuer plug pipeline - currently no used
     defp maybe_write_expiration_cookie(conn, token, %{"expirtation" => "true"}) do
       put_resp_cookie(conn, @expiration_cookie, token, @expiration_me_options)
     end
