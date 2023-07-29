@@ -408,32 +408,13 @@ defmodule TurnStile.Patients do
     end
   end
   @doc """
-  build_and_insert_email_token
-  - takes user and alert and builds token to handle email alert URL
-  - inserts token into DB
-  - returns tokenized url, token, and encoded token; usable in iex w tokenized_url
-  """
-  def build_and_insert_email_token(%User{} = user) do
-    {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
-    # IO.puts("CREATING TOKEN")
-    # IO.inspect(encoded_token)
-    # IO.inspect(user_token)
-    case Repo.insert(user_token) do
-      {:ok, token} ->
-        # IO.inspect(token, label: "INSERTED TOKEN")
-        {TurnStile.Utils.build_user_alert_url( user, encoded_token), token, encoded_token}
-
-      {:error, error} ->
-        {:error, error}
-    end
-  end
-
-
-  @doc """
+  confirm_user_session_token
   Confirms a employee by the given token.
-  - takes a encoded token string and checks if hashed token in DB matches
-  - If token matches user is marked as confirmed; token is deleted.
-  - timeout is checked with query; not set on the token itself
+  - takes bytes token; matches w hash in DB
+  - If expired, returns {:expired, user1}
+  - If not matched, returns  {nil, :not_found}
+  returns [{:ok, user2}, {:expired, user1}, {nil, :not_found}, invalid_input_token]
+  - expiry is checked with query; not set on the token itself
   """
   def confirm_user_session_token(token, _opts \\ []) do
     # check if user exists
@@ -442,20 +423,20 @@ defmodule TurnStile.Patients do
       {:ok, query} ->
         # IO.inspect(query, label: "query")
         case Repo.one(query) do
-          %User{} = _user ->
+          %User{} = user1 ->
             # IO.inspect(user, label: "user EXISTS confirm_user_session_token
             #   ")
             # check if user is expired
             case UserToken.verify_session_token_valid_query(query) do
               {:ok, query} ->
                 case Repo.one(query) do
-                  %User{} = user ->
+                  %User{} = user2 ->
                     # IO.inspect(user, label: "user VALID confirm_user_session_token
                     # ")
-                    {:ok, user}
+                    {:ok, user2}
                   nil ->
                     # IO.puts("confirm_user_session_token: User Found but Expired")
-                    {nil, :expired}
+                    {:expired, user1}
             end
           end
           nil ->
@@ -542,12 +523,36 @@ defmodule TurnStile.Patients do
   Generates a session token.
   """
   def build_and_insert_user_session_token(user) do
-    {token, user_token} = UserToken.build_session_token(user)
-    # IO.inspect(token, label: "token")
-    # IO.inspect(user_token, label: "user_token")
+    {_token, user_token} = UserToken.build_session_token(user)
     # IO.inspect(Base.encode16(token), label: "encoded user_token")
-    Repo.insert!(user_token)
-    {token, user_token}
+    case Repo.insert(user_token) do
+      {:ok, token} ->
+        {token.token, token}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+   @doc """
+  build_and_insert_email_token
+  - takes user and alert and builds token to handle email alert URL
+  - inserts token into DB
+  - returns tokenized url, token, and encoded token; usable in iex w tokenized_url
+  """
+  def build_and_insert_email_token(%User{} = user) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+    # IO.puts("CREATING TOKEN")
+    # IO.inspect(encoded_token)
+    # IO.inspect(user_token)
+    case Repo.insert(user_token) do
+      {:ok, token} ->
+        # IO.inspect(token, label: "INSERTED TOKEN")
+        {TurnStile.Utils.build_user_alert_url( user, encoded_token), token, encoded_token}
+
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   @doc """
@@ -559,7 +564,7 @@ defmodule TurnStile.Patients do
     case confirm_user_session_token(token) do
       {:ok, user} ->
         user
-      {nil, :expired} ->
+      {:expired, %User{} = _user} ->
         nil
       {nil, :not_found} ->
         nil

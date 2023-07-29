@@ -14,10 +14,10 @@ defmodule TurnStileWeb.Router do
     plug :put_root_layout, {TurnStileWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_employee
     plug :fetch_current_admin
     plug :fetch_current_user
     plug :require_non_expired_user_session
-    plug :fetch_current_employee
     # used in template
     plug TurnStileWeb.Plugs.RouteType, "non-admin"
     plug TurnStileWeb.Plugs.EmptyParams

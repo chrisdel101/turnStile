@@ -9,7 +9,7 @@ defmodule TurnStile.Patients.UserToken do
    # TOKEN LIFE SETTINGS for app
    @email_token_validity_hours 6
    @email_token_validity_seconds 1 # unused
-   @session_token_validity_seconds 5
+   @session_token_validity_seconds 5000
 
    def get_email_token_validity_hours, do: @email_token_validity_hours
 
@@ -67,7 +67,7 @@ defmodule TurnStile.Patients.UserToken do
   end
   def verify_session_token_valid_query(%Ecto.Query{} = query) do
     query = from user in query,
-    where: user.inserted_at > ago(@session_cookie_validity_seconds, "second")
+    where: user.inserted_at > ago(@session_token_validity_seconds, "second")
     {:ok, query}
   end
 
