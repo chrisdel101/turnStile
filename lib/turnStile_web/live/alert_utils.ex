@@ -13,7 +13,7 @@ defmodule TurnStileWeb.AlertUtils do
   -auth emp/org match, emp permissions, user in org
   -assoc alert w all relevant others
   -return saved alert
-  -partner function to save_received_alert
+  -partner function to save_received_SMS_alert
   """
   def authenticate_and_save_sent_alert(socket, changeset, params \\ %{}) do
     current_employee = Kernel.get_in(socket.assigns, [:current_employee])
@@ -75,21 +75,21 @@ defmodule TurnStileWeb.AlertUtils do
   end
 
   @doc """
-  save_received_alert
+  save_received_SMS_alert
   -take twilio params as arrow map
   -No auth for incoming alerts needed; match is checked before this call
   -assoc alert w all relevant others
   -return saved alert
   -partner function to authenticate_and_save_sent_alert
   """
-  def save_received_alert(user, twilio_params) do
+  def save_received_SMS_alert(user, twilio_params) do
     cond do
       !user ->
-        {:error, "Error: Missing user input for save_received_alert. Alert not processed."}
+        {:error, "Error: Missing user input for save_received_SMS_alert. Alert not processed."}
 
       !user.employee ->
         {:error,
-         "Error: User input is missing employee in save_received_alert. Check preload is run. Alert not processed."}
+         "Error: User input is missing employee in save_received_SMS_alert. Check preload is run. Alert not processed."}
 
       true ->
         # undo captialization of twilio params
@@ -126,7 +126,72 @@ defmodule TurnStileWeb.AlertUtils do
             # insert alert into DB
             case Alerts.insert_alert(alert_changeset) do
               {:ok, alert} ->
-                # IO.inspect(alert, label: "alert in save_received_alert")
+                # IO.inspect(alert, label: "alert in save_received_SMS_alert")
+                {:ok, alert}
+
+              {:error, %Ecto.Changeset{} = changeset} ->
+                {:error, changeset}
+            end
+
+          {:error, error} ->
+            IO.puts("ERROR: #{error}")
+            {:error, error}
+        end
+    end
+  end
+  @doc """
+  save_received_SMS_alert
+  -take twilio params as arrow map
+  -No auth for incoming alerts needed; match is checked before this call
+  -assoc alert w all relevant others
+  -return saved alert
+  -partner function to authenticate_and_save_sent_alert
+  """
+  def save_received_email_alert(user, params) do
+    cond do
+      !user ->
+        {:error, "Error: Missing user input for save_received_SMS_alert. Alert not processed."}
+
+      !user.employee ->
+        {:error,
+         "Error: User input is missing employee in save_received_SMS_alert. Check preload is run. Alert not processed."}
+
+      true ->
+        # undo captialization of twilio params
+        lower_twilio_params =
+          Map.new(twilio_params, fn {key, value} -> {String.downcase(key), value} end)
+
+        alert_category = compute_sms_category_from_body(twilio_params)
+        # build attr map
+        attrs =
+          Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
+
+        # merge w twilio params
+        twilio_params1 =
+          Map.merge(TurnStile.Utils.convert_atom_map_to_arrow(attrs), lower_twilio_params)
+
+        changeset =
+          %Alert{}
+          |> Alerts.create_new_alert(twilio_params1)
+
+        # IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
+
+        # employee should be preloaded (last associated employee)
+        current_employee = user.employee
+
+        case Alerts.create_alert_w_put_assoc(
+               current_employee,
+               user,
+               changeset: changeset,
+               alert_attrs: lower_twilio_params,
+               organization_struct: user.organization
+             ) do
+          {:ok, alert_changeset} ->
+            # IO.inspect(alert_changeset, label: "alert_changeset")
+            # insert alert into DB
+            case Alerts.insert_alert(alert_changeset) do
+              {:ok, alert} ->
+                # IO.inspect(alert, label: "alert in save_received_SMS_alert")
                 {:ok, alert}
 
               {:error, %Ecto.Changeset{} = changeset} ->
