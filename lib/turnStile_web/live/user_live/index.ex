@@ -97,7 +97,7 @@ defmodule TurnStileWeb.UserLive.Index do
           socket
           |> put_flash(
             :error,
-            "No user found. Alert not sent. If user exists, then a system error occured."
+            "User not found. Alert not sent. If you are sure this user exists, then a system error has occured."
           )
         }
 
@@ -123,7 +123,7 @@ defmodule TurnStileWeb.UserLive.Index do
             "Default alert type is set to email but user email is missing. Add user email to send email alert."
           )
         }
-
+      # no validation errors - proceed with sending alert
       true ->
         attrs =
           Alerts.build_alert_attrs(
