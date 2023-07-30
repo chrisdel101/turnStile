@@ -169,7 +169,8 @@ defmodule TurnStile.Alerts do
     else
       # build_alert assoc - takes params or a changeset
       alert = Alert.changeset(Keyword.get(opts, :changeset), Keyword.get(opts, :alert_attrs))
-      # IO.inspect(alert, label: "alert changeset create_alert_w_put_assoc")
+      # IO.inspect(employee_struct, label: "alert changeset create_alert_w_put_assoc")
+      # IO.inspect(user_struct, label: "alert changeset create_alert_w_put_assoc")
 
       changeset_with_user = Ecto.Changeset.put_assoc(alert, :user, user_struct)
 

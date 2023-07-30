@@ -454,7 +454,7 @@ defmodule TurnStile.Patients do
     # token = Base.encode64(token)
     case UserToken.verify_session_token_exists_query(token) do
       {:ok, query} ->
-        Repo.one(query)
+        Repo.one(query) |> Repo.preload([:employee, :organization])
     end
   end
 

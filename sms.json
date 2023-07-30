@@ -33,7 +33,7 @@
     }
   },
   "matching_responses": {
-    "1": "You have confirmed your turn. You will recieve an alert when it is your turn.",
+    "1": "You have confirmed your turn. You will recieve another alert update when it is your turn.",
     "2": "You have cancelled your turn. You will no longer recieve alerts."
   }
 }

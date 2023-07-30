@@ -140,38 +140,34 @@ defmodule TurnStileWeb.AlertUtils do
   end
   @doc """
   save_received_SMS_alert
-  -take twilio params as arrow map
-  -No auth for incoming alerts needed; match is checked before this call
-  -assoc alert w all relevant others
-  -return saved alert
-  -contrary function to authenticate_and_save_sent_alert
   """
-  def save_received_email_alert(user, params) do
+  def save_received_email_alert(user, %{"response_value" => response_value, "response_key" => response_key}) do
     cond do
       !user ->
-        {:error, "Error: Missing user input for save_received_SMS_alert. Alert not processed."}
+        IO.puts("Error: Missing user input for save_received_SMS_alert. Alert not processed.")
+        {:error, "Error: Missing user input for save_received_SMS_alert. Alert not processed. Please contact support or request a new link"}
 
-      !user.employee ->
+      !Ecto.assoc_loaded?(user.employee) ->
+        IO.puts("ERROR: User input is missing employee in save_received_SMS_alert. Check preload is run. Alert not processed.")
         {:error,
-         "Error: User input is missing employee in save_received_SMS_alert. Check preload is run. Alert not processed."}
+         "Error: A fatal user matching error in the system occured. Please contact support or request a new link"}
 
       true ->
-        # undo captialization of twilio params
-        lower_twilio_params =
-          Map.new(twilio_params, fn {key, value} -> {String.downcase(key), value} end)
-
-        alert_category = compute_sms_category_from_body(twilio_params)
+        attrs = Alerts.build_alert_attrs(
+        user,
+        AlertCategoryTypesMap.get_alert(response_key),
+        AlertFormatTypesMap.get_alert("EMAIL"),
+        title: "Recieving TurnStile Alert",
+        body: response_value,
+        to: System.get_env("SYSTEM_ALERT_FROM_EMAIL"),
+        from: user.email
+        )
+        IO.inspect(attrs, label: "alert_attrs")
         # build attr map
-        attrs =
-          Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
-
-        # merge w twilio params
-        twilio_params1 =
-          Map.merge(TurnStile.Utils.convert_atom_map_to_arrow(attrs), lower_twilio_params)
 
         changeset =
           %Alert{}
-          |> Alerts.create_new_alert(twilio_params1)
+          |> Alerts.create_new_alert(attrs)
 
         # IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
 
@@ -182,11 +178,11 @@ defmodule TurnStileWeb.AlertUtils do
                current_employee,
                user,
                changeset: changeset,
-               alert_attrs: lower_twilio_params,
+               alert_attrs: attrs,
                organization_struct: user.organization
              ) do
           {:ok, alert_changeset} ->
-            # IO.inspect(alert_changeset, label: "alert_changeset")
+            IO.inspect(alert_changeset, label: "alert_changeset")
             # insert alert into DB
             case Alerts.insert_alert(alert_changeset) do
               {:ok, alert} ->

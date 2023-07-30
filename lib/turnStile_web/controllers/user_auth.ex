@@ -143,6 +143,7 @@ defmodule TurnStileWeb.UserAuth do
     # IO.inspect(user_token, label: "fetch_current_user USER TOKEN")
     # - queries for exists and valid
     user = user_token && Patients.confirm_user_session_token_exists(user_token)
+    # IO.inspect(user, label: "fetch_current_user USER")
     assign(conn, :current_user, user)
   end
 
