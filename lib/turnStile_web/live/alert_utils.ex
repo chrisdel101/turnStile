@@ -5,7 +5,6 @@ defmodule TurnStileWeb.AlertUtils do
   alias TurnStile.Staff
   @json TurnStile.Utils.read_json("sms.json")
   alias TurnStileWeb.EmployeeAuth
-  alias TurnStile.Patients.UserNotifier
 
   @doc """
   authenticate_and_save_sent_alert
@@ -37,9 +36,9 @@ defmodule TurnStileWeb.AlertUtils do
               IO.puts("Employee has correct permissions")
               # check user is part of organization
               case TurnStile.Patients.check_user_assoc_in_organization(
-                     user,
-                     current_employee.current_organization_login_id
-                   ) do
+                user,
+                current_employee.current_organization_login_id
+               ) do
                 {:ok, _} ->
                   case Alerts.create_alert_w_put_assoc(current_employee, user,
                          changeset: changeset,
@@ -145,7 +144,7 @@ defmodule TurnStileWeb.AlertUtils do
   -No auth for incoming alerts needed; match is checked before this call
   -assoc alert w all relevant others
   -return saved alert
-  -partner function to authenticate_and_save_sent_alert
+  -contrary function to authenticate_and_save_sent_alert
   """
   def save_received_email_alert(user, params) do
     cond do
@@ -254,7 +253,7 @@ defmodule TurnStileWeb.AlertUtils do
     # use default system setting for email
     user = TurnStile.Patients.get_user(alert.user_id)
 
-    alert = maybe_append_development_fields(alert)
+    alert = maybe_append_email_development_fields(alert)
 
     # put in build_user_alert_url as a callback
     case TurnStile.Patients.deliver_user_email_alert_reply_instructions(
@@ -272,7 +271,7 @@ defmodule TurnStileWeb.AlertUtils do
   end
 
   # handle fill-in :to, :from when flag
-  defp maybe_append_development_fields(alert) do
+  defp maybe_append_email_development_fields(alert) do
     if System.get_env("EMAIL_ALERT_MODE") === "dev" do
       # make sure alert is set to system TO/FROM settings
       # default :from
@@ -345,7 +344,8 @@ defmodule TurnStileWeb.AlertUtils do
   end
 
   defp handle_alert_body_and_title_display(body, title) do
-    # performs what original code wanted but didn't work: "#{alert.title} - #{alert.body}
+    # performs what original code wanted but didn't work:
+    # - puts text in this order "#{alert.title} - #{alert.body}
     # code via CHATgpt
     case {title, body} do
       {nil, nil} -> nil
