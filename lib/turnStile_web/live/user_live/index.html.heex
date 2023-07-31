@@ -1,7 +1,7 @@
 <h1><%= @page_title %></h1>
 <%!-- remove this line later if saftey no needed --%>
 <%= if @current_employee do %>
-  <%= if @live_action in [:new, :edit_all] do %>
+  <%= if @live_action in [:new] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
       <.live_component
         module={TurnStileWeb.UserLive.UpsertFormComponent}
@@ -9,6 +9,7 @@
         action={@live_action}
         current_employee={@current_employee}
         user={@user}
+        page_title={@page_title}
         return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
       />
     </.modal>

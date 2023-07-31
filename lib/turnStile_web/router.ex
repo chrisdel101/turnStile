@@ -148,10 +148,6 @@ defmodule TurnStileWeb.Router do
 
     live "/organizations/:organization_id/employees/:employee_id/users/new", UserLive.Index, :new
 
-    live "/organizations/:organization_id/employees/:employee_id/users/:id/edit",
-      UserLive.Index,
-      :edit_all
-
     live "/organizations/:organization_id/employees/:employee_id/users/:id",
       UserLive.Show,
       :show

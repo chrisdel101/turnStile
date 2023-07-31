@@ -72,8 +72,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       handle_event("validate", %{"user" => user_params}, socket)
     else
       case socket.assigns.action do
-        # :edit_all is edit button on index page - not shown curently
-        action when action in [:edit, :edit_all] ->
+        action when action in [:edit] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
             save_user(socket, socket.assigns.action, user_params)
           else

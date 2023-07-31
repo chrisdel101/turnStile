@@ -9,6 +9,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Alerts.Alert
 
 
+  # live_actions [:new, :index, :alerts, :edit]
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
   @interval 100000
   @filter_active_users_mins 30
@@ -36,23 +37,24 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  # called on index when no user_id
+  # called via live_patch in index.html; :alerts gets assigned as action
+  # called on index when no user_id present
   def handle_params(%{"panel" => panel} = params, _url, socket) do
     # IO.inspect(params, label: "action on index")
+    # IO.inspect(socket.assigns, label: "action on index")
     socket = assign(socket, :panel, panel)
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  # called on show when user_id
-  def handle_params(params, _url, socket) do
-    # IO.inspect(params, label: "params on index")
+  # called on index main page;
+  def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
+    # IO.inspect(params, label: "params on index XXX")
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   @impl true
-
   def handle_info(%{user_alert_status: user_alert_status}, socket) do
-    IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
+    # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
       Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
@@ -179,7 +181,7 @@ defmodule TurnStileWeb.UserLive.Index do
             else
               case AlertUtils.send_SMS_alert(alert) do
                 {:ok, twilio_msg} ->
-                  IO.inspect(twilio_msg, label: "twilio_msg")
+                  # IO.inspect(twilio_msg, label: "twilio_msg")
 
                   case AlertUtils.handle_updating_user_alert_send_status(
                          socket.assigns.user,
@@ -304,19 +306,13 @@ defmodule TurnStileWeb.UserLive.Index do
        )}
     end
   end
-
+  # -called from live_patch in index.html; passes :alerts
   defp apply_action(socket, :alerts, params) do
     %{"id" => user_id} = params
-    # IO.inspect(Patients.get_user(user_id), label: "user_id")
+    # IO.inspect(Patients.get_user(user_id), label: ":alerts")
     socket
     |> assign(:page_title, "User Alerts")
     |> assign(:user, Patients.get_user(user_id))
-  end
-
-  defp apply_action(socket, :edit_all, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit User")
-    |> assign(:user, Patients.get_user(id))
   end
 
   # assigns individual user changset on :new
