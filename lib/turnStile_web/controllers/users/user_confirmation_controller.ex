@@ -2,10 +2,7 @@ defmodule TurnStileWeb.UserConfirmationController do
   use TurnStileWeb, :controller
   import Plug.Conn
 
-  # alias TurnStile.Patients
-  # alias TurnStile.Patients.User
   alias TurnStileWeb.AlertController
-  # @json TurnStile.Utils.read_json("sms.json")
 
   @confirm_value "1"
   @confirm_key "CONFIRMATION"

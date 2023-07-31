@@ -4,7 +4,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
   alias TurnStile.Alerts.Alert
   alias TurnStileWeb.AlertUtils
   alias TurnStileWeb.UserLive.Index
-  @json TurnStile.Utils.read_json("sms.json")
+  @json TurnStile.Utils.read_json("alert_text.json")
 
   @impl true
   def update(props, socket) do

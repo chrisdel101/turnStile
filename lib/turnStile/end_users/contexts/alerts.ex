@@ -11,7 +11,7 @@ defmodule TurnStile.Alerts do
   alias TurnStile.Patients
   alias TurnStile.Staff
   alias TurnStile.Roles
-  @json TurnStile.Utils.read_json("sms.json")
+  @json TurnStile.Utils.read_json("alert_text.json")
 
   @doc """
   Returns the list of alerts.
@@ -264,7 +264,6 @@ defmodule TurnStile.Alerts do
         alert_format \\ AlertFormatTypesMap.get_alert("SMS"),
         opts \\ []
       ) do
-        IO.inspect("build_alert_attrs")
     cond do
       # build custom type alert
       alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->

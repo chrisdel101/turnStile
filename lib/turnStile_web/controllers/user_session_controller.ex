@@ -2,7 +2,7 @@ defmodule TurnStileWeb.UserSessionController do
   use TurnStileWeb, :controller
 
   alias TurnStileWeb.UserAuth
-  @json TurnStile.Utils.read_json("sms.json")
+  @json TurnStile.Utils.read_json("alert_text.json")
 
   def new(conn, %{"user_id" => _user_id}) do
     user = conn.assigns[:current_user]
