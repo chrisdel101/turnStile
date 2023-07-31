@@ -295,7 +295,7 @@ defmodule TurnStile.Patients do
     changeset =
       user
       |> User.update_changeset(attrs)
-      IO.inspect(user.alert_format_set, label: "Patients.update_user attrs")
+      # IO.inspect(user.alert_format_set, label: "Patients.update_user attrs")
     case Repo.update(changeset) do
       {:ok, user} ->
         {:ok,
@@ -368,8 +368,8 @@ defmodule TurnStile.Patients do
     # IO.inspect(encoded_token)
     # IO.inspect(user_token)
     case build_and_insert_email_token(user) do
-      {_tokenized_url, _token, encoded_token} ->
-        IO.inspect("INSERTED TOKEN")
+      {tokenized_url, _token, encoded_token} ->
+        IO.inspect(tokenized_url, label: "build_and_insert_email_token URL")
       cond do
         alert.alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
           case UserNotifier.deliver_initial_alert(
@@ -464,7 +464,7 @@ defmodule TurnStile.Patients do
       {:ok, query} ->
         case Repo.one(query) do
           %User{} = user ->
-            IO.inspect(user, label: "user")
+            # IO.inspect(user, label: "confirm_user_email_token user")
 
             if user.id != TurnStile.Utils.convert_to_int(user_id) do
               IO.puts("confirm_user_email_token: User param ID does not match token")
@@ -477,7 +477,7 @@ defmodule TurnStile.Patients do
                 case Repo.one(query) do
                   %User{} = user ->
                     {:ok, user}
-                    # run multi based on flag
+                    # run multi based on flag: used in testing
                     case Keyword.fetch(opts, :skip) do
                       {:ok, true} ->
                         # return user

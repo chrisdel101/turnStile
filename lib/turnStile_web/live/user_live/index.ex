@@ -58,21 +58,10 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, assign(socket, :users, users)}
   end
 
-  def handle_info(:update_and_reschedule, socket) do
-    IO.puts("calling :update_and_reschedule")
-    Process.send_after(self(), :update, @interval)
-
-    users =
-      Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
-
-    # IO.inspect(users, label: "XXXXXXXX")
-    {:noreply, assign(socket, :users, users)}
-  end
-
   def handle_info(:update, socket) do
+    # update_and_reschedule and call
     if connected?(socket), do: Process.send_after(self(), :update, @interval)
 
-    # Process.send(self(), :update, 30000)
     users =
       Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
 
@@ -83,7 +72,8 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
   def handle_event(
         "send_initial_alert",
-        %{"alert-format" => alert_format, "user-id" => user_id, "value" => _value},
+        %{"alert-format" => alert_format, "user-id" => user_id,
+        "value" => _value},
         socket
       ) do
     # assign user to socket to pass along

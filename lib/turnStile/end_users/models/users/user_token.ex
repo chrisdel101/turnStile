@@ -92,8 +92,8 @@ defmodule TurnStile.Patients.UserToken do
   defp build_hashed_token(user, context, sent_to) do
     token = :crypto.strong_rand_bytes(@rand_size)
     hashed_token = :crypto.hash(@hash_algorithm, token)
-    IO.inspect(hashed_token, label: "tokenBH")
-    IO.inspect(Base.url_encode64(token, padding: false), label: "encoded_tokenBH")
+    # IO.inspect(hashed_token, label: "tokenBH")
+    # IO.inspect(Base.url_encode64(token, padding: false), label: "encoded_tokenBH")
     {Base.url_encode64(token, padding: false),
      %UserToken{
        token: hashed_token,

@@ -13,7 +13,7 @@
           }
         }
       },
-      "email" : {
+      "email": {
         "general_title": "This is a Turnstile Alert",
         "initial": {
           "title": "This is a Turnstile Alert",
@@ -27,13 +27,17 @@
         "cancel": "You have cancelled your turn. You will no longer recieve alerts.",
         "wrong_response": "Invalid response. Valid responses are \n - 1 to confirm \n - 2 to cancel"
       },
-      "email" : {
-        "confirmation_page": "This action is confirm your place in line. Click a button below to confirm or cancel."
-      }
+      "email": {}
     }
   },
-  "matching_responses": {
-    "1": "You have confirmed your turn. You will recieve another alert update when it is your turn.",
-    "2": "You have cancelled your turn. You will no longer recieve alerts."
+  "match_incoming_request": {
+    "sms": {
+      "1": "Confimation received. You have confirmed your turn. You will recieve another alert update when it is your turn.",
+      "2": "You have cancelled your turn. You will no longer recieve alerts."
+    },
+    "email": {
+      "1": "Confimation received. You will recieve an email update when it is your turn.",
+      "2": "You have cancelled your turn. You will no longer recieve alerts."
+    }
   }
 }

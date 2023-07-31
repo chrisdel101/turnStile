@@ -3,7 +3,7 @@ defmodule TurnStileWeb.AlertUtils do
   alias TurnStile.Alerts.Alert
   alias TurnStile.Alerts
   alias TurnStile.Staff
-  @json TurnStile.Utils.read_json("sms.json")
+  @json TurnStile.Utils.read_json("alert_text.json")
   alias TurnStileWeb.EmployeeAuth
 
   @doc """
@@ -162,7 +162,7 @@ defmodule TurnStileWeb.AlertUtils do
         to: System.get_env("SYSTEM_ALERT_FROM_EMAIL"),
         from: user.email
         )
-        IO.inspect(attrs, label: "alert_attrs")
+        IO.inspect(attrs, label: "save_received_email_alert alert_attrs")
         # build attr map
 
         changeset =
@@ -182,7 +182,7 @@ defmodule TurnStileWeb.AlertUtils do
                organization_struct: user.organization
              ) do
           {:ok, alert_changeset} ->
-            IO.inspect(alert_changeset, label: "alert_changeset")
+            # IO.inspect(alert_changeset, label: "alert_changeset")
             # insert alert into DB
             case Alerts.insert_alert(alert_changeset) do
               {:ok, alert} ->
@@ -284,8 +284,8 @@ defmodule TurnStileWeb.AlertUtils do
   defp compute_sms_category_from_body(twilio_params) do
     body = twilio_params["Body"]
     #  check if match is valid or not
-    if @json["matching_responses"][body] do
-      # IO.inspect(@json["matching_responses"][body], label: "matching_responses")
+    if @json["match_incoming_request"][body] do
+      # IO.inspect(@json["match_incoming_request"][body], label: "match_incoming_request")
 
       cond do
         body === "1" ->

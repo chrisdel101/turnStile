@@ -20,7 +20,9 @@ defmodule TurnStile.Alerts.Alert do
       belongs_to(:organization, TurnStile.Company.Organization)
       timestamps()
 
-      # - when alert is recieved this is response sent back to sender; webhook response
+      # SystemResponse
+      # - SMS: when user alert is recieved by system this response sent back to sender via twilio webhook
+      # - Email: when user alert is recieved by system this response sent back to sender via flash message
       embeds_one :system_response, SystemResponse, on_replace: :update
       do
         field(:title, :string)

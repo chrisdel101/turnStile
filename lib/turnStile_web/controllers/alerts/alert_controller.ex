@@ -4,15 +4,21 @@ defmodule TurnStileWeb.AlertController do
   alias TurnStile.Patients
   alias TurnStileWeb.AlertUtils
   alias TurnStile.Alerts
-  @json Utils.read_json("sms.json")
+  @json Utils.read_json("alert_text.json")
 
-  def receive_email_alert(conn, %{"user_id" => user_id, "response_value" => response_value, "response_key" => response_key}) do
-    IO.inspect(response_value, label: "response_value")
+  def receive_email_alert(conn, %{
+        "user_id" => user_id,
+        "response_value" => response_value,
+        "response_key" => response_key
+      }) do
     current_user = conn.assigns[:current_user]
-    if is_response_valid?(response_value) do
-      #   IO.inspect(alert_attrs, label: "alert_attrs")
-      case AlertUtils.save_received_email_alert(current_user,
-      %{"response_value" => response_value, "response_key" => response_key}) do
+
+    # IO.inspect(response_value, label: "response_value")
+    if is_response_valid?(response_value, AlertFormatTypesMap.get_alert("EMAIL")) do
+      case AlertUtils.save_received_email_alert(
+             current_user,
+             %{"response_value" => response_value, "response_key" => response_key}
+           ) do
         {:error, error_msg} ->
           # alert save failure
           IO.inspect(error_msg, label: "receive_email_alert error in save_received_email_alert")
@@ -34,24 +40,30 @@ defmodule TurnStileWeb.AlertController do
             {:error, error} ->
               IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
           end
-          {:error, error_msg}
+          # outer return error for above case
+          {:error, error_msg} # alert save failure return
+
         {:error, %Ecto.Changeset{} = changeset} ->
-            {:error, changeset}
+          {:error, changeset}
+
         {:ok, alert} ->
-          IO.inspect(alert, label: "alert123")
-          system_response_body = compute_return_body(response_value)
-          system_response_map = Alerts.build_system_response_map(alert, body: system_response_body)
-          IO.inspect(system_response_map, label: "alert123")
+          # IO.inspect(alert, label: "receive_email_alert alert saved")
+          system_response_body = compute_return_body(response_value, AlertFormatTypesMap.get_alert("EMAIL"))
+
+          system_response_map =
+            Alerts.build_system_response_map(alert, body: system_response_body)
+
+          # IO.inspect(system_response_map, label: "receive_email_alert sytem_response_map")
           #  alert w system_response map; recieved alerts only
           case Alerts.update_alert(alert, system_response_map) do
             {:ok, updated_alert} ->
-              IO.inspect(updated_alert, label: "updated_alert")
+              # IO.inspect(updated_alert, label: "receive_email_alert updated_alert w system_response_map")
 
               user_alert_status = compute_user_alert_status(response_value)
               # update user account in DB
               case Patients.update_alert_status(current_user, user_alert_status) do
                 {:ok, updated_user} ->
-                  IO.inspect(updated_user, label: "updated_user")
+                  # IO.inspect(updated_user, label: "updated_user")
                   # send valid respnse to update UI - changes status on the page to match
                   Phoenix.PubSub.broadcast(
                     TurnStile.PubSub,
@@ -60,6 +72,7 @@ defmodule TurnStileWeb.AlertController do
                   )
                   # send reply back to user screen
                   {:ok, system_response_body}
+
                 {:error, error} ->
                   IO.inspect(error, label: "receive_email_alert error in update_user")
                   # update user account as ERROR status
@@ -83,7 +96,8 @@ defmodule TurnStileWeb.AlertController do
                   end
 
                   # send reply back to user screen
-                  {:error, "An error occurred updating your account. Your account was not updated. Please try again."}
+                  {:error,
+                   "An error occurred updating your account. Your account was not updated. Please try again."}
               end
 
             # alert update failure
@@ -108,14 +122,13 @@ defmodule TurnStileWeb.AlertController do
                   IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
                   # TODO  - send flash to employee
               end
-
-
           end
-
       end
     else
-     IO.puts("Error: is_response_valid? returned false in receive_email_alert")
-     {:error, "Error: your response was invalid. Your account was not updated. Please try again."}
+      IO.puts("Error: is_response_valid? returned false in receive_email_alert")
+
+      {:error,
+       "Error: your response was invalid or caused system. Your account was not updated. Please try again."}
     end
   end
 
@@ -124,7 +137,7 @@ defmodule TurnStileWeb.AlertController do
     # get response from text message
     response_body = twilio_params["Body"]
     # invalid incoming user sms
-    if is_response_valid?(response_body) do
+    if is_response_valid?(response_body, AlertFormatTypesMap.get_alert("SMS")) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
           # IO.inspect(user, label: "USER")
@@ -132,7 +145,7 @@ defmodule TurnStileWeb.AlertController do
             {:ok, alert} ->
               # IO.inspect(alert, label: "alert")
               # exract response text
-              system_response_body = compute_return_body(twilio_params["Body"])
+              system_response_body = compute_return_body(twilio_params["Body"], AlertFormatTypesMap.get_alert("SMS"))
               # build response map
               system_response_map =
                 Alerts.build_system_response_map(alert, body: system_response_body)
@@ -264,7 +277,7 @@ defmodule TurnStileWeb.AlertController do
     conn
     |> put_resp_content_type("text/xml")
     # |> maybe_write_alert_cookie(token)
-    |> text(IsolatedTwinML.render_response(compute_return_body(twilio_params["Body"])))
+    |> text(IsolatedTwinML.render_response(compute_return_body(twilio_params["Body"], AlertFormatTypesMap.get_alert("SMS"))))
   end
 
   # twlilio webhook in resonse to user reply
@@ -321,16 +334,15 @@ defmodule TurnStileWeb.AlertController do
   end
 
   # check user resonse within text message; find appropriate response to send
-  def compute_return_body(response_value) do
-    # get response from text message
-    # body = twilio_params["Body"]
-
-    #  check if match is valid or not
-    if @json["matching_responses"][response_value] do
-      # handle user account
-      @json["matching_responses"][response_value]
+  def compute_return_body(response_value, alert_format) do
+    # IO.inspect(response_value, label: "response_value")
+    #  key into dict to get a match
+    if @json["match_incoming_request"][alert_format][response_value] do
+      # send the match as reponse
+      @json["match_incoming_request"][alert_format][response_value]
     else
-      @json["alerts"]["response"]["sms"]["wrong_response"]
+      # send a non-matched response
+      @json["alerts"]["response"][alert_format]["wrong_response"]
     end
   end
 
@@ -353,12 +365,12 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  def is_response_valid?(response_value) do
+  def is_response_valid?(response_value, alert_format) do
     if is_nil(response_value) do
       false
     else
       #  check if match is valid or not
-      if @json["matching_responses"][response_value], do: true, else: false
+      if @json["match_incoming_request"][alert_format][response_value], do: true, else: false
     end
   end
 
