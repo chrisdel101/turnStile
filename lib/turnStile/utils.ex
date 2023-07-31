@@ -29,10 +29,10 @@ defmodule TurnStile.Utils do
     end
   end
 
-
 # convert a list to a string with parenthese "()" - used for DB enum type syntax - https://stackoverflow.com/a/37216214/5972531
   def convert_to_parens_string(roles_list) do
-    x = Enum.with_index(roles_list)
+    x =
+      Enum.with_index(roles_list)
     |> Enum.map(fn x ->
       value = elem(x, 0)
       index = elem(x, 1)
@@ -49,6 +49,7 @@ defmodule TurnStile.Utils do
       end
     end)
     |> Enum.join(", ")
+
     IO.puts("#{x}")
     x
   end
@@ -89,11 +90,15 @@ defmodule TurnStile.Utils do
     |> File.read!()
     |> Jason.decode!()
   end
+
   def fetch_timezones_enum do
-    query_result = Ecto.Adapters.SQL.query(TurnStile.Repo, "select enum_range(null::timezone)", [])
+    query_result =
+      Ecto.Adapters.SQL.query(TurnStile.Repo, "select enum_range(null::timezone)", [])
+
     case query_result do
       {:ok, %Postgrex.Result{rows: [rows]}} ->
         rows
+
       {:ok, %Postgrex.Result{rows: []}} ->
         []
 
@@ -101,18 +106,31 @@ defmodule TurnStile.Utils do
         []
     end
   end
+
   def fetch_timezones do
     Tzdata.zone_list()
   end
+
   def shift_datetime(naive_UTC, timezone_to_shift) do
     first_datetime = DateTime.from_naive!(naive_UTC, "Etc/UTC")
-    case DateTime.shift_zone(first_datetime, timezone_to_shift)
-    do
+
+    case DateTime.shift_zone(first_datetime, timezone_to_shift) do
       {:ok, new_datetime} ->
         {:ok, new_datetime}
+
       {:error, error} ->
         {:error, error}
     end
+  end
+
+  def convert_to_readable_datetime(datetime, timezone \\ "America/Regina")
+
+  def convert_to_readable_datetime(%DateTime{} = d, timezone) do
+    "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
+  end
+
+  def convert_to_readable_datetime(%NaiveDateTime{} = d, timezone) do
+    "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
   end
 
   def filter_maps_list_by_truthy(list, search_term_str) do
@@ -122,10 +140,11 @@ defmodule TurnStile.Utils do
         else: nil
     end)
   end
+
   # - checks if maps list have a value that matches
   def filter_maps_list_by_value(list, key, value) do
     Enum.filter(list, fn map ->
-      if (!!Map.get(map, key) && Map.get(map, key) === value),
+      if !!Map.get(map, key) && Map.get(map, key) === value,
         do: map,
         else: nil
     end)
@@ -156,6 +175,7 @@ defmodule TurnStile.Utils do
         raise ArgumentError, message: "Error in is_arrow_map?. invalid map type"
     end
   end
+
   def remove_first_string_char(string, to_remove) do
     if String.starts_with?(string, to_remove) do
       # Remove first character
@@ -164,12 +184,14 @@ defmodule TurnStile.Utils do
       string
     end
   end
+
   def build_user_alert_url(user, encoded_user_token) do
-      base_url =  TurnStileWeb.Endpoint.url()
+    base_url = TurnStileWeb.Endpoint.url()
       confirmation_url = "#{base_url}/user/#{user.id}/#{encoded_user_token}"
       # Further processing
       confirmation_url
   end
+
   # check if user cookie exists; return user or nil; UNUSED
   def _check_if_user_cookie(cookies_map) do
     Enum.reduce_while(cookies_map, nil, fn {key, encoded_value}, _acc ->

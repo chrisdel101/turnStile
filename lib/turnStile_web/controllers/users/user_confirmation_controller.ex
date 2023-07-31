@@ -3,6 +3,7 @@ defmodule TurnStileWeb.UserConfirmationController do
   import Plug.Conn
 
   alias TurnStileWeb.AlertController
+  alias TurnStile.Patients
 
   @confirm_value "1"
   @confirm_key "CONFIRMATION"
@@ -12,9 +13,9 @@ defmodule TurnStileWeb.UserConfirmationController do
   def update(conn, %{"_action" => "confirm", "user_id" => user_id}) do
     # Handle confirm action
     case AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @confirm_value, "response_key" => @confirm_key}) do
-      {:ok, system_response_body} ->
+      {:ok, alert} ->
         conn
-        |> put_flash(:success, system_response_body)
+        |> put_flash(:success, alert.system_response.body)
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
 
       {:error, error_msg} ->
@@ -31,9 +32,12 @@ defmodule TurnStileWeb.UserConfirmationController do
   def update(conn, %{"_action" => "cancel", "user_id" => user_id}) do
     # Handle cancel action
     case AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @cancel_value, "response_key" => @cancel_key}) do
-      {:ok, system_response_body} ->
+      {:ok, alert} ->
+        # deactivate user; remove from queue
+
+        TurnStile.Patients.deactivate_user(Patients.get_user(user_id))
         conn
-        |> put_flash(:success, system_response_body)
+        |> put_flash(:warning, alert.system_response.body)
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
 
       {:error, error_msg} ->

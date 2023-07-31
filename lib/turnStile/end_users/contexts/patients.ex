@@ -36,12 +36,27 @@ defmodule TurnStile.Patients do
 
     Repo.all(q)
   end
-
-  def list_active_users(organization_id) do
-    q =
+  # query for all active users in an organization
+  def list_active_users_query(organization_id) do
       from(u in User,
         where: u.organization_id == ^organization_id,
-        where: u.is_active? == true,
+        where: u.is_active? == true
+      )
+  end
+  # use active query and refine it little
+  def list_active_users(organization_id) do
+    q =
+      from(u in list_active_users_query(organization_id),
+        preload: [:employee, :organization],
+        order_by: [desc: u.inserted_at]
+      )
+    Repo.all(q)
+  end
+  # use active query to get deactivated w/in a time period
+  def filter_active_users(organization_id) do
+    q =
+      from(u in list_active_users_query(organization_id),
+        # where: token.inserted_at > ago(30  , "second"),
         preload: [:employee, :organization],
         order_by: [desc: u.inserted_at]
       )

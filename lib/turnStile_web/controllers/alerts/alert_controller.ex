@@ -71,7 +71,7 @@ defmodule TurnStileWeb.AlertController do
                     %{user_alert_status: updated_user.user_alert_status}
                   )
                   # send reply back to user screen
-                  {:ok, system_response_body}
+                  {:ok, updated_alert}
 
                 {:error, error} ->
                   IO.inspect(error, label: "receive_email_alert error in update_user")
