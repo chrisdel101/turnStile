@@ -11,7 +11,7 @@ defmodule TurnStile.Patients.User do
     field :is_active?, :boolean, default: true
     field :user_alert_status, :string,
       default: UserAlertStatusTypesMap.get_user_status("UNALERTED")
-    field :alert_format_set, :string
+    field :alert_format_set, :string #set to default in apply_defaults
     # most recent employee to access this user
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert , on_delete: :delete_all

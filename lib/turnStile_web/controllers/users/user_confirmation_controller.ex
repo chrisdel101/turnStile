@@ -4,6 +4,7 @@ defmodule TurnStileWeb.UserConfirmationController do
 
   alias TurnStileWeb.AlertController
   alias TurnStile.Patients
+  alias TurnStileWeb.UserAuth
 
   @confirm_value "1"
   @confirm_key "CONFIRMATION"
@@ -26,6 +27,9 @@ defmodule TurnStileWeb.UserConfirmationController do
         conn
         |> put_flash(:error, "An error occured")
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
+      nil ->
+        # no changes to user
+        conn
     end
   end
 
@@ -38,7 +42,7 @@ defmodule TurnStileWeb.UserConfirmationController do
         TurnStile.Patients.deactivate_user(Patients.get_user(user_id))
         conn
         |> put_flash(:warning, alert.system_response.body)
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
+        |> UserAuth.log_out_user()
 
       {:error, error_msg} ->
         conn

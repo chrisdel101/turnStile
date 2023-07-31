@@ -113,7 +113,7 @@ defmodule TurnStileWeb.UserAuth do
     conn
     |> renew_session()
     |> delete_resp_cookie(@expiration_cookie)
-    |> redirect(to: "/")
+    |> redirect(to: Routes.page_path(conn, :index))
   end
 
   @doc """

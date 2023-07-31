@@ -11,6 +11,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
   @interval 100000
+  @filter_active_users_mins 30
 
   @impl true
   def mount(_params, session, socket) do
@@ -24,11 +25,12 @@ defmodule TurnStileWeb.UserLive.Index do
     if connected?(socket), do: Process.send_after(self(), :update, @interval)
     # subscribe - broadcast is in alert controller
     Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE"))
-
+    users = Patients.filter_active_users_x_mins_past_last_update(organization_id, @filter_active_users_mins)
+    # IO.inspect(users, label: "users in fetchBBBBBBBBBBBBB")
     {:ok,
      assign(
        socket,
-       users: Patients.filter_active_users_x_mins_past_last_update(organization_id, 30),
+       users: users,
        current_employee: current_employee
      )}
   end
@@ -53,17 +55,17 @@ defmodule TurnStileWeb.UserLive.Index do
     IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
-      Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
+      Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
 
     {:noreply, assign(socket, :users, users)}
   end
 
   def handle_info(:update, socket) do
     # update_and_reschedule and call
-    # if connected?(socket), do: Process.send_after(self(), :update, @interval)
+    if connected?(socket), do: Process.send_after(self(), :update, @interval)
 
     users =
-      Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
+      Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
 
     # IO.inspect(users, label: "YYYYYYY")
     {:noreply, assign(socket, :users, users)}
@@ -256,7 +258,7 @@ defmodule TurnStileWeb.UserLive.Index do
        assign(
          socket,
          :users,
-         Patients.list_active_users(current_employee.current_organization_login_id)
+         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
        )}
     else
       socket =
@@ -267,7 +269,7 @@ defmodule TurnStileWeb.UserLive.Index do
        assign(
          socket,
          :users,
-         Patients.list_active_users(current_employee.current_organization_login_id)
+         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
        )}
     end
   end
@@ -287,7 +289,7 @@ defmodule TurnStileWeb.UserLive.Index do
        assign(
          socket,
          :users,
-         Patients.list_active_users(current_employee.current_organization_login_id)
+         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
        )}
     else
       socket =
@@ -298,7 +300,7 @@ defmodule TurnStileWeb.UserLive.Index do
        assign(
          socket,
          :users,
-         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, 30)
+         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
        )}
     end
   end

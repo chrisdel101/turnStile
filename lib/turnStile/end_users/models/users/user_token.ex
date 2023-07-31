@@ -9,7 +9,7 @@ defmodule TurnStile.Patients.UserToken do
    # TOKEN LIFE SETTINGS for app
    @email_token_validity_hours 6
    @email_token_validity_seconds 1 # unused
-   @session_token_validity_seconds 5000
+   @session_token_validity_seconds 60 * 60 * 6 # 6 hours
 
    def get_email_token_validity_hours, do: @email_token_validity_hours
 

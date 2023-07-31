@@ -37,7 +37,7 @@
     },
     "email": {
       "1": "Confimation received. You will recieve an email update when it is your turn.",
-      "2": "You have cancelled your turn. You will no longer recieve alerts. You may exit this page."
+      "2": "You have cancelled your turn. You will no longer recieve alerts."
     }
   }
 }
