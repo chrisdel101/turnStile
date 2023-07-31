@@ -95,8 +95,9 @@ defmodule TurnStileWeb.AlertUtils do
         lower_twilio_params =
           Map.new(twilio_params, fn {key, value} -> {String.downcase(key), value} end)
 
-        alert_category = compute_sms_category_from_body(twilio_params)
-        # build attr map
+          alert_category = compute_sms_category_from_body(twilio_params)
+
+          # build attr map
         attrs =
           Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
 
@@ -282,9 +283,9 @@ defmodule TurnStileWeb.AlertUtils do
   end
 
   defp compute_sms_category_from_body(twilio_params) do
-    body = twilio_params["Body"]
+    body = twilio_params["Body"] || twilio_params["body"]
     #  check if match is valid or not
-    if @json["match_incoming_request"][body] do
+    if @json["match_incoming_request"]["sms"][body] do
       # IO.inspect(@json["match_incoming_request"][body], label: "match_incoming_request")
 
       cond do

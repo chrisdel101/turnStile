@@ -50,7 +50,7 @@ defmodule TurnStileWeb.UserAuth do
   """
   def require_authenticated_user(conn, _opts) do
     # current_user = conn.assigns[:current_user]
-    # IO.inspect(current_user, label: "current_user: require_authenticated_user")
+    # IO.inspect(conn.assigns[:current_user], label: "current_user: require_authenticated_user")
     if conn.assigns[:current_user] do
       conn
     else

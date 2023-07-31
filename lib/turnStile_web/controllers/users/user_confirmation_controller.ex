@@ -12,6 +12,8 @@ defmodule TurnStileWeb.UserConfirmationController do
   @cancel_key "CANCELLATION"
 
   def update(conn, %{"_action" => "confirm", "user_id" => user_id}) do
+    a = AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @confirm_value, "response_key" => @confirm_key})
+    IO.inspect(a, label: "a")
     # Handle confirm action
     case AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @confirm_value, "response_key" => @confirm_key}) do
       {:ok, alert} ->
@@ -28,8 +30,8 @@ defmodule TurnStileWeb.UserConfirmationController do
         |> put_flash(:error, "An error occured")
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
       nil ->
-        # no changes to user
         conn
+        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
     end
   end
 

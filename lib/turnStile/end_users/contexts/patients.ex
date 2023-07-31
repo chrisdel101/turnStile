@@ -92,17 +92,17 @@ defmodule TurnStile.Patients do
   # -needs to check if input number matches also for 1, and +1
   # -need to check if there is match of input w/ a 1 or +1
   def get_users_by_phone(phone) do
-    # remove leading 1 and +
-    phone = TurnStile.Utils.remove_first_string_char(phone, "+")
-    phone = TurnStile.Utils.remove_first_string_char(phone, "1")
-
-    q =
-      from(u in User,
-        where: u.phone == ^phone,
-        order_by: [desc: u.inserted_at],
-        preload: [:employee, :organization]
-      )
-    Repo.all(q)
+    if !is_nil(phone) do
+      # remove leading 1 and +
+      phone = String.trim(TurnStile.Utils.remove_first_string_char(phone, "+"))
+      q =
+        from(u in User,
+          where: u.phone == ^phone,
+          order_by: [desc: u.inserted_at],
+          preload: [:employee, :organization]
+        )
+      Repo.all(q)
+    end
   end
 
   def get_user_most_recently_updated(user_list) do
@@ -316,7 +316,6 @@ defmodule TurnStile.Patients do
     changeset =
       user
       |> User.update_changeset(attrs)
-      # IO.inspect(user.alert_format_set, label: "Patients.update_user attrs")
     case Repo.update(changeset) do
       {:ok, user} ->
         {:ok,
@@ -365,7 +364,6 @@ defmodule TurnStile.Patients do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.update_changeset(user, attrs)
   end
-
   #  NO preloading - may cause error later
   def update_alert_status(user, new_alert_status) do
     # {:error, "Error: update_alert_status: invalid alert status type"}

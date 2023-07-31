@@ -5,6 +5,7 @@ defmodule TurnStileWeb.AlertController do
   alias TurnStileWeb.AlertUtils
   alias TurnStile.Alerts
   @json Utils.read_json("alert_text.json")
+  import Ecto.Changeset
 
   def receive_email_alert(conn, %{
         "user_id" => user_id,
@@ -59,47 +60,51 @@ defmodule TurnStileWeb.AlertController do
             {:ok, updated_alert} ->
               # IO.inspect(updated_alert, label: "receive_email_alert updated_alert w system_response_map")
 
-              user_alert_status = compute_user_alert_status(response_value)
-              # update user account in DB
-              case Patients.update_alert_status(current_user, user_alert_status) do
-                {:ok, updated_user} ->
-                  # IO.inspect(updated_user, label: "updated_user")
-                  # send valid respnse to update UI - changes status on the page to match
-                  Phoenix.PubSub.broadcast(
-                    TurnStile.PubSub,
-                    PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                    %{user_alert_status: updated_user.user_alert_status}
-                  )
-                  # send reply back to user screen
-                  {:ok, updated_alert}
-
-                {:error, error} ->
-                  IO.inspect(error, label: "receive_email_alert error in update_user")
-                  # update user account as ERROR status
-                  case Patients.update_alert_status(
-                         current_user,
-                         UserAlertStatusTypesMap.get_user_status("ERROR")
-                       ) do
+              user_alert_status = compute_new_user_alert_status(response_value)
+              changeset = change(current_user, %{user_alert_status: user_alert_status})
+              # only send change updates if valid
+              if changeset.valid? && changeset.changes !== %{} do
+                IO.inspect(changeset, label: "changesetXXXX")
+                  # update user account in DB
+                  case Patients.update_alert_status(current_user, user_alert_status) do
                     {:ok, updated_user} ->
                       # IO.inspect(updated_user, label: "updated_user")
-                      # send respnse to update UI; match the DB status
+                      # send valid respnse to update UI - changes status on the page to match
                       Phoenix.PubSub.broadcast(
                         TurnStile.PubSub,
                         PubSubTopicsMap.get_topic("STATUS_UPDATE"),
                         %{user_alert_status: updated_user.user_alert_status}
                       )
+                      # send reply back to user screen
+                      {:ok, updated_alert}
 
-                    # update user account error failure
                     {:error, error} ->
-                      IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
-                      # TODO  - send flash to employee
+                      IO.inspect(error, label: "receive_email_alert error in update_user")
+                      # update user account as ERROR status
+                      case Patients.update_alert_status(
+                            current_user,
+                            UserAlertStatusTypesMap.get_user_status("ERROR")
+                          ) do
+                        {:ok, updated_user} ->
+                          # IO.inspect(updated_user, label: "updated_user")
+                          # send respnse to update UI; match the DB status
+                          Phoenix.PubSub.broadcast(
+                            TurnStile.PubSub,
+                            PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                            %{user_alert_status: updated_user.user_alert_status}
+                          )
+
+                        # update user account error failure
+                        {:error, error} ->
+                          IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
+                          # TODO  - send flash to employee
+                      end
+
+                      # send reply back to user screen
+                      {:error,
+                      "An error occurred updating your account. Your account was not updated. Please try again."}
                   end
-
-                  # send reply back to user screen
-                  {:error,
-                   "An error occurred updating your account. Your account was not updated. Please try again."}
               end
-
             # alert update failure
             {:error, error} ->
               IO.inspect(error, label: "receive_sms_alert error in update_alert")
@@ -152,52 +157,60 @@ defmodule TurnStileWeb.AlertController do
 
               # update alert w system_response map; recieved alerts only
               case Alerts.update_alert(alert, system_response_map) do
-                {:ok, _updated_alert} ->
+                {:ok, updated_alert} ->
                   # IO.inspect(updated_alert, label: "updated_alert")
 
-                  user_alert_status = compute_user_alert_status(twilio_params["Body"])
-                  # update user account in DB
-                  case Patients.update_alert_status(user, user_alert_status) do
-                    {:ok, updated_user} ->
-                      # IO.inspect(updated_user, label: "updated_user")
-                      # send valid respnse to update UI - changes status on the page to match
-                      Phoenix.PubSub.broadcast(
-                        TurnStile.PubSub,
-                        PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                        %{user_alert_status: updated_user.user_alert_status}
-                      )
+                  user_alert_status = compute_new_user_alert_status(twilio_params["Body"])
+                  changeset = change(user, %{user_alert_status: user_alert_status})
+              # only send change updates if valid
+              if changeset.valid? && changeset.changes !== %{} do
+                # update user account in DB
+                case Patients.update_alert_status(user, user_alert_status) do
+                  {:ok, updated_user} ->
+                    # IO.inspect(updated_user, label: "updated_user")
+                    # send valid respnse to update UI - changes status on the page to match
+                    Phoenix.PubSub.broadcast(
+                      TurnStile.PubSub,
+                      PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                      %{user_alert_status: updated_user.user_alert_status}
+                    )
 
-                      # physically send valid SMS response
-                      send_computed_SMS_system_response(conn, twilio_params)
+                    # physically send valid SMS response
+                    send_computed_SMS_system_response(conn, twilio_params)
 
-                    {:error, error} ->
-                      IO.inspect(error, label: "receive_sms_alert error in update_user")
-                      # update user account as ERROR status
-                      case Patients.update_alert_status(
-                             user,
-                             UserAlertStatusTypesMap.get_user_status("ERROR")
-                           ) do
-                        {:ok, updated_user} ->
-                          # IO.inspect(updated_user, label: "updated_user")
-                          # send respnse to update UI; match the DB status
-                          Phoenix.PubSub.broadcast(
-                            TurnStile.PubSub,
-                            PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                            %{user_alert_status: updated_user.user_alert_status}
-                          )
+                  {:error, error} ->
+                    IO.inspect(error, label: "receive_sms_alert error in update_user")
+                    # update user account as ERROR status
+                    case Patients.update_alert_status(
+                           user,
+                           UserAlertStatusTypesMap.get_user_status("ERROR")
+                         ) do
+                      {:ok, updated_user} ->
+                        # IO.inspect(updated_user, label: "updated_user")
+                        # send respnse to update UI; match the DB status
+                        Phoenix.PubSub.broadcast(
+                          TurnStile.PubSub,
+                          PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                          %{user_alert_status: updated_user.user_alert_status}
+                        )
 
-                        # udate user account error failure
-                        {:error, error} ->
-                          IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
-                          # TODO  - send flash to employee
-                      end
+                      # udate user account error failure
+                      {:error, error} ->
+                        IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
+                        # TODO  - send flash to employee
+                    end
 
-                      # send manual sms system resonse to use
-                      send_manual_system_response(
-                        conn,
-                        "An internal system error occured during account update. Account was not updated."
-                      )
-                  end
+                    # send manual sms system resonse to use
+                    send_manual_system_response(
+                      conn,
+                      "An internal system error occured during account update. Account was not updated."
+                    )
+                end
+              else
+                conn
+                |> resp(202, "Accepted: no action")
+                |> send_resp()
+              end
 
                 # alert update failure
                 {:error, error} ->
@@ -301,7 +314,7 @@ defmodule TurnStileWeb.AlertController do
     # remove starting "+"
     number = Utils.remove_first_string_char(twilio_params["From"], "+")
 
-    # IO.inspect(number, label: "number")
+    IO.inspect(number, label: "number")
     users_w_number = Patients.get_users_by_phone(number)
     IO.inspect(users_w_number, label: "users_w_number")
 
@@ -324,7 +337,7 @@ defmodule TurnStileWeb.AlertController do
             {:ok, hd(active_pending_users)}
         end
 
-      length(users_w_number) === 1 ->
+      !is_nil(users_w_number) && length(users_w_number) === 1 ->
         {:ok, hd(users_w_number)}
 
       true ->
@@ -345,8 +358,28 @@ defmodule TurnStileWeb.AlertController do
       @json["alerts"]["response"][alert_format]["wrong_response"]
     end
   end
+  @doc """
+  manage_user_alert_status_state
+  - handles the state machine for user alert status
+  - if user states is invalid don't allow user to make incoming requests, i.e after cancel or expiration
+  """
+  def manage_user_alert_status(user, new_alert_status) do
+    cond do
+      # update to new status from pending
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("PENDING") && (new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") || new_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED")) ->
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("CONFIRMATION")
+        new_alert_status
+      # check for expired user
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("EXPIRED") ->
+        UserAlertStatusTypesMap.get_user_status("EXPIRED")
+         # check for cancelled user
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("CANCELLED") ->
+        UserAlertStatusTypesMap.get_user_status("CANCELLED")
+      true ->
 
-  def compute_user_alert_status(response_value) do
+    end
+  end
+  def compute_new_user_alert_status(response_value) do
     # body = twilio_params["Body"]
 
     case response_value do
@@ -358,7 +391,7 @@ defmodule TurnStileWeb.AlertController do
 
       _ ->
         IO.puts(
-          "ERROR: invalid response in compute_user_alert_status. This should not occur: validity already checked. Check inputs"
+          "ERROR: invalid response in compute_new_user_alert_status. This should not occur: validity already checked. Check inputs"
         )
 
         'INVALID_RESPONSE'
@@ -366,6 +399,7 @@ defmodule TurnStileWeb.AlertController do
   end
 
   def is_response_valid?(response_value, alert_format) do
+    IO.inspect(response_value, label: "response_value")
     if is_nil(response_value) do
       false
     else
@@ -375,7 +409,9 @@ defmodule TurnStileWeb.AlertController do
   end
 
   defp list_is_greater_than_1(list) do
-    length(list) !== 0 && length(list) > 1
+    if !is_nil(list) do
+      length(list) !== 0 && length(list) > 1
+    end
   end
 end
 

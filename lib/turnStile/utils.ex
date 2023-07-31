@@ -183,7 +183,7 @@ defmodule TurnStile.Utils do
   end
 
   def remove_first_string_char(string, to_remove) do
-    if String.starts_with?(string, to_remove) do
+    if !is_nil(string) && String.starts_with?(string, to_remove) do
       # Remove first character
       String.slice(string, 1..-1)
     else
