@@ -147,7 +147,7 @@
               <td><%= alert.alert_category %></td>
               <td>
                 <% {:ok, shifted_datetime} =
-                  TurnStile.Utils.shift_datetime(
+                  TurnStile.Utils.shift_naive_datetime(
                     @current_employee.inserted_at,
                     @current_employee.timezone
                   ) %>

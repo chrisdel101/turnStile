@@ -10,7 +10,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
 
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
-  @interval 30000
+  @interval 100000
 
   @impl true
   def mount(_params, session, socket) do
@@ -28,7 +28,7 @@ defmodule TurnStileWeb.UserLive.Index do
     {:ok,
      assign(
        socket,
-       users: Patients.list_active_users(organization_id),
+       users: Patients.filter_active_users_x_mins_past_last_update(organization_id, 30),
        current_employee: current_employee
      )}
   end
@@ -60,7 +60,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
   def handle_info(:update, socket) do
     # update_and_reschedule and call
-    if connected?(socket), do: Process.send_after(self(), :update, @interval)
+    # if connected?(socket), do: Process.send_after(self(), :update, @interval)
 
     users =
       Patients.list_active_users(socket.assigns.current_employee.current_organization_login_id)
@@ -298,7 +298,7 @@ defmodule TurnStileWeb.UserLive.Index do
        assign(
          socket,
          :users,
-         Patients.list_active_users(current_employee.current_organization_login_id)
+         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, 30)
        )}
     end
   end

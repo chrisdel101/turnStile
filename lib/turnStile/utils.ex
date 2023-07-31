@@ -111,7 +111,7 @@ defmodule TurnStile.Utils do
     Tzdata.zone_list()
   end
 
-  def shift_datetime(naive_UTC, timezone_to_shift) do
+  def shift_naive_datetime(naive_UTC, timezone_to_shift) do
     first_datetime = DateTime.from_naive!(naive_UTC, "Etc/UTC")
 
     case DateTime.shift_zone(first_datetime, timezone_to_shift) do
@@ -123,14 +123,20 @@ defmodule TurnStile.Utils do
     end
   end
 
-  def convert_to_readable_datetime(datetime, timezone \\ "America/Regina")
+  def convert_to_readable_datetime(datetime, opts \\ [])
 
-  def convert_to_readable_datetime(%DateTime{} = d, timezone) do
+  def convert_to_readable_datetime(%DateTime{} = d, opts) do
     "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
   end
-
-  def convert_to_readable_datetime(%NaiveDateTime{} = d, timezone) do
-    "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
+  # i.e convert_to_readable_datetime(user.updated_at, timezone: user.employee.timezone)
+  def convert_to_readable_datetime(%NaiveDateTime{} = d, opts) do
+    if Keyword.get(opts, :timezone) do
+      timezone = Keyword.get(opts, :timezone)
+      {:ok, d} = shift_naive_datetime(d, timezone)
+      "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
+    else
+      "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
+    end
   end
 
   def filter_maps_list_by_truthy(list, search_term_str) do

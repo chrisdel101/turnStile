@@ -38,7 +38,6 @@
       <tr>
 
         <th>Status</th>
-        <th>Added</th>
         <th>First Name</th>
         <th>Last Name</th>
         <th>Phone</th>
@@ -49,9 +48,7 @@
       <%= for user <- @users do %>
 
         <tr id={"user-#{user.id}"}>
-          <% {:ok, shifted_datetime} = TurnStile.Utils.shift_datetime(user.inserted_at, @current_employee.timezone) %>
-          <td><%= String.capitalize(user.user_alert_status) %></td>
-          <td><%= "#{shifted_datetime.year}-#{shifted_datetime.month}-#{shifted_datetime.day} #{shifted_datetime.hour}:#{shifted_datetime.minute}:#{shifted_datetime.second} #{if shifted_datetime.hour >= 12, do: "PM", else: "AM"}" %></td>
+          <td title="cancelled users remain in feed for 30 mins"><%= String.capitalize(user.user_alert_status) %></td>
           <td><%= user.first_name %></td>
           <td><%= user.last_name %></td>
           <td><%= user.phone %></td>

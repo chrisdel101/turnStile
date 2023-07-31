@@ -52,13 +52,19 @@ defmodule TurnStile.Patients do
       )
     Repo.all(q)
   end
-  # use active query to get deactivated w/in a time period
-  def filter_active_users(organization_id) do
+  # use active query to get deactivated w/in a time period - less/eq to x mins ago
+  def filter_active_users_x_mins_past_last_update(organization_id, duration_in_mins) do
     q =
       from(u in list_active_users_query(organization_id),
-        # where: token.inserted_at > ago(30  , "second"),
+      # interval = current time - updated_at
+      # time_ago > or < interval
+      # ago: Subtracts the given interval from the current time in UTC.
+      # - > < are reversed with ago
+      # > means further back than x time ago (before)
+      # < means before x time ago (after)
+        or_where: u.is_active? == false and u.updated_at > ago(^duration_in_mins, "minute"),
         preload: [:employee, :organization],
-        order_by: [desc: u.inserted_at]
+        order_by: [desc: u.id]
       )
     Repo.all(q)
   end
