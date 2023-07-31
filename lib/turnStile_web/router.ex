@@ -156,9 +156,9 @@ defmodule TurnStileWeb.Router do
       UserLive.Show,
       :edit
 
-      live "/organizations/:organization_id/employees/:employee_id/users/:id/alerts",
+      live "/organizations/:organization_id/employees/:employee_id/users/:id/alert",
         UserLive.Index,
-        :alerts, as: :organization_employee_user_alert
+        :alert, as: :organization_employee_user_alert
 
 
   end

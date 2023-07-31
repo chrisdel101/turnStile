@@ -9,7 +9,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStile.Alerts.Alert
 
 
-  # live_actions [:new, :index, :alerts, :edit]
+  # live_actions [:new, :index, :alert, :edit]
   @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
   @interval 100000
   @filter_active_users_mins 30
@@ -37,7 +37,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  # called via live_patch in index.html; :alerts gets assigned as action
+  # called via live_patch in index.html; :alert gets assigned as action
   # called on index when no user_id present
   def handle_params(%{"panel" => panel} = params, _url, socket) do
     # IO.inspect(params, label: "action on index")
@@ -307,7 +307,7 @@ defmodule TurnStileWeb.UserLive.Index do
     end
   end
   # -called from live_patch in index.html; passes :alerts
-  defp apply_action(socket, :alerts, params) do
+  defp apply_action(socket, :alert, params) do
     %{"id" => user_id} = params
     # IO.inspect(Patients.get_user(user_id), label: ":alerts")
     socket

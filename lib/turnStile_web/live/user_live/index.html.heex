@@ -14,7 +14,7 @@
       />
     </.modal>
     <% end %>
-    <%= if @live_action in [:alerts] do %>
+    <%= if @live_action in [:alert] do %>
      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
 
       <.live_component
@@ -82,11 +82,11 @@
             <% end %>
             </span>
               <span>
-                <%= live_patch "Custom_Alert", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "dispatch"}) %>
+                <%= live_patch "Custom_Alert", to: Routes.organization_employee_user_alert_path(@socket, :alert, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "dispatch"}) %>
               </span>
 
               <span>
-                <%= live_patch "Alert_History", to: Routes.organization_employee_user_alert_path(@socket, :alerts, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "history"}) %>
+                <%= live_patch "Alert_History", to: Routes.organization_employee_user_alert_path(@socket, :alert, @current_employee.current_organization_login_id, @current_employee.id, user.id,  %{panel: "history"}) %>
               </span>
           </td>
 
