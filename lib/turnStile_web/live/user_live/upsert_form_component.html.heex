@@ -43,7 +43,7 @@
 
     <%= label(f, "Choose main alert type:") %>
     <%= label(f, :alert_format_set, "SMS") %>
-    <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click")%>
+    <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: "checked")%>
     <%= label(f, :alert_format_set, "Email") %>
     <%= radio_button(f, :alert_format_set, "email", phx_change: "radio_click") %>
 

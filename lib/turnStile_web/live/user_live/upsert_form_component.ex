@@ -11,6 +11,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     # IO.inspect(assigns, label: "assigns")
     # build default user changeset
     changeset = Patients.change_user(user)
+
     {:ok,
      socket
      |> assign(assigns)
@@ -19,19 +20,17 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do
-
     changeset =
       socket.assigns.user
       |> Patients.change_user(user_params)
       |> Map.put(:action, :validate)
 
-      # IO.inspect(changeset, label: "VALIDATE")
+    # IO.inspect(changeset, label: "VALIDATE")
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   # only fires on change- handles changing the form based on radio button selection
   def handle_event("radio_click", %{"user" => %{"alert_format_set" => alert_format}}, socket) do
-
     # IO.inspect(socket.assigns.changeset, label: "radio_click")
     # IO.inspect(alert_format, label: "radio_click")
 
@@ -41,9 +40,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       cond do
         # radio - flip to email form
         alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-
           # sets up changeset for template use
-          changeset = Ecto.Changeset.change(socket.assigns.changeset, alert_format_set:  alert_format)
+          changeset =
+            Ecto.Changeset.change(socket.assigns.changeset, alert_format_set: alert_format)
 
           # IO.inspect(changeset, label: "changeset radio email")
 
@@ -51,11 +50,13 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
         # end
         alert_format === AlertFormatTypesMap.get_alert("SMS") ->
+          changeset =
+            Ecto.Changeset.change(socket.assigns.changeset, alert_format_set: alert_format)
 
-          changeset = Ecto.Changeset.change(socket.assigns.changeset, alert_format_set:  alert_format)
           # IO.inspect(changeset, label: "changeset radio SMS")
 
           {:noreply, assign(socket, :changeset, changeset)}
+
         true ->
           IO.puts("upsert handle_event: NO keys")
           {:noreply, socket}
@@ -123,7 +124,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # add new user from index page
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
-    # IO.inspect(user_params, label: "user_params: save_user")
+    # IO.inspect(current_employee, label: "user_params: save_user")
 
     # check employee has organization role
     case TurnStile.Staff.check_employee_matches_organization(current_employee) do
@@ -137,10 +138,16 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         case EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
           true ->
             # IO.puts("Employee has correct permissions")
+            organization =
+              TurnStile.Company.get_organization(current_employee.current_organization_login_id)
 
-            case Patients.create_user_w_assocs2(current_employee, user_params) do
-              {:ok, user} ->
-                case Patients.insert_user_struct(user) do
+            changeset = Patients.create_user(user_params)
+
+            case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
+              %Ecto.Changeset{} = user_changeset ->
+                IO.inspect(user_changeset, label: "user_changeset")
+
+                case Patients.insert_user_changeset(user_changeset) do
                   {:ok, _user} ->
                     {:noreply,
                      socket
@@ -155,10 +162,10 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                     {:noreply, assign(socket, :changeset, changeset)}
                 end
 
-              {:error, error} ->
+              _ ->
                 socket =
                   socket
-                  |> put_flash(:error, "User not created: #{error}")
+                  |> put_flash(:error, "User not created: An error occured during creation")
 
                 {:noreply, socket}
             end
