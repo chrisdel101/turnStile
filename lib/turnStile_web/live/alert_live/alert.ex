@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
+defmodule TurnStileWeb.AlertDisplayLive.Alert do
   use TurnStileWeb, :live_component
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
@@ -12,7 +12,7 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
     %{id: user_id, current_employee: _current_employee, user: user} = props
 
     alerts = Alerts.get_alerts_for_user(user_id)
-    # IO.inspect(alerts, label: "alerts")
+    IO.inspect(props, label: "props")
     # build default alert attrs to start, just a starting setting
     sms_attrs =
       Alerts.build_alert_attrs(
@@ -29,8 +29,8 @@ defmodule TurnStileWeb.AlertDisplayLive.PanelComponent do
      |> assign(props)
      |> assign(:json, @json)
      |> assign(:alerts, alerts)
-     |> assign(:title, set_title(props.panel))
-     |> assign(:page_title, "Alert Panel")
+     |> assign(:title, set_title(props.panel)) # set sub-titles in panels
+     |> assign(:page_title, "Alert Panel") # set  main page title
      |> assign(:changeset, changeset)}
   end
 

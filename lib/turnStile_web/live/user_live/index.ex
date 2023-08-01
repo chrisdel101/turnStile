@@ -306,24 +306,25 @@ defmodule TurnStileWeb.UserLive.Index do
        )}
     end
   end
-  # -called from live_patch in index.html; passes :alerts
+  # -called from when live_patch clicked
   defp apply_action(socket, :alert, params) do
     %{"id" => user_id} = params
     # IO.inspect(Patients.get_user(user_id), label: ":alerts")
     socket
-    |> assign(:page_title, "User Alerts")
+    # -applies to index page behind the alert panel
+    # - sent as prop through html to panel_component
     |> assign(:user, Patients.get_user(user_id))
   end
 
   # assigns individual user changset on :new
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "New User")
+    |> assign(:page_title, "Add New User")
     |> assign(:user, %User{})
   end
 
   defp apply_action(socket, :index, _params) do
-    # IO.inspect("index", label: "apply_action on index")
+    IO.inspect("index", label: "apply_action on index")
     socket
     |> assign(:page_title, "Listing Users")
     |> assign(:user, nil)

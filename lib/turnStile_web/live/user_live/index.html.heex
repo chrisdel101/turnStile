@@ -1,4 +1,4 @@
-<h1><%= @page_title %></h1>
+<h1>Listing Users</h1>
 <%!-- remove this line later if saftey no needed --%>
 <%= if @current_employee do %>
   <%= if @live_action in [:new] do %>
@@ -18,7 +18,7 @@
      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
 
       <.live_component
-        module={TurnStileWeb.AlertDisplayLive.PanelComponent}
+        module={TurnStileWeb.AlertDisplayLive.Alert}
         id={@user.id || :new}~
         action={@live_action}
         current_employee={@current_employee}
