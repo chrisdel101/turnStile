@@ -49,9 +49,10 @@ TurnStile.Repo.transaction(fn ->
   user1 = %{
     first_name: "Joe",
     last_name: "Schmoe",
-    email: "joe1@schmoe.com",
-    phone: "777777777",
-    health_card_num: 1234
+    phone: "3065190138",
+    email: "arssonist@yahoo.com",
+    alert_format_set: "sms",
+    health_card_num: 9999
   }
 
   # user w/ emp and org assocs

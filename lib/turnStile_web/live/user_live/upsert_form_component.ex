@@ -7,14 +7,15 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   @impl true
   # empty user struct getting passed as props; see index apply_action(:new)
-  def update(%{user: user} = assigns, socket) do
-    # IO.inspect(assigns, label: "assigns")
+  def update(%{user: user, action: action} = assigns, socket) do
     # build default user changeset
     changeset = Patients.change_user(user)
+    # IO.inspect(changeset, label: "changeset")
 
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:live_action, action)
      |> assign(:changeset, changeset)}
   end
 
@@ -179,24 +180,6 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             {:noreply, socket}
         end
-    end
-  end
-
-  # edit from index - not currently used
-  defp save_user(socket, :edit_all, user_params) do
-    case Patients.update_user(socket.assigns.user, user_params) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "User updated successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        socket =
-          socket
-          |> put_flash(:error, "User not created")
-
-        {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 end

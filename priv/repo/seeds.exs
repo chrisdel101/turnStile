@@ -220,6 +220,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe3@schmoe.com",
     phone: "7771213151",
+    alert_format_set: "sms",
     health_card_num: 9101
   }
 
@@ -231,6 +232,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe4@schmoe.com",
     phone: "7776171819",
+    alert_format_set: "sms",
     health_card_num: 1121
   }
   {:ok, user4} = TurnStile.Patients.create_user_w_assocs(employee4, user4, role4, organization1)
@@ -241,6 +243,7 @@ TurnStile.Repo.transaction(fn ->
     email: "joe9@schmoe.com",
     phone: "7773434353",
     health_card_num: 1202,
+    alert_format_set: "sms",
     is_active?: false
   }
 
@@ -252,6 +255,7 @@ TurnStile.Repo.transaction(fn ->
     email: "joe10@schmoe.com",
     phone: "7777383940",
     health_card_num: 2212,
+    alert_format_set: "sms",
     is_active?: false
   }
   {:ok, user10} = TurnStile.Patients.create_user_w_assocs(employee2, user10, role2, organization1)
@@ -262,6 +266,7 @@ TurnStile.Repo.transaction(fn ->
     email: "joe11@schmoe.com",
     phone: "7774142434",
     health_card_num: 3222,
+    alert_format_set: "sms",
     is_active?: false
   }
   {:ok, user11} = TurnStile.Patients.create_user_w_assocs(employee4, user11, role4, organization1)
@@ -436,7 +441,9 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe5@schmoe.com",
     phone: "7772021222",
-    health_card_num: 3141
+    health_card_num: 3141,
+    alert_format_set: "email"
+
   }
 
   # user w/ emp and org assocs
@@ -447,6 +454,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe6@schmoe.com",
     phone: "7773242526",
+    alert_format_set: "sms",
     health_card_num: 5161
   }
 
@@ -458,6 +466,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe7@schmoe.com",
     phone: "7772728293",
+    alert_format_set: "sms",
     health_card_num: 7181
   }
 
@@ -469,6 +478,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe8@schmoe.com",
     phone: "7770313233",
+    alert_format_set: "sms",
     health_card_num: 8191
   }
   {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, role9, organization2)
@@ -477,6 +487,7 @@ TurnStile.Repo.transaction(fn ->
     last_name: "Schmoe",
     email: "joe12@schmoe.com",
     phone: "7774142434",
+    alert_format_set: "sms",
     health_card_num: 4232,
   }
 

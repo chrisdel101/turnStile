@@ -49,8 +49,8 @@ defmodule TurnStile.Patients.User do
   def validate_alert_format_matches_alert_format_set(changeset) do
 
     alert_format_changes = get_change(changeset, :alert_format_set)
-    email = get_change(changeset, :email)
-    phone = get_change(changeset, :phone)
+    email = get_field(changeset, :email)
+    phone = get_field(changeset, :phone)
     # IO.inspect(alert_format_changes, label: "alert_format_changes")
     cond do
       # check for email change
