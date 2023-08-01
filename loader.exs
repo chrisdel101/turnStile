@@ -46,7 +46,7 @@ user1 = %{
 {:ok, role1} = TurnStile.Roles.insert_role(employee1.id, org_w_emps.id, role)
 
 {:ok, user1} = TurnStile.Patients.create_user_w_assocs(employee1, user1, role1, organization1)
-{:ok, user1} = TurnStile.Patients.insert_user(user1)
+{:ok, user1} = TurnStile.Patients.insert_user_struct(user1)
 # IO.inspect(role1, label: "AAAAAA")
 
 all = %{

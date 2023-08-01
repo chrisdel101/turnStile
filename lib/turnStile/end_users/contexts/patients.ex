@@ -129,7 +129,6 @@ defmodule TurnStile.Patients do
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.create_changeset(attrs)
-    |> Repo.insert()
   end
 
   @doc """
@@ -265,10 +264,28 @@ defmodule TurnStile.Patients do
     end
   end
 
-  def insert_user(user) do
+  def build_user_changeset_w_assocs(user_changeset, employee_struct, org_struct) do
+    updated_user_e_changeset = Ecto.Changeset.put_assoc(user_changeset, :employee, employee_struct)
+    Ecto.Changeset.put_assoc(updated_user_e_changeset, :organization, org_struct)
+  end
+
+  def insert_user_struct(user) do
     # convert val to int
     user = Map.put(user, :health_card_num, TurnStile.Utils.convert_to_int(user.health_card_num))
 
+    case Repo.insert(user) do
+      {:ok, user} ->
+        {:ok,
+         user
+         |> Repo.preload([:employee, :organization])}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+  def insert_user_changeset(user_changeset) do
+    # convert val to int
+    user = Ecto.Changeset.put_change(user_changeset, :health_card_num, TurnStile.Utils.convert_to_int(user_changeset.changes.health_card_num))
     case Repo.insert(user) do
       {:ok, user} ->
         {:ok,

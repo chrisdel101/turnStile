@@ -266,13 +266,13 @@ TurnStile.Repo.transaction(fn ->
   }
   {:ok, user11} = TurnStile.Patients.create_user_w_assocs(employee4, user11, role4, organization1)
 
-  {:ok, user1} = TurnStile.Patients.insert_user(user1)
-  {:ok, user2} = TurnStile.Patients.insert_user(user2)
-  {:ok, user3} = TurnStile.Patients.insert_user(user3)
-  {:ok, user4} = TurnStile.Patients.insert_user(user4)
-  {:ok, user9} = TurnStile.Patients.insert_user(user9)
-  {:ok, user10} = TurnStile.Patients.insert_user(user10)
-  {:ok, user11} = TurnStile.Patients.insert_user(user11)
+  {:ok, user1} = TurnStile.Patients.insert_user_struct(user1)
+  {:ok, user2} = TurnStile.Patients.insert_user_struct(user2)
+  {:ok, user3} = TurnStile.Patients.insert_user_struct(user3)
+  {:ok, user4} = TurnStile.Patients.insert_user_struct(user4)
+  {:ok, user9} = TurnStile.Patients.insert_user_struct(user9)
+  {:ok, user10} = TurnStile.Patients.insert_user_struct(user10)
+  {:ok, user11} = TurnStile.Patients.insert_user_struct(user11)
 
   # ALERTS
   a1 = %{
@@ -482,11 +482,11 @@ TurnStile.Repo.transaction(fn ->
 
   {:ok, user12} = TurnStile.Patients.create_user_w_assocs(employee10, user12, role10, organization2)
 
-  {:ok, user5} = TurnStile.Patients.insert_user(user5)
-  {:ok, user6} = TurnStile.Patients.insert_user(user6)
-  {:ok, user7} = TurnStile.Patients.insert_user(user7)
-  {:ok, user8} = TurnStile.Patients.insert_user(user8)
-  {:ok, user12} = TurnStile.Patients.insert_user(user12)
+  {:ok, user5} = TurnStile.Patients.insert_user_struct(user5)
+  {:ok, user6} = TurnStile.Patients.insert_user_struct(user6)
+  {:ok, user7} = TurnStile.Patients.insert_user_struct(user7)
+  {:ok, user8} = TurnStile.Patients.insert_user_struct(user8)
+  {:ok, user12} = TurnStile.Patients.insert_user_struct(user12)
 
   # ALERTS
   a5 = %{

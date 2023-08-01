@@ -140,7 +140,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             case Patients.create_user_w_assocs2(current_employee, user_params) do
               {:ok, user} ->
-                case Patients.insert_user(user) do
+                case Patients.insert_user_struct(user) do
                   {:ok, _user} ->
                     {:noreply,
                      socket

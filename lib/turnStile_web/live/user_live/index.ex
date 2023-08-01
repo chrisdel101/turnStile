@@ -181,7 +181,7 @@ defmodule TurnStileWeb.UserLive.Index do
             else
               case AlertUtils.send_SMS_alert(alert) do
                 {:ok, twilio_msg} ->
-                  # IO.inspect(twilio_msg, label: "twilio_msg")
+                  IO.inspect(twilio_msg, label: "twilio_msg")
 
                   case AlertUtils.handle_updating_user_alert_send_status(
                          socket.assigns.user,

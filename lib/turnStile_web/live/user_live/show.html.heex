@@ -40,6 +40,11 @@
     <strong>Health card num:</strong>
     <%= @user.health_card_num %>
   </li>
+
+  <li>
+    <strong>Main Alert Type:</strong>
+    <%= @user.alert_format_set %>
+  </li>
   <li>
     <strong>Added at:</strong>
     <% {:ok, shifted_datetime} = TurnStile.Utils.shift_naive_datetime(@user.inserted_at, @current_employee.timezone) %>
