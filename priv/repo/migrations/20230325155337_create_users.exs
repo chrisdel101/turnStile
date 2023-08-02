@@ -19,6 +19,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
 
       timestamps()
     end
+    create unique_index(:users, [:health_card_num])
 
     create table(:user_tokens) do
       add :user_id, references(:users, on_delete: :delete_all), null: false
@@ -27,7 +28,6 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :sent_to, :string
       timestamps(updated_at: false)
     end
-
     create index(:user_tokens, [:user_id])
     create unique_index(:user_tokens, [:context, :token])
   end

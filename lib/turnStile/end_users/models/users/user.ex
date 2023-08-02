@@ -11,8 +11,8 @@ defmodule TurnStile.Patients.User do
     field :is_active?, :boolean, default: true
     field :user_alert_status, :string,
       default: UserAlertStatusTypesMap.get_user_status("UNALERTED")
-    field :alert_format_set, :string #set to default in apply_defaults
-    # most recent employee to access this user
+    field :alert_format_set, :string, default: AlertFormatTypesMap.get_alert("SMS")
+    # will be most recent employee to access this user
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert , on_delete: :delete_all
     belongs_to :organization, TurnStile.Company.Organization
@@ -25,7 +25,7 @@ defmodule TurnStile.Patients.User do
   def create_changeset(user, attrs) do
     user
     |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
-    |> apply_defaults(attrs)
+    |> unique_constraint(:health_card_num, message: "A member with this number already exists. Search the system for an existing profile.")
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
     |> validate_alert_format_matches_alert_format_set()
   end
@@ -48,10 +48,12 @@ defmodule TurnStile.Patients.User do
   # validate field matches alert_format_set on upsert form
   def validate_alert_format_matches_alert_format_set(changeset) do
 
-    alert_format_changes = get_change(changeset, :alert_format_set)
+    alert_format_changes = get_field(changeset, :alert_format_set)
     email = get_field(changeset, :email)
     phone = get_field(changeset, :phone)
     # IO.inspect(alert_format_changes, label: "alert_format_changes")
+    # IO.inspect(email, label: "email")
+    # IO.inspect(phone, label: "phone")
     cond do
       # check for email change
       alert_format_changes === AlertFormatTypesMap.get_alert("EMAIL") && is_nil(email) ->
@@ -64,16 +66,6 @@ defmodule TurnStile.Patients.User do
         changeset
       true ->
         changeset
-      end
-    end
-    # apply value to alert_format_set here; setting default on model causes an error
-    defp apply_defaults(changeset, attrs) do
-      if (Map.get(attrs, :alert_format_set) ||  Map.get(attrs, "alert_format_set")) || get_change(changeset, :alert_format_set) do
-        # :alert_format_set has already been set, no need to change the default value
-        changeset
-      else
-        # :alert_format_set has not been set, apply the default value
-        change(changeset, alert_format_set: AlertFormatTypesMap.get_alert("SMS"))
       end
     end
 end
