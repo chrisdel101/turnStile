@@ -303,27 +303,6 @@ defmodule TurnStileWeb.UserAuth do
     )
   end
 
-  # is_user_session_exprired?
-  # - checks if user token still valid
-  # prev plug checked user exists
-  defp is_user_session_exprired?(conn) do
-    user_token = get_session(conn, :user_token)
-
-    case user_token && Patients.confirm_user_session_token(user_token) do
-      {:ok, _user} ->
-        IO.puts("is_user_session_exprired: user session not expired")
-        false
-
-      {nil, :not_found} ->
-        IO.puts("is_user_session_exprired: user session error")
-        true
-
-      {nil, :expired} ->
-        IO.puts("is_user_session_exprired: user session expired")
-        true
-    end
-  end
-
   # puts path like /user/:id as :user_return_to
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :user_return_to, current_path(conn))

@@ -8,7 +8,7 @@ defmodule TurnStileWeb.AlertController do
   import Ecto.Changeset
 
   def receive_email_alert(conn, %{
-        "user_id" => user_id,
+        "user_id" => _user_id,
         "response_value" => response_value,
         "response_key" => response_key
       }) do
@@ -18,34 +18,35 @@ defmodule TurnStileWeb.AlertController do
     if is_response_valid?(response_value, AlertFormatTypesMap.get_alert("EMAIL")) do
       case AlertUtils.save_received_email_alert(
              current_user,
-             %{"response_value" => response_value, "response_key" => response_key}
+             %{"response_value" => response_value, "response_key" => response_key }
            ) do
-        {:error, error_msg} ->
-          # alert save failure
-          IO.inspect(error_msg, label: "receive_email_alert error in save_received_email_alert")
-          # update user account as ERROR status in DB
-          case Patients.update_alert_status(
-                 current_user,
-                 UserAlertStatusTypesMap.get_user_status("ERROR")
-               ) do
-            {:ok, updated_user} ->
-              # IO.inspect(updated_user, label: "updated_user")
-              # send respnse to update UI, match DB
-              Phoenix.PubSub.broadcast(
-                TurnStile.PubSub,
-                PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                %{user_alert_status: updated_user.user_alert_status}
-              )
 
-            # udate user account error failure
-            {:error, error} ->
-              IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
-          end
-          # outer return error for above case
-          {:error, error_msg} # alert save failure return
+            {:error, %Ecto.Changeset{} = changeset} ->
+              {:error, changeset}
 
-        {:error, %Ecto.Changeset{} = changeset} ->
-          {:error, changeset}
+            {:error, error_msg} ->
+              # alert save failure
+              IO.inspect(error_msg, label: "receive_email_alert error in save_received_email_alert")
+              # update user account as ERROR status in DB
+              case Patients.update_alert_status(
+                      current_user,
+                      UserAlertStatusTypesMap.get_user_status("ERROR")
+                    ) do
+                {:ok, updated_user} ->
+                  # IO.inspect(updated_user, label: "updated_user")
+                  # send respnse to update UI, match DB
+                  Phoenix.PubSub.broadcast(
+                    TurnStile.PubSub,
+                    PubSubTopicsMap.get_topic("STATUS_UPDATE"),
+                    %{user_alert_status: updated_user.user_alert_status}
+                  )
+
+                # udate user account error failure
+                {:error, error} ->
+                  IO.inspect(error, label: "Attempt to update acount as ERROR failed.")
+              end
+              # outer return error for above case
+              {:error, error_msg} # alert save failure return
 
         {:ok, alert} ->
           # IO.inspect(alert, label: "receive_email_alert alert saved")
@@ -157,7 +158,7 @@ defmodule TurnStileWeb.AlertController do
 
               # update alert w system_response map; recieved alerts only
               case Alerts.update_alert(alert, system_response_map) do
-                {:ok, updated_alert} ->
+                {:ok, _updated_alert} ->
                   # IO.inspect(updated_alert, label: "updated_alert")
 
                   user_alert_status = compute_new_user_alert_status(twilio_params["Body"])
@@ -376,6 +377,7 @@ defmodule TurnStileWeb.AlertController do
       user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("CANCELLED") ->
         UserAlertStatusTypesMap.get_user_status("CANCELLED")
       true ->
+        IO.puts("manage_user_alert_status: invalid state")
 
     end
   end

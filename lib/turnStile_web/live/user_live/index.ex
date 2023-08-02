@@ -10,7 +10,6 @@ defmodule TurnStileWeb.UserLive.Index do
 
 
   # live_actions [:new, :index, :alert, :edit]
-  @alert_update_status PubSubTopicsMap.get_topic("STATUS_UPDATE")
   @interval 100000
   @filter_active_users_mins 30
 
@@ -53,7 +52,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  def handle_info(%{user_alert_status: user_alert_status}, socket) do
+  def handle_info(%{user_alert_status: _user_alert_status}, socket) do
     # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
