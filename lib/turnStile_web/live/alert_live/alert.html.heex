@@ -2,16 +2,17 @@
   <h2><%= @page_title %></h2>
   <main class="container">
       <p class="alert alert-info" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
-
+        phx-click="lv:clear-flash"
+        phx-value-key="info"><%= live_flash(@flash, :info) %></p>
       <p class="alert alert-success" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :success) %></p>
-
+          phx-click="lv:clear-flash"
+          phx-value-key="success"><%= live_flash(@flash, :success) %></p>
       <p class="alert alert-danger" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+        phx-click="lv:clear-flash"
+        phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+      <p class="alert alert-warning" role="alert"
+        phx-click="lv:clear-flash"
+        phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
     </main>
   <div class="alert-panel-nav">
     <span>

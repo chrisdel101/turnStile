@@ -253,7 +253,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
       socket =
         socket
-        |> put_flash(:info, "User deleted successfully.")
+        |> put_flash(:warning, "User deleted successfully.")
 
       {:noreply,
        assign(
