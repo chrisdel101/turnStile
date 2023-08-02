@@ -120,24 +120,59 @@ defmodule TurnStile.Patients do
       if DateTime.compare(dt1, dt2) == :gt, do: acc, else: user
     end)
   end
+
   @doc """
   search_users_by_name
   - runs through 3 queries to find a user; starts simple and progresses to use levenstein
   - set levenstein 1 to allow one typo in name
   """
-  def search_users_by_last_name(last_name, levenstein_level \\ 1) do
+  def search_users_by_name(last_name, first_name, levenstein_level \\ 1) do
     # run direct search
     first_search_result = Repo.all(search_last_name_direct_query(last_name))
     if !is_nil(first_search_result) && length(first_search_result) > 0 do
-      first_search_result
+      if length(first_search_result) > 1 && !is_nil(first_name) do
+        expand_search_users_by_first_name(search_last_name_direct_query(last_name), first_name, levenstein_level)
+      else
+        first_search_result
+      end
     else
       # run search with LIKE parameter
       second_search_result = Repo.all(search_last_name_like_query(last_name))
       if !is_nil(second_search_result) && length(second_search_result) > 0 do
+        if length(second_search_result) > 1 && !is_nil(first_name) do
+          expand_search_users_by_first_name(search_last_name_like_query(last_name), first_name, levenstein_level)
+        else
+          second_search_result
+        end
+      else
+        # run seach with levenstein
+        users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_level))
+        if length(users) > 1 && !is_nil(first_name) do
+          expand_search_users_by_first_name(search_user_last_name_levenstein_query(last_name, levenstein_level), first_name, levenstein_level)
+        else
+          users
+        end
+      end
+    end
+  end
+  @doc """
+  expand_search_users_by_first_name
+  - runs through 3 queries to find a user; starts simple and progresses to use levenstein
+  - set levenstein 1 to allow one typo in name
+  """
+  def expand_search_users_by_first_name(last_name_query, first_name, levenstein_level \\ 1) do
+    # run direct search
+    first_search_result = Repo.all(search_first_name_direct_query(last_name_query, first_name))
+    if !is_nil(first_search_result) && length(first_search_result) > 0 do
+      first_search_result
+    else
+      # run search with LIKE parameter
+      second_search_result = Repo.all(search_last_name_like_query(last_name_query))
+      if !is_nil(second_search_result) && length(second_search_result) > 0 do
         second_search_result
       else
         # run seach with levenstein
-        Repo.all(search_user_first_namelast_stein_query(last_name, levenstein_level))
+        Repo.all(search_first_name_levenshtein_query(last_name_query, first_name, levenstein_level))
       end
     end
   end
@@ -150,14 +185,14 @@ defmodule TurnStile.Patients do
   end
   def search_last_name_direct_query(last_name) do
     from(u in User,
-      where: u.last_name == ^last_name,
-      select: u
+    where: u.last_name == ^last_name,
+    select: u
     )
   end
 
   def search_last_name_like_query(last_name) do
     from(u in User,
-      where: like(u.last_name, ^"%#{last_name}%"),
+    where: like(u.last_name, ^"%#{last_name}%"),
       select: u
     )
   end
@@ -166,7 +201,25 @@ defmodule TurnStile.Patients do
     from(u in User,
     where: fragment("levenshtein(last_name, ?) <= ?", ^last_name, ^levenstein_level),
     select: u
-  )
+    )
+  end
+  # is passed formed query for last name
+  def search_first_name_direct_query(last_name_query, first_name) do
+    from(u in last_name_query,
+      where: u.first_name == ^first_name,
+    )
+  end
+  # is passed formed query for last name
+  def search_first_name_like_query(last_name_query, first_name) do
+    from(u in last_name_query,
+      where: like(u.first_name, ^"%#{first_name}%")
+    )
+  end
+    # is passed formed query for last name
+  def search_first_name_levenshtein_query(last_name_query, first_name, levenstein_level) do
+    from(u in last_name_query,
+      where: fragment("levenshtein(first_name, ?) <= ?", ^first_name, ^levenstein_level)
+    )
   end
 
   @doc """
