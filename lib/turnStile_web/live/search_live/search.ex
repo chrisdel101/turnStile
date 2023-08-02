@@ -13,22 +13,20 @@ defmodule TurnStileWeb.SearchLive.Search do
   end
 
   @impl true
-  def handle_event(action, params, socket) do
-    ###
+  def handle_event("validate", %{"search" => %{"user_name" => user_name}}, socket) do
+    IO.inspect(user_name, label: "user_name")
+    {:noreply, socket}
   end
 
-  def user_search(conn, params) do
-    # slugigy param
-    slug = Slug.slugify(params["organization"]["name"] || "")
-    # check if org name exists
-    organization = Company.get_organization_by_name(slug)
+  def handle_event("save", %{"search" => %{"user_name" => user_name}}, socket) do
+    user_search(user_name)
+    {:noreply, socket}
+  end
 
-    if !organization do
-      conn
-      |> put_flash(:error, "No organization by that name.")
-      |> redirect(to: Routes.organization_path(conn, :search_get))
-    else
-      redirect(conn, to: Routes.organization_path(conn, :show, organization.id))
-    end
+  def user_search(user_name) do
+    # slugigy param
+    lower_user_name = String.downcase(user_name)
+    # check if org name exists
+
   end
 end

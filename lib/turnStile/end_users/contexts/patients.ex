@@ -36,13 +36,15 @@ defmodule TurnStile.Patients do
 
     Repo.all(q)
   end
+
   # query for all active users in an organization
   def list_active_users_query(organization_id) do
-      from(u in User,
-        where: u.organization_id == ^organization_id,
-        where: u.is_active? == true
-      )
+    from(u in User,
+      where: u.organization_id == ^organization_id,
+      where: u.is_active? == true
+    )
   end
+
   # use active query and refine it little
   def list_active_users(organization_id) do
     q =
@@ -50,22 +52,25 @@ defmodule TurnStile.Patients do
         preload: [:employee, :organization],
         order_by: [desc: u.inserted_at]
       )
+
     Repo.all(q)
   end
+
   # use active query to get deactivated w/in a time period - less/eq to x mins ago
   def filter_active_users_x_mins_past_last_update(organization_id, duration_in_mins) do
     q =
       from(u in list_active_users_query(organization_id),
-      # interval = current time - updated_at
-      # time_ago > or < interval
-      # ago: Subtracts the given interval from the current time in UTC.
-      # - > < are reversed with ago
-      # > means further back than x time ago (before)
-      # < means before x time ago (after)
+        # interval = current time - updated_at
+        # time_ago > or < interval
+        # ago: Subtracts the given interval from the current time in UTC.
+        # - > < are reversed with ago
+        # > means further back than x time ago (before)
+        # < means before x time ago (after)
         or_where: u.is_active? == false and u.updated_at > ago(^duration_in_mins, "minute"),
         preload: [:employee, :organization],
         order_by: [desc: u.id]
       )
+
     Repo.all(q)
   end
 
@@ -84,7 +89,7 @@ defmodule TurnStile.Patients do
 
   """
   def get_user(id) do
-   Repo.get(User, id) |> Repo.preload([:employee, :organization])
+    Repo.get(User, id) |> Repo.preload([:employee, :organization])
   end
 
   # - there could be multiple users w. the same phone so we return a list
@@ -95,12 +100,14 @@ defmodule TurnStile.Patients do
     if !is_nil(phone) do
       # remove leading 1 and +
       phone = String.trim(TurnStile.Utils.remove_first_string_char(phone, "+"))
+
       q =
         from(u in User,
           where: u.phone == ^phone,
           order_by: [desc: u.inserted_at],
           preload: [:employee, :organization]
         )
+
       Repo.all(q)
     end
   end
@@ -112,6 +119,54 @@ defmodule TurnStile.Patients do
       # if DateTime.compare(user.inserted, acc) == :gt, do: val, else: acc
       if DateTime.compare(dt1, dt2) == :gt, do: acc, else: user
     end)
+  end
+  @doc """
+  search_users_by_name
+  - runs through 3 queries to find a user; starts simple and progresses to use levenstein
+  - set levenstein 1 to allow one typo in name
+  """
+  def search_users_by_last_name(last_name, levenstein_level \\ 1) do
+    # run direct search
+    first_search_result = Repo.all(search_last_name_direct_query(last_name))
+    if !is_nil(first_search_result) && length(first_search_result) > 0 do
+      first_search_result
+    else
+      # run search with LIKE parameter
+      second_search_result = Repo.all(search_last_name_like_query(last_name))
+      if !is_nil(second_search_result) && length(second_search_result) > 0 do
+        second_search_result
+      else
+        # run seach with levenstein
+        Repo.all(search_user_first_namelast_stein_query(last_name, levenstein_level))
+      end
+    end
+  end
+
+  def search_last_name_direct_query(last_name) do
+    from(u in User,
+      where: u.last_name == ^last_name,
+      select: u
+    )
+  end
+  def search_last_name_direct_query(last_name) do
+    from(u in User,
+      where: u.last_name == ^last_name,
+      select: u
+    )
+  end
+
+  def search_last_name_like_query(last_name) do
+    from(u in User,
+      where: like(u.last_name, ^"%#{last_name}%"),
+      select: u
+    )
+  end
+
+  def search_user_last_name_levenstein_query(last_name, levenstein_level) do
+    from(u in User,
+    where: fragment("levenshtein(last_name, ?) <= ?", ^last_name, ^levenstein_level),
+    select: u
+  )
   end
 
   @doc """
@@ -245,8 +300,10 @@ defmodule TurnStile.Patients do
           nil ->
             error =
               "Error: create_user_w_assocs: Patient.organization struct cannot be nil w/o logged-in user. Organization is required."
+
             IO.puts(error)
             {:error, error}
+
           _ ->
             user_struct = Ecto.build_assoc(organization_struct, :users, user_struct)
             # IO.inspect(user_struct, label: "user struct123")
@@ -265,7 +322,9 @@ defmodule TurnStile.Patients do
   end
 
   def build_user_changeset_w_assocs(user_changeset, employee_struct, org_struct) do
-    updated_user_e_changeset = Ecto.Changeset.put_assoc(user_changeset, :employee, employee_struct)
+    updated_user_e_changeset =
+      Ecto.Changeset.put_assoc(user_changeset, :employee, employee_struct)
+
     Ecto.Changeset.put_assoc(updated_user_e_changeset, :organization, org_struct)
   end
 
@@ -283,9 +342,16 @@ defmodule TurnStile.Patients do
         {:error, error}
     end
   end
+
   def insert_user_changeset(user_changeset) do
     # convert val to int
-    user = Ecto.Changeset.put_change(user_changeset, :health_card_num, TurnStile.Utils.convert_to_int(user_changeset.changes.health_card_num))
+    user =
+      Ecto.Changeset.put_change(
+        user_changeset,
+        :health_card_num,
+        TurnStile.Utils.convert_to_int(user_changeset.changes.health_card_num)
+      )
+
     case Repo.insert(user) do
       {:ok, user} ->
         {:ok,
@@ -333,6 +399,7 @@ defmodule TurnStile.Patients do
     changeset =
       user
       |> User.update_changeset(attrs)
+
     case Repo.update(changeset) do
       {:ok, user} ->
         {:ok,
@@ -381,6 +448,7 @@ defmodule TurnStile.Patients do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.update_changeset(user, attrs)
   end
+
   #  NO preloading - may cause error later
   def update_alert_status(user, new_alert_status) do
     # {:error, "Error: update_alert_status: invalid alert status type"}
@@ -388,11 +456,12 @@ defmodule TurnStile.Patients do
          UserAlertStatusTypesMap.get_user_statuses_enum(),
          String.to_atom(new_alert_status)
        ) do
-       update_user(user, %{user_alert_status: new_alert_status})
-     else
-        {:error, "Error: update_alert_status: invalid alert status type"}
-     end
+      update_user(user, %{user_alert_status: new_alert_status})
+    else
+      {:error, "Error: update_alert_status: invalid alert status type"}
+    end
   end
+
   @doc """
   deliver_user_email_alert_reply_instructions
   - handles the
@@ -406,43 +475,46 @@ defmodule TurnStile.Patients do
     case build_and_insert_email_token(user) do
       {tokenized_url, _token, encoded_token} ->
         IO.inspect(tokenized_url, label: "build_and_insert_email_token URL")
-      cond do
-        alert.alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
-          case UserNotifier.deliver_initial_alert(
-                 user,
-                 alert,
-                 build_url_func.(user, encoded_token)
-               ) do
-            {:ok, email} ->
-              {:ok, email}
 
-            {:error, error} ->
-              # IO.inspect(error, label: "error")
-              {:error, error}
-          end
-        alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
-          case UserNotifier.deliver_custom_alert(
-                 user,
-                 alert,
-                 build_url_func.(alert, user, encoded_token)
-               ) do
-            {:ok, email} ->
-              {:ok, email}
+        cond do
+          alert.alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
+            case UserNotifier.deliver_initial_alert(
+                   user,
+                   alert,
+                   build_url_func.(user, encoded_token)
+                 ) do
+              {:ok, email} ->
+                {:ok, email}
 
-            {:error, error} ->
-              # IO.inspect(error, label: "error")
-              {:error, error}
-          end
-        true ->
-          {:error, "Error: deliver_user_email_alert_reply_instructions: invalid alert category type. Only INITIAL and CUSTOM are valid."}
+              {:error, error} ->
+                # IO.inspect(error, label: "error")
+                {:error, error}
+            end
 
-      end
+          alert.alert_category === AlertCategoryTypesMap.get_alert("CUSTOM") ->
+            case UserNotifier.deliver_custom_alert(
+                   user,
+                   alert,
+                   build_url_func.(alert, user, encoded_token)
+                 ) do
+              {:ok, email} ->
+                {:ok, email}
 
+              {:error, error} ->
+                # IO.inspect(error, label: "error")
+                {:error, error}
+            end
+
+          true ->
+            {:error,
+             "Error: deliver_user_email_alert_reply_instructions: invalid alert category type. Only INITIAL and CUSTOM are valid."}
+        end
 
       {:error, error} ->
         {:error, error}
     end
   end
+
   @doc """
   confirm_user_session_token
   Confirms a employee by the given token.
@@ -470,20 +542,23 @@ defmodule TurnStile.Patients do
                     # IO.inspect(user, label: "user VALID confirm_user_session_token
                     # ")
                     {:ok, user2}
+
                   nil ->
                     # IO.puts("confirm_user_session_token: User Found but Expired")
                     {:expired, user1}
+                end
             end
-          end
+
           nil ->
-              IO.puts("confirm_user_email_token: No User found")
-              {nil, :not_found}
+            IO.puts("confirm_user_email_token: No User found")
+            {nil, :not_found}
         end
 
       :invalid_input_token ->
         :invalid_input_token
     end
   end
+
   # - checks for user token existence but ignores expiration
   def confirm_user_session_token_exists(token, _opts \\ []) do
     # check if user exists
@@ -507,35 +582,35 @@ defmodule TurnStile.Patients do
               {nil, :not_matched}
             else
               # IO.puts("confirm_user_email_token: User Found")
-            # check if user is expired
-            case UserToken.verify_email_token_valid_query(query, "confirm") do
-              {:ok, query} ->
-                case Repo.one(query) do
-                  %User{} = user ->
-                    {:ok, user}
-                    # run multi based on flag: used in testing
-                    case Keyword.fetch(opts, :skip) do
-                      {:ok, true} ->
-                        # return user
-                        user
-                      _ ->
-                        # run multi
-                        with {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
-                          {:ok, user}
-                        end
-                    end
+              # check if user is expired
+              case UserToken.verify_email_token_valid_query(query, "confirm") do
+                {:ok, query} ->
+                  case Repo.one(query) do
+                    %User{} = user ->
+                      {:ok, user}
+                      # run multi based on flag: used in testing
+                      case Keyword.fetch(opts, :skip) do
+                        {:ok, true} ->
+                          # return user
+                          user
 
-                  nil ->
-                    IO.puts("confirm_user_email_token:User Expired")
-                    {nil, :expired}
-                end
+                        _ ->
+                          # run multi
+                          with {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
+                            {:ok, user}
+                          end
+                      end
 
-
+                    nil ->
+                      IO.puts("confirm_user_email_token:User Expired")
+                      {nil, :expired}
+                  end
+              end
             end
-          end
+
           nil ->
-              IO.puts("confirm_user_email_token: No User found")
-              {nil, :not_found}
+            IO.puts("confirm_user_email_token: No User found")
+            {nil, :not_found}
         end
 
       :invalid_input_token ->
@@ -543,12 +618,10 @@ defmodule TurnStile.Patients do
     end
   end
 
-
   # skip - don't run multi in testing
   defp confirm_user_multi(user) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.confirm_changeset(user))
-
     |> Ecto.Multi.delete_all(
       :tokens,
       UserToken.user_and_contexts_query(user, ["confirm"])
@@ -570,7 +643,7 @@ defmodule TurnStile.Patients do
     end
   end
 
-   @doc """
+  @doc """
   build_and_insert_email_token
   - takes user and alert and builds token to handle email alert URL
   - inserts token into DB
@@ -584,7 +657,7 @@ defmodule TurnStile.Patients do
     case Repo.insert(user_token) do
       {:ok, token} ->
         # IO.inspect(token, label: "INSERTED TOKEN")
-        {TurnStile.Utils.build_user_alert_url( user, encoded_token), token, encoded_token}
+        {TurnStile.Utils.build_user_alert_url(user, encoded_token), token, encoded_token}
 
       {:error, error} ->
         {:error, error}
@@ -600,14 +673,18 @@ defmodule TurnStile.Patients do
     case confirm_user_session_token(token) do
       {:ok, user} ->
         user
+
       {:expired, %User{} = _user} ->
         nil
+
       {nil, :not_found} ->
         nil
+
       :invalid_input_token ->
         IO.puts("Error: get_user_by_session_token: invalid input token")
         nil
     end
+
     # {:ok, query} = UserToken.verify_session_token_exists_query(token)
   end
 
