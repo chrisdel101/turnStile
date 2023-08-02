@@ -1,0 +1,35 @@
+<div>
+  <h2><%= @page_title %></h2>
+  <.form
+    let={f}
+    for={:search}
+    id="user-search-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+    <main class="container">
+      <p class="alert alert-info" role="alert"
+        phx-click="lv:clear-flash"
+        phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+      <p class="alert alert-success" role="alert"
+          phx-click="lv:clear-flash"
+          phx-value-key="success"><%= live_flash(@flash, :success) %></p>
+      <p class="alert alert-danger" role="alert"
+        phx-click="lv:clear-flash"
+        phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+      <p class="alert alert-warning" role="alert"
+        phx-click="lv:clear-flash"
+        phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
+    </main>
+      
+    <%= label f, :search %>
+    <%= text_input f, :search %>
+    <%= error_tag f, :search %>
+   
+  
+    <div>
+      <%= submit "Save", phx_disable_with: "Saving..."
+      %>
+    </div>
+  </.form>
+</div>

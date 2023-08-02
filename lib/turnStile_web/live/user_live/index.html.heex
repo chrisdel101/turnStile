@@ -1,6 +1,5 @@
 <h1>Listing Users</h1>
-<%!-- remove this line later if saftey no needed --%>
-<%= if @current_employee do %>
+  <%!-- list of possible modals opening from index --%>
   <%= if @live_action in [:new] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
       <.live_component
@@ -15,25 +14,45 @@
     </.modal>
     <% end %>
     <%= if @live_action in [:alert] do %>
-     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
-
-      <.live_component
-        module={TurnStileWeb.AlertDisplayLive.Alert}
-        id={@user.id || :new}~
-        action={@live_action}
-        current_employee={@current_employee}
-        user={@user}
-        panel={@panel}
-        page_title="Alerts"
-        return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
-      />
-    </.modal>
+      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
+        <.live_component
+          module={TurnStileWeb.AlertPanelLive.Alert}
+          id={@user.id || :new}~
+          action={@live_action}
+          current_employee={@current_employee}
+          user={@user}
+          panel={@panel}
+          page_title="Alerts"
+          return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
+        />
+      </.modal>
+    
       <span><%= live_patch "Back", to: Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id) %></span>
     <% end %>
-    <%= if TurnStileWeb.EmployeeAuth.has_user_add_permissions?(nil, @current_employee) do %>
-      <span><%= live_patch "Add_New_User", to: Routes.user_index_path(@socket, :new, @current_employee.current_organization_login_id, @current_employee.id) %></span>
+    <%= if @live_action in [:search] do %>
+      <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
+        <.live_component
+          module={TurnStileWeb.SearchLive.Search}
+          id={:search}~
+          action={@live_action}
+          current_employee={@current_employee}
+          page_title="Search Users"
+          return_to={Routes.user_index_path(@socket, :search, @current_employee.current_organization_login_id, @current_employee.id)}
+        />
+      </.modal>
+    
+      <span><%= live_patch "Back", to: Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id) %></span>
     <% end %>
 
+    <ul>
+    <%= if TurnStileWeb.EmployeeAuth.has_user_add_permissions?(nil, @current_employee) do %>
+      <li><%= live_patch "Add_New_User", to: Routes.user_index_path(@socket, :new, @current_employee.current_organization_login_id, @current_employee.id) %></li>
+
+    <% end %>
+
+     <li><%= live_patch "Search_For_User", to: Routes.user_index_path(@socket, :search, @current_employee.current_organization_login_id, @current_employee.id) %></li>
+
+    </ul>
   <table>
     <thead>
       <tr>
@@ -108,6 +127,3 @@
       <% end %>
     </tbody>
   </table>
-<% else %>
-  <p>Not authorized</p>
-<% end %>

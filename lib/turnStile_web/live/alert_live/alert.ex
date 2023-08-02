@@ -1,4 +1,10 @@
-defmodule TurnStileWeb.AlertDisplayLive.Alert do
+  defmodule TurnStileWeb.AlertPanelLive.Alert do
+  @docmodule """
+  Alert Live Component
+  - there is no solo view for this page, it is only a modal
+  - this liveView controls all logic for the alert panel modal
+  - is opened from inside index liveView
+  """
   use TurnStileWeb, :live_component
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert

@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.AlertDisplayLiveTest do
+defmodule TurnStileWeb.AlertPanelLiveTest do
   use TurnStileWeb.ConnCase
 
   import Phoenix.LiveViewTest

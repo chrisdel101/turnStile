@@ -328,4 +328,10 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:page_title, "Listing Users")
     |> assign(:user, nil)
   end
+
+  defp apply_action(socket, :search, _params) do
+    socket
+    |> assign(:page_title, "Search for User")
+    |> assign(:user, nil)
+  end
 end
