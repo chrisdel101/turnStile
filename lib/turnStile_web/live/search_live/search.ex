@@ -40,20 +40,28 @@ defmodule TurnStileWeb.SearchLive.Search do
   def handle_user_search(input_value) do
     # slugigy param
     lower_user_name = String.downcase(input_value)
-    split_names_list = String.split(input_value)
+    split_names_list = String.split(lower_user_name)
     # after 2 words will be discarded
     name1 = hd split_names_list
     name2 = Enum.at(split_names_list, 1)
-    IO.inspect(name2, label: "name2")
-    users = Patients.search_users_by_name(name1, name2)
+    # search by first/last name
+    users = Patients.search_users_by_last_and_first_name(name1, name2)
     # IO.inspect(users, label: "users UP")
+    # if no results using first/last name
     if Enum.empty?(users) do
-      # try flipping the names
-      users = Patients.search_users_by_name(name2, name1)
-      # IO.inspect(users, label: "users IN")
+      cond do
+        # if name2 is not empty
+        !is_nil(name2) && name2 !== "" ->
+        # try flipping the names last/first name and run again
+          users = Patients.search_users_by_last_and_first_name(name2, name1)
+        is_nil(name2) || name2 == "" ->
+          # if name2 is empty, search name1 for first name
+          users = Patients.search_users_by_first_name(name1)
+        true ->
+          []
+      end
     else
      users
-    #  IO.inspect(users, label: "users IN")
     end
   end
 end

@@ -34,17 +34,21 @@
   </.form>
   <div class="users-search-list">
   <%!-- <% IO.inspect(@users) %> --%>
+  <%= if length(@users) > 0 do %>
     <%= for user <- @users do %>
-      <%= if length(@users) > 0 do %>
-      <% IO.inspect(length(@users)) %>
+    <div id={"user-#{user.id}"}>
       <dl>
         <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
         <dd><%= user.health_card_num %></dd>
       </dl>
-    <% else %>
+    </div>
+    <% end %>
+    <%= else %>
       <p>No users found</p>
       
-    <% end %>
+    <%!-- <%= else %>
+      <p>No users found</p> --%>
+    
   <% end %>
   </div>
 </div>
