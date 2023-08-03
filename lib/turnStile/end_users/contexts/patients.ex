@@ -129,50 +129,79 @@ defmodule TurnStile.Patients do
   def search_users_by_name(last_name, first_name, levenstein_level \\ 1) do
     # run direct search
     first_search_result = Repo.all(search_last_name_direct_query(last_name))
+    # IO.inspect("first_search_result: #{inspect(first_search_result)}")
     if !is_nil(first_search_result) && length(first_search_result) > 0 do
+      # IO.inspect("first_search_result: #{inspect(first_search_result)}")
+      # if multiple with last name, narrow down last name search by first name
       if length(first_search_result) > 1 && !is_nil(first_name) do
-        expand_search_users_by_first_name(search_last_name_direct_query(last_name), first_name, levenstein_level)
+        refine_query_by_appending_first_name(
+          search_last_name_direct_query(last_name),
+          first_name,
+          levenstein_level
+        )
       else
+        # if single last name return it
         first_search_result
       end
     else
       # run search with LIKE parameter
-      second_search_result = Repo.all(search_last_name_like_query(last_name))
+      second_search_result = Repo.all(search_last_name_ilike_query(last_name))
+
       if !is_nil(second_search_result) && length(second_search_result) > 0 do
+        # IO.inspect("second_search_result: #{inspect(second_search_result)}")
+        # if multiple with last name, narrow down last name search by first name
         if length(second_search_result) > 1 && !is_nil(first_name) do
-          expand_search_users_by_first_name(search_last_name_like_query(last_name), first_name, levenstein_level)
+          refine_query_by_appending_first_name(
+            search_last_name_ilike_query(last_name),
+            first_name,
+            levenstein_level
+          )
         else
+          # return single result
           second_search_result
         end
       else
         # run seach with levenstein
         users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_level))
+        # narrow down last name search by first name
+        #  IO.inspect("third search result: #{inspect(users)}")
         if length(users) > 1 && !is_nil(first_name) do
-          expand_search_users_by_first_name(search_user_last_name_levenstein_query(last_name, levenstein_level), first_name, levenstein_level)
+          refine_query_by_appending_first_name(
+            search_user_last_name_levenstein_query(last_name, levenstein_level),
+            first_name,
+            levenstein_level
+          )
         else
           users
         end
       end
     end
   end
+
   @doc """
-  expand_search_users_by_first_name
+  refine_query_by_appending_first_name
   - runs through 3 queries to find a user; starts simple and progresses to use levenstein
   - set levenstein 1 to allow one typo in name
   """
-  def expand_search_users_by_first_name(last_name_query, first_name, levenstein_level \\ 1) do
+  def refine_query_by_appending_first_name(last_name_query, first_name, levenstein_level \\ 1) do
     # run direct search
-    first_search_result = Repo.all(search_first_name_direct_query(last_name_query, first_name))
+    first_search_result = Repo.all(append_first_name_direct_query(last_name_query, first_name))
+    # IO.inspect(first_search_result, label: "FIRST NAME: first_search_result")
     if !is_nil(first_search_result) && length(first_search_result) > 0 do
       first_search_result
     else
       # run search with LIKE parameter
-      second_search_result = Repo.all(search_last_name_like_query(last_name_query))
+      second_search_result = Repo.all(append_first_name_like_query(last_name_query, first_name))
+      # IO.inspect(second_search_result, label: "FIRSTNAME: second_search_result")
       if !is_nil(second_search_result) && length(second_search_result) > 0 do
         second_search_result
       else
         # run seach with levenstein
-        Repo.all(search_first_name_levenshtein_query(last_name_query, first_name, levenstein_level))
+        # IO.inspect(append_first_name_levenshtein_query(last_name_query, first_name, levenstein_level), label: "ZZZZZ")
+        x =
+          Repo.all(
+            append_first_name_levenshtein_query(last_name_query, first_name, levenstein_level)
+          )
       end
     end
   end
@@ -183,42 +212,55 @@ defmodule TurnStile.Patients do
       select: u
     )
   end
+
   def search_last_name_direct_query(last_name) do
     from(u in User,
-    where: u.last_name == ^last_name,
-    select: u
+      where: u.last_name == ^last_name,
+      select: u
     )
   end
 
-  def search_last_name_like_query(last_name) do
+  def search_last_name_ilike_query(last_name) do
     from(u in User,
-    where: like(u.last_name, ^"%#{last_name}%"),
+      where: ilike(u.last_name, ^"%#{last_name}%"),
       select: u
     )
   end
 
   def search_user_last_name_levenstein_query(last_name, levenstein_level) do
     from(u in User,
-    where: fragment("levenshtein(last_name, ?) <= ?", ^last_name, ^levenstein_level),
-    select: u
+      where: fragment("levenshtein(last_name, ?) <= ?", ^last_name, ^levenstein_level),
+      select: u
     )
   end
+
   # is passed formed query for last name
-  def search_first_name_direct_query(last_name_query, first_name) do
+  def append_first_name_direct_query(last_name_query, first_name) do
     from(u in last_name_query,
-      where: u.first_name == ^first_name,
+      where: u.first_name == ^first_name
     )
   end
+
   # is passed formed query for last name
-  def search_first_name_like_query(last_name_query, first_name) do
+  def append_first_name_like_query(last_name_query, first_name) do
     from(u in last_name_query,
       where: like(u.first_name, ^"%#{first_name}%")
     )
   end
-    # is passed formed query for last name
-  def search_first_name_levenshtein_query(last_name_query, first_name, levenstein_level) do
+
+  # is passed formed query for last name
+  def append_first_name_levenshtein_query(last_name_query, first_name, levenstein_level) do
     from(u in last_name_query,
-      where: fragment("levenshtein(first_name, ?) <= ?", ^first_name, ^levenstein_level)
+      where:
+        fragment("levenshtein(LOWER(first_name), LOWER(?)) <= ?", ^first_name, ^levenstein_level)
+    )
+  end
+
+  def search_first_name_levenshtein_query(first_name, levenstein_level) do
+    from(u in User,
+      where:
+        fragment("levenshtein(LOWER(first_name), LOWER(?)) <= ?", ^first_name, ^levenstein_level),
+      select: u
     )
   end
 
