@@ -124,9 +124,10 @@ defmodule TurnStile.Patients do
   @doc """
   search_users_by_name
   - runs through 3 queries to find a user; starts simple and progresses to use levenstein
-  - set levenstein 1 to allow one typo in name
+  - set last name levenstein 1 to allow one typo in name
+  - set firt name levenstein 2 to allow 2 typo in name: let first name be flexible
   """
-  def search_users_by_name(last_name, first_name, levenstein_level \\ 1) do
+  def search_users_by_name(last_name, first_name, levenstein_val_last_name_query \\ 1, levenstein_val_first_name_query \\ 2) do
     # run direct search
     first_search_result = Repo.all(search_last_name_direct_query(last_name))
     # IO.inspect("first_search_result: #{inspect(first_search_result)}")
@@ -137,7 +138,7 @@ defmodule TurnStile.Patients do
         refine_query_by_appending_first_name(
           search_last_name_direct_query(last_name),
           first_name,
-          levenstein_level
+          levenstein_val_first_name_query
         )
       else
         # if single last name return it
@@ -154,7 +155,7 @@ defmodule TurnStile.Patients do
           refine_query_by_appending_first_name(
             search_last_name_ilike_query(last_name),
             first_name,
-            levenstein_level
+            levenstein_val_first_name_query
           )
         else
           # return single result
@@ -162,14 +163,14 @@ defmodule TurnStile.Patients do
         end
       else
         # run seach with levenstein
-        users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_level))
+        users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query))
         # narrow down last name search by first name
-        #  IO.inspect("third search result: #{inspect(users)}")
+         IO.inspect("third search result: #{inspect(users)}")
         if length(users) > 1 && !is_nil(first_name) do
           refine_query_by_appending_first_name(
-            search_user_last_name_levenstein_query(last_name, levenstein_level),
+            search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query),
             first_name,
-            levenstein_level
+            levenstein_val_first_name_query
           )
         else
           users
@@ -229,7 +230,7 @@ defmodule TurnStile.Patients do
 
   def search_user_last_name_levenstein_query(last_name, levenstein_level) do
     from(u in User,
-      where: fragment("levenshtein(last_name, ?) <= ?", ^last_name, ^levenstein_level),
+      where: fragment("levenshtein(LOWER(last_name), ?) <= ?", ^last_name, ^levenstein_level),
       select: u
     )
   end

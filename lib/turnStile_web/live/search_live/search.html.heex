@@ -22,9 +22,9 @@
         phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
     </main>
       
-    <%= label f, :user_name %>
-    <%= text_input f, :user_name %>
-    <%= error_tag f, :user_name %>
+    <%= label f, :Enter_user_name %>
+    <%= text_input f, :user_name_input, placeholder: "Enter user last name and first name" %>
+    <%= error_tag f, :user_name_input %>
    
   
     <div>
@@ -32,4 +32,19 @@
       %>
     </div>
   </.form>
+  <div class="users-search-list">
+  <%!-- <% IO.inspect(@users) %> --%>
+    <%= for user <- @users do %>
+      <%= if length(@users) > 0 do %>
+      <% IO.inspect(length(@users)) %>
+      <dl>
+        <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
+        <dd><%= user.health_card_num %></dd>
+      </dl>
+    <% else %>
+      <p>No users found</p>
+      
+    <% end %>
+  <% end %>
+  </div>
 </div>
