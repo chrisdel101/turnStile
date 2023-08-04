@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.SearchLive.Search do
+defmodule TurnStileWeb.SearchLive.SearchComponent do
   use TurnStileWeb, :live_component
   alias TurnStile.Patients
 

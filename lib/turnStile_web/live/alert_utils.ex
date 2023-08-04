@@ -1,5 +1,5 @@
 defmodule TurnStileWeb.AlertUtils do
-  use TurnStileWeb, :live_component
+  # use TurnStileWeb, :live_component
   alias TurnStile.Alerts.Alert
   alias TurnStile.Alerts
   alias TurnStile.Staff

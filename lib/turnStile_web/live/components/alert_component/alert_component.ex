@@ -1,4 +1,4 @@
-  defmodule TurnStileWeb.AlertPanelLive.Alert do
+  defmodule TurnStileWeb.AlertPanelLive.AlertComponent do
   @docmodule """
   Alert Live Component
   - there is no solo view for this page, it is only a modal

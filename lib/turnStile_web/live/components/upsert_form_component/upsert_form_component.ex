@@ -173,7 +173,6 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                   length(@user_search_fields) -1
                 )
 
-
                 case Patients.insert_user_changeset(user_changeset) do
                   {:ok, _user} ->
                     {:noreply,

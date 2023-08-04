@@ -16,7 +16,7 @@
     <%= if @live_action in [:alert] do %>
       <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
         <.live_component
-          module={TurnStileWeb.AlertPanelLive.Alert}
+          module={TurnStileWeb.AlertPanelLive.AlertComponent}
           id={@user.id || :new}~
           action={@live_action}
           current_employee={@current_employee}
@@ -32,7 +32,7 @@
     <%= if @live_action in [:search] do %>
       <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
         <.live_component
-          module={TurnStileWeb.SearchLive.Search}
+          module={TurnStileWeb.SearchLive.SearchComponent}
           id={:search}~
           action={@live_action}
           current_employee={@current_employee}
