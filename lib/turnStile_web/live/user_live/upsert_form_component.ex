@@ -1,26 +1,46 @@
 defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # handles the logic for the modals
   use TurnStileWeb, :live_component
-
+  import Ecto.Changeset
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Patients
+  alias TurnStile.Patients.User
+
+  @user_search_fields [:email, :phone, :last_name, :health_card_num]
 
   @impl true
   # empty user struct getting passed as props; see index apply_action(:new)
+
   def update(%{user: user, action: action} = assigns, socket) do
+    # IO.inspect(user, label: "user")
+    # IO.inspect(action)
+    user =
+      case user do
+        # :insert: it's a formed user then fill in the form
+        %User{} = user ->
+          user
+
+        # :new: if user is empty map it's a blank user form
+        %{} = user ->
+          %User{}
+      end
+      # IO.inspect(user, label: "user")
+      # IO.inspect(action)
     # build default user changeset
     changeset = Patients.change_user(user)
-    # IO.inspect(changeset, label: "changeset")
 
     {:ok,
      socket
      |> assign(assigns)
+     # assign user struct so 'validate' works
+     |> assign(:user, apply_changes(changeset))
      |> assign(:live_action, action)
      |> assign(:changeset, changeset)}
   end
 
   @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do
+    # IO.inspect(socket.assigns.user, label: "user_params")
     changeset =
       socket.assigns.user
       |> Patients.change_user(user_params)
@@ -147,6 +167,12 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
             case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
               %Ecto.Changeset{} = user_changeset ->
                 IO.inspect(user_changeset, label: "user_changeset")
+                # check if user already exists
+                existing_users = lookup_user(
+                  %User{} = apply_changes(user_changeset),
+                  length(@user_search_fields) -1
+                )
+
 
                 case Patients.insert_user_changeset(user_changeset) do
                   {:ok, _user} ->
@@ -181,5 +207,50 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
             {:noreply, socket}
         end
     end
+  end
+
+  @doc """
+  Lookup user by field
+  - search users by fields; returns list of users or []
+  - loop from end of list user_search_fields checking each; if none, call func with next
+  - if index is 0 end loop
+  """
+  def lookup_user(user_struct, nil), do: nil
+  def lookup_user(user_struct, 0), do: nil
+  def lookup_user(user_struct, list_index) do
+    search_field = Enum.at(@user_search_fields, list_index)
+    # IO.inspect(list_index, label: "list_index")
+    # IO.inspect(search_field, label: "search_field")
+    cond do
+      Map.get(user_struct, search_field) ->
+        users = handle_get_users_by_field(search_field, Map.get(user_struct, search_field))
+        # IO.inspect(users, label: "USERS")
+        if users === [] do
+          # call recursively
+          lookup_user(user_struct, list_index - 1)
+        else
+          IO.puts("User(s) exist. Found by #{search_field}")
+          users
+        end
+
+      true ->
+        {:error, "Invalid search_field"}
+    end
+  end
+
+  defp handle_get_users_by_field(field, field_value) do
+    case Patients.get_users_by_field(field, field_value) do
+      [] = users ->
+        # IO.puts("empty")
+        []
+      users ->
+        # users
+        # IO.inspect(users)
+        users
+    end
+  end
+
+  defp is_user_active?(user) do
+    user.active
   end
 end

@@ -315,11 +315,18 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user, Patients.get_user(user_id))
   end
 
-  # assigns individual user changset on :new
+  # user is blank map - assign user in upsert update
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "Add New User")
-    |> assign(:user, %User{})
+    |> assign(:user, %{})
+  end
+
+  # user is formed struct
+  defp apply_action(socket, :insert, %{"user_id" => user_id}) do
+    socket
+    |> assign(:page_title, "Insert Saved User")
+    |> assign(:user, Patients.get_user(user_id))
   end
 
   defp apply_action(socket, :index, _params) do

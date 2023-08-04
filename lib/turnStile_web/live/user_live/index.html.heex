@@ -1,10 +1,10 @@
 <h1>Listing Users</h1>
   <%!-- list of possible modals opening from index --%>
-  <%= if @live_action in [:new] do %>
+  <%= if @live_action in [:new, :insert] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
       <.live_component
         module={TurnStileWeb.UserLive.UpsertFormComponent}
-        id={@user.id || :new}~
+        id={Map.get(@user, :id) || :new}~
         action={@live_action}
         current_employee={@current_employee}
         user={@user}

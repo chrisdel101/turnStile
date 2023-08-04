@@ -32,13 +32,10 @@
       %>
     </div>
   </.form>
-   <div  id="test" class="search-user" phx-click="inc" phx-value-myvar1="val1" phx-value-myvar2="val2" phx-target={@myself}>
-  </div>
-   <div  id="test" class="search-user" phx-click="inc" phx-value-myvar1="val1" phx-value-myvar2="val2" phx-target={@myself}>
-  </div>
   <div class="users-search-list">
   <%!-- <% IO.inspect(@users) %> --%>
   <%= if length(@users) > 0 do %>
+    <h4><strong>Click a user to add</strong></h4>
     <%= for user <- @users do %>
     <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
       <dl>

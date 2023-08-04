@@ -92,15 +92,27 @@ defmodule TurnStile.Patients do
     Repo.get(User, id) |> Repo.preload([:employee, :organization])
   end
 
+  def get_users_by_field(field, value) do
+   if is_atom(field) do
+    q = from(u in User,
+    where: field(u, ^field) == ^value,
+    preload: [:employee, :organization])
+    Repo.all(q)
+   else
+    IO.puts("get_users_by_field: field must be an atom")
+    end
+   end
+
   # - there could be multiple users w. the same phone so we return a list
   # TODO - make more robust search
   # -needs to check if input number matches also for 1, and +1
-  # -need to check if there is match of input w/ a 1 or +1
+  # - need to check if there is match of input w/ a 1 or +1
   def get_users_by_phone(phone) do
     if !is_nil(phone) do
-      # remove leading 1 and +
+      # remove leading 1 and +; ignore otherwise
       phone = String.trim(TurnStile.Utils.remove_first_string_char(phone, "+"))
-
+      phone = String.trim(TurnStile.Utils.remove_first_string_char(phone, "1"))
+      # IO.inspect("phone: " <> phone)
       q =
         from(u in User,
           where: u.phone == ^phone,

@@ -18,15 +18,11 @@ defmodule TurnStileWeb.SearchLive.Search do
     IO.inspect(user_name_input, label: "user_name_input")
     {:noreply, socket}
   end
-
+  # click on user in search form
   def handle_event("select_user", %{"user_id" => user_id}, socket) do
-    IO.inspect(user_id, label: "USER")
-    {:noreply, socket}
-  end
-
-def handle_event("inc", %{"myvar1" => "val1", "myvar2" => "val2"}, socket) do
-  IO.inspect("INC", label: "params")
-    {:noreply, socket}
+    current_employee = socket.assigns.current_employee
+    # redirect to :new form
+    {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :insert, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
   end
 
   def handle_event("save", %{"search" => %{"user_name_input" => user_name_input}}, socket) do
