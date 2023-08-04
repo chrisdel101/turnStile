@@ -19,6 +19,16 @@ defmodule TurnStileWeb.SearchLive.Search do
     {:noreply, socket}
   end
 
+  def handle_event("select_user", %{"user_id" => user_id}, socket) do
+    IO.inspect(user_id, label: "USER")
+    {:noreply, socket}
+  end
+
+def handle_event("inc", %{"myvar1" => "val1", "myvar2" => "val2"}, socket) do
+  IO.inspect("INC", label: "params")
+    {:noreply, socket}
+  end
+
   def handle_event("save", %{"search" => %{"user_name_input" => user_name_input}}, socket) do
     if is_nil(user_name_input) || user_name_input == "" do
       {
