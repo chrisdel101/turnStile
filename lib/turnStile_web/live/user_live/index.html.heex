@@ -29,14 +29,15 @@
     
       <span><%= live_patch "Back", to: Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id) %></span>
     <% end %>
-    <%= if @live_action in [:search] do %>
+    <%= if @live_action in [:search, :display] do %>
       <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
         <.live_component
           module={TurnStileWeb.SearchLive.SearchComponent}
-          id={:search}~
+          users={@users}
+          id={:search}
           action={@live_action}
           current_employee={@current_employee}
-          page_title="Search Users"
+          page_title={@page_title}
           return_to={Routes.user_index_path(@socket, :search, @current_employee.current_organization_login_id, @current_employee.id)}
         />
       </.modal>

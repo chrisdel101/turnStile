@@ -152,6 +152,8 @@ defmodule TurnStileWeb.Router do
 
     live "/organizations/:organization_id/employees/:employee_id/users/search", UserLive.Index, :search
 
+    live "/organizations/:organization_id/employees/:employee_id/users/display", UserLive.Index, :display
+
     live "/organizations/:organization_id/employees/:employee_id/users/:id",
       UserLive.Show,
       :show

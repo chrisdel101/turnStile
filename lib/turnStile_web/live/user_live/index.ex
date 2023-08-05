@@ -51,9 +51,9 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  @impl true
-  def handle_info(%{user_alert_status: _user_alert_status}, socket) do
-    # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
+    @impl true
+    def handle_info(%{user_alert_status: _user_alert_status}, socket) do
+      # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
       Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
@@ -305,7 +305,8 @@ defmodule TurnStileWeb.UserLive.Index do
        )}
     end
   end
-  # -called from when live_patch clicked
+   # :alert - renders alert panel
+  # -called from when live_patch clicked on index
   defp apply_action(socket, :alert, params) do
     %{"id" => user_id} = params
     # IO.inspect(Patients.get_user(user_id), label: ":alerts")
@@ -314,31 +315,40 @@ defmodule TurnStileWeb.UserLive.Index do
     # - sent as prop through html to panel_component
     |> assign(:user, Patients.get_user(user_id))
   end
-
+  # :new - adding a new user from scratch
   # user is blank map - assign user in upsert update
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "Add New User")
     |> assign(:user, %{})
   end
-
+  # :insert - adding a new user that already exists in DB
   # user is formed struct
   defp apply_action(socket, :insert, %{"user_id" => user_id}) do
     socket
     |> assign(:page_title, "Insert Saved User")
     |> assign(:user, Patients.get_user(user_id))
   end
-
+  # :index - rendering index page
   defp apply_action(socket, :index, _params) do
     IO.inspect("index", label: "apply_action on index")
     socket
     |> assign(:page_title, "Listing Users")
     |> assign(:user, nil)
   end
-
-  defp apply_action(socket, :search, _params) do
+  # :search - rendering search page
+  defp apply_action(socket, :search, params) do
+    # IO.inspect(params, label: "apply_action on search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
+    |> assign(:users, [])
+  end
+  # :display - rendering search page displa
+  defp apply_action(socket, :display, params) do
+    # IO.inspect(params, label: "apply_action on display")
+    socket
+    |> assign(:page_title, "Matching Users")
+    |> assign(:users, socket.assigns.users)
   end
 end

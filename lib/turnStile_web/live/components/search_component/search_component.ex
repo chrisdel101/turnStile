@@ -6,11 +6,13 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
 
   @impl true
   def update(props, socket) do
+    # IO.inspect(props, label: "props")
     {:ok,
      socket
      |> assign(props)
+     |> assign(:live_action, props.action)
      |> assign(:json, @json)
-     |> assign(:users, [])}
+     |> assign(:users, props.users)}
   end
 
   @impl true

@@ -1,5 +1,6 @@
 <div>
   <h2><%= @page_title %></h2>
+  <%= if @live_action === :search do %>
   <.form
     let={f}
     for={:search}
@@ -32,7 +33,8 @@
       %>
     </div>
   </.form>
-  <div class="users-search-list">
+    <% end %>
+  <div class="users-list">
   <%!-- <% IO.inspect(@users) %> --%>
   <%= if length(@users) > 0 do %>
     <h4><strong>Click a user to add</strong></h4>
