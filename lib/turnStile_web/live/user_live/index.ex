@@ -25,12 +25,12 @@ defmodule TurnStileWeb.UserLive.Index do
     if connected?(socket), do: Process.send_after(self(), :update, @interval)
     # subscribe - broadcast is in alert controller
     Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE"))
-    users = Patients.filter_active_users_x_mins_past_last_update(organization_id, @filter_active_users_mins)
-    # IO.inspect(users, label: "users in fetchBBBBBBBBBBBBB")
+    main_index_users_list = Patients.filter_active_users_x_mins_past_last_update(organization_id, @filter_active_users_mins)
+    IO.inspect(socket.assigns, label: "INDEX: socket.assigns")
     {:ok,
      assign(
        socket,
-       users: users,
+       users: main_index_users_list,
        current_employee: current_employee
      )}
   end
@@ -45,9 +45,19 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  # called on index main page;
+  # called on :display; users list found during :new;
+    def handle_params(%{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params, _url, socket) do
+      # IO.inspect(params, label: "params on index YYYY")
+      IO.inspect(socket.assigns, label: "params on index YYYY")
+    #  socket =
+    #   socket
+    #   |> assign(:search_field_name, search_field_name)
+      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    end
+  # called on :index; this is main index page;
   def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
     # IO.inspect(params, label: "params on index XXX")
+
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
@@ -345,10 +355,18 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:users, [])
   end
   # :display - rendering search page displa
-  defp apply_action(socket, :display, params) do
-    # IO.inspect(params, label: "apply_action on display")
+  defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
+    IO.inspect(params, label: "apply_action on display")
+    # IO.puts("HELLO")
+    # IO.inspect(socket.assigns)
     socket
+    |> assign(:search_field_name, search_field_name)
+    |> assign(:search_field_value, search_field_value)
+    |> assign(:return_to, Routes.user_index_path(socket, :insert,
+    socket.assigns.current_employee.current_organization_login_id,
+    socket.assigns.current_employee.id))
     |> assign(:page_title, "Matching Users")
+    |> assign(:changeset, socket.assigns.changeset)
     |> assign(:users, socket.assigns.users)
   end
 end

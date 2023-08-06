@@ -12,6 +12,7 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
      |> assign(props)
      |> assign(:live_action, props.action)
      |> assign(:json, @json)
+     |> maybe_store_search_fields(props)
      |> assign(:users, props.users)}
   end
 
@@ -71,5 +72,13 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
     else
      users
     end
+  end
+  defp maybe_store_search_fields(socket, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = props) do
+    socket
+    |> assign(:search_field_name, search_field_name)
+    |> assign(:search_field_value, search_field_value)
+  end
+  defp maybe_store_search_fields(socket, props) do
+    socket
   end
 end

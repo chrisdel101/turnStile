@@ -11,8 +11,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   @impl true
   # empty user struct getting passed as props; see index apply_action(:new)
 
-  def update(%{user: user, action: action} = assigns, socket) do
-    # IO.inspect(user, label: "user")
+  def update(%{user: user, action: action} = props, socket) do
+    # IO.inspect(props, label: "props")
     # IO.inspect(action)
     user =
       case user do
@@ -31,7 +31,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
     {:ok,
      socket
-     |> assign(assigns)
+     |> assign(props)
      # assign user struct so 'validate' works
      |> assign(:user, apply_changes(changeset))
      |> assign(:live_action, action)
@@ -166,22 +166,34 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
               %Ecto.Changeset{} = user_changeset ->
-                IO.inspect(user_changeset, label: "user_changeset")
+                # IO.inspect(user_changeset, label: "user_changeset")
                 # check if user already exists
-                existing_users = lookup_user(
+                {search_field_name, search_field_value, existing_users} = lookup_user(
                   %User{} = apply_changes(user_changeset),
                   length(@user_search_fields) -1
                 )
                 # if is user exists redirect to search list
                 # IO.inspect(existing_users, label: "existing_users")
                 if length(existing_users) > 0 do
-                  # assign users to socket
+                  # MUST assign users to socket here
+                  # cannot pass list as route params: but assigning to assign not ideal
                   socket =
                     socket
-                  |> assign(:users, existing_users)
-                  # display users list
-                  {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id))}
-                else
+                    |> assign(:existing_users, existing_users)
+                    |> assign(:user_changeset, user_changeset)
+
+                  # IO.puts("HELLO")
+                  IO.inspect(socket.assigns, label: "UPSERT")
+
+                    # :display users list component
+                    # - pass the name and value of search_feild that matched
+                    # - save current user state in case employee wants to go back and use this
+                    {:noreply,
+                    socket
+                    |> push_patch(
+                      to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
+
+                    else
                   case Patients.insert_user_changeset(user_changeset) do
                     {:ok, _user} ->
                       {:noreply,
@@ -228,24 +240,25 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   def lookup_user(user_struct, nil), do: []
   def lookup_user(user_struct, 0), do: []
   def lookup_user(user_struct, list_index) do
-    search_field = Enum.at(@user_search_fields, list_index)
+    search_field_name = Enum.at(@user_search_fields, list_index)
     # IO.inspect(list_index, label: "list_index")
     # IO.inspect(search_field, label: "search_field")
     cond do
-      Map.get(user_struct, search_field) ->
-        users = handle_get_users_by_field(search_field, Map.get(user_struct, search_field))
+      Map.get(user_struct, search_field_name) ->
+        users = handle_get_users_by_field(search_field_name, Map.get(user_struct, search_field_name))
         # IO.inspect(users, label: "USERS")
         if users === [] do
           # call recursively
           lookup_user(user_struct, list_index - 1)
         else
           # TODO: send field found by to display
-          IO.puts("User(s) exist. Found by #{search_field}")
-          users
+          IO.puts("User(s) exist. Found by #{search_field_name}")
+          search_field_value = Map.get(user_struct, search_field_name)
+          {search_field_name, search_field_value, users}
         end
 
       true ->
-        {:error, "Invalid search_field"}
+        {:error, "Invalid search_field_name"}
     end
   end
 
@@ -263,5 +276,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   defp is_user_active?(user) do
     user.active
+  end
+
+  defp maybe_store_return_to(socket) do
+
   end
 end
