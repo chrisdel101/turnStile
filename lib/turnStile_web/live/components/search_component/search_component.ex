@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.SearchLive.SearchComponent do
+defmodule TurnStileWeb.UserLive.SearchComponent do
   use TurnStileWeb, :live_component
   alias TurnStile.Patients
 
@@ -10,11 +10,8 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
     {:ok,
      socket
      |> assign(props)
-     |> assign(:live_action, props.action)
-     |> assign(:json, @json)
-     |> maybe_store_search_fields(props)
-     |> assign(:users, props.users)}
-  end
+     |> assign(:live_action, props.action)}
+      end
 
   @impl true
   def handle_event("validate", %{"search" => %{"user_name_input" => user_name_input}}, socket) do
@@ -39,8 +36,13 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
         )
       }
     else
-      users = handle_user_search(user_name_input)
-      {:noreply, assign(socket, :users, users)}
+      existing_users_found = handle_user_search(user_name_input)
+      IO.inspect(existing_users_found, label: "search: existing_users_found")
+      #send a message with new state to parent
+      send(self(), {:users_found,
+      existing_users_found}
+      )
+      {:noreply, assign(socket, :existing_users_found, existing_users_found)}
     end
   end
 
@@ -54,6 +56,7 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
     name1 = hd split_names_list
     name2 = Enum.at(split_names_list, 1)
     # search by first/last name
+    # TODO: make it search last/first name since more likely to be last name
     users = Patients.search_users_by_last_and_first_name(name1, name2)
     # IO.inspect(users, label: "users UP")
     # if no results using first/last name
@@ -61,7 +64,7 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
       cond do
         # if name2 is not empty
         !is_nil(name2) && name2 !== "" ->
-        # try flipping the names last/first name and run again
+        # try flipping the names to last/first name and run again
           users = Patients.search_users_by_last_and_first_name(name2, name1)
         is_nil(name2) || name2 == "" ->
           # if name2 is empty, search name1 for first name
@@ -73,12 +76,12 @@ defmodule TurnStileWeb.SearchLive.SearchComponent do
      users
     end
   end
-  defp maybe_store_search_fields(socket, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = props) do
-    socket
-    |> assign(:search_field_name, search_field_name)
-    |> assign(:search_field_value, search_field_value)
-  end
-  defp maybe_store_search_fields(socket, props) do
-    socket
-  end
+  # defp maybe_store_search_fields(socket, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = props) do
+  #   socket
+  #   |> assign(:search_field_name, search_field_name)
+  #   |> assign(:search_field_value, search_field_value)
+  # end
+  # defp maybe_store_search_fields(socket, props) do
+  #   socket
+  # end
 end

@@ -1,0 +1,24 @@
+<div>
+    <% IO.inspect(@live_action) %>
+    <h3><%= @message %> </h3>
+    <%= if @live_action === :display &&  @search_field_name && @search_field_value do %>
+        <p>The following users match the <%= @search_field_name %>:  <%= @search_field_value %></p>
+    <% end %>
+  <div class="users-list">
+    <%!-- <% IO.inspect(@users) %> --%>
+    <%= if length(@users) > 0 do %>
+      <h4><strong>Click on a user to activate</strong></h4>
+      <p>Skip:  <%= link "Add Original User ", to: Routes.user_index_path(@socket, :insert, @current_employee.current_organization_login_id, @current_employee.id) %></p>
+      <%= for user <- @users do %>
+        <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
+          <dl>
+            <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
+            <dd><%= user.health_card_num %></dd>
+          </dl>
+      </div>
+    <% end %>
+  <%= else %>
+    <p>No users found</p>    
+  <% end %>
+  </div>
+</div>

@@ -7,6 +7,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStileWeb.AlertUtils
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
+  alias TurnStileWeb.UserLive.DisplayListComponent
 
 
   # live_actions [:new, :index, :alert, :edit]
@@ -29,9 +30,15 @@ defmodule TurnStileWeb.UserLive.Index do
     IO.inspect(socket.assigns, label: "INDEX: socket.assigns")
     {:ok,
      assign(
-       socket,
-       users: main_index_users_list,
-       current_employee: current_employee
+      socket,
+      search_field_name: nil,
+      search_field_value: nil,
+      display_message: nil,
+      display_instruction: nil,
+      existing_users_found: [],
+      users: main_index_users_list,
+      current_employee: current_employee,
+      return_to: Routes.user_index_path(socket, :index, organization_id, current_employee.id)
      )}
   end
 
@@ -48,7 +55,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
   # called on :display; users list found during :new;
     def handle_params(%{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params, _url, socket) do
-      # IO.inspect(params, label: "params on index YYYY")
+      IO.inspect(params, label: "params on index YYYY")
       # IO.inspect(socket.assigns, label: "params on index YYYY")
     #  socket =
     #   socket
@@ -56,6 +63,7 @@ defmodule TurnStileWeb.UserLive.Index do
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
   # called on :index; this is main index page;
+  # called on :search button click
   def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
     # IO.inspect(params, label: "params on index XXX")
 
@@ -82,24 +90,33 @@ defmodule TurnStileWeb.UserLive.Index do
     # IO.inspect(users, label: "YYYYYYY")
     {:noreply, assign(socket, :users, users)}
   end
+  # called from :search; when search results are found
+  def handle_info({:users_found, existing_users_found} , socket) do
 
-  def handle_info({:display,
-  %{existing_users: existing_users, user_changeset: user_changeset, redirect_to: redirect_to}
-  }, socket) do
+    # IO.inspect(existing_users_found, label: "UUUU message in handle_info")
+    # IO.inspect("UUUUUUUU", label: "message in handle_info")
+    # call update to refresh state on :display
+    send_update(DisplayListComponent, id: "display")
+    {:noreply, assign(socket, :existing_users_found, existing_users_found)}
+    # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
+  end
+  # called from :new upsert when existing users are found
+  def handle_info({:users_found,
+  %{existing_users_found: existing_users_found, user_changeset: user_changeset,
+  redirect_to: redirect_to}
+  } = msg , socket) do
     socket =
       socket
-      |> assign(:existing_users, existing_users)
+      |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
-    # IO.inspect(existing_users, label: "message in handle_info")
-    # IO.inspect(user_changeset, label: "message in handle_info")
+    IO.inspect(existing_users_found, label: "message in handle_info")
+    IO.inspect(user_changeset, label: "message in handle_info")
     IO.inspect("UUUUUUUU", label: "message in handle_info")
     redirect_to
-    # update the list of cards in the socket
-    # {:noreply, socket}
+      # redirect to :display component
     {:noreply,
-    socket
-     |> push_patch(
-    to: redirect_to)}
+      socket
+      |> push_patch(to: redirect_to)}
   end
   @impl true
   def handle_event(
@@ -367,17 +384,16 @@ defmodule TurnStileWeb.UserLive.Index do
   end
   # :search - rendering search page
   defp apply_action(socket, :search, params) do
-    # IO.inspect(params, label: "apply_action on search")
+    IO.inspect(params, label: "apply_action on search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
-    |> assign(:users, [])
   end
   # :display - rendering search page displa
   defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
     # IO.inspect(params, label: "apply_action on display")
     # IO.puts("HELLO")
-    # IO.inspect(socket.assigns, label: "apply_action on display")
+    IO.inspect(socket.assigns, label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
     |> assign(:search_field_value, search_field_value)
@@ -385,8 +401,8 @@ defmodule TurnStileWeb.UserLive.Index do
     socket.assigns.current_employee.current_organization_login_id,
     socket.assigns.current_employee.id))
     |> assign(:page_title, "Matching Users")
-    |> assign(:user_changeset, socket.assigns.user_changeset)
+    |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
-    |> assign(:existing_users, socket.assigns.existing_users)
+    |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
   end
 end
