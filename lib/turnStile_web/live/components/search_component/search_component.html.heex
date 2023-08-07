@@ -1,56 +1,56 @@
 <div>
   <h2><%= @page_title %></h2>
   <%= if @live_action === :search do %>
-  <.form
-    let={f}
-    for={:search}
-    id="user-search-form"
-    phx-target={@myself}
-    phx-change="validate"
-    phx-submit="save">
-    <main class="container">
-      <p class="alert alert-info" role="alert"
-        phx-click="lv:clear-flash"
-        phx-value-key="info"><%= live_flash(@flash, :info) %></p>
-      <p class="alert alert-success" role="alert"
+    <.form
+      let={f}
+      for={:search}
+      id="user-search-form"
+      phx-target={@myself}
+      phx-change="validate"
+      phx-submit="save">
+      <main class="container">
+        <p class="alert alert-info" role="alert"
           phx-click="lv:clear-flash"
-          phx-value-key="success"><%= live_flash(@flash, :success) %></p>
-      <p class="alert alert-danger" role="alert"
-        phx-click="lv:clear-flash"
-        phx-value-key="error"><%= live_flash(@flash, :error) %></p>
-      <p class="alert alert-warning" role="alert"
-        phx-click="lv:clear-flash"
-        phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
-    </main>
-      
-    <%= label f, :Enter_user_name %>
-    <%= text_input f, :user_name_input, placeholder: "Enter user last name and first name" %>
-    <%= error_tag f, :user_name_input %>
-   
-  
-    <div>
-      <%= submit "Save", phx_disable_with: "Saving..."
-      %>
-    </div>
-  </.form>
-    <% end %>
+          phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+        <p class="alert alert-success" role="alert"
+            phx-click="lv:clear-flash"
+            phx-value-key="success"><%= live_flash(@flash, :success) %></p>
+        <p class="alert alert-danger" role="alert"
+          phx-click="lv:clear-flash"
+          phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+        <p class="alert alert-warning" role="alert"
+          phx-click="lv:clear-flash"
+          phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
+      </main>
+        
+      <%= label f, :Enter_user_name %>
+      <%= text_input f, :user_name_input, placeholder: "Enter user last name and first name" %>
+      <%= error_tag f, :user_name_input %>
+    
+    
+      <div>
+        <%= submit "Save", phx_disable_with: "Saving..."
+        %>
+      </div>
+    </.form>
+  <% end %>
     <h3>It looks like matching users already exist</h3>
     <p>The following users match the <%= @search_field_name %>:  <%= @search_field_value %></p>
   <div class="users-list">
-  <%!-- <% IO.inspect(@users) %> --%>
-  <%= if length(@users) > 0 do %>
-    <h4><strong>Click on a user in the list add them</strong></h4>
-    <p>Skip:  <%= link "Add Original User ", to: Routes.user_index_path(@socket, :insert, @current_employee.current_organization_login_id, @current_employee.id) %></p>
-    <%= for user <- @users do %>
-    <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
-      <dl>
-        <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
-        <dd><%= user.health_card_num %></dd>
-      </dl>
-    </div>
+    <%!-- <% IO.inspect(@users) %> --%>
+    <%= if length(@users) > 0 do %>
+      <h4><strong>Click on a user in the list add them</strong></h4>
+      <p>Skip:  <%= link "Add Original User ", to: Routes.user_index_path(@socket, :insert, @current_employee.current_organization_login_id, @current_employee.id) %></p>
+      <%= for user <- @users do %>
+        <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
+          <dl>
+            <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
+            <dd><%= user.health_card_num %></dd>
+          </dl>
+      </div>
     <% end %>
-    <%= else %>
-      <p>No users found</p>    
+  <%= else %>
+    <p>No users found</p>    
   <% end %>
   </div>
 </div>

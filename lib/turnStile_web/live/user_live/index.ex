@@ -35,6 +35,7 @@ defmodule TurnStileWeb.UserLive.Index do
      )}
   end
 
+
   @impl true
   # called via live_patch in index.html; :alert gets assigned as action
   # called on index when no user_id present
@@ -82,6 +83,11 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, assign(socket, :users, users)}
   end
 
+  def handle_info({:updated_card, card}, socket) do
+    IO.inspect(card, label: "message in handle_info")
+    # update the list of cards in the socket
+    {:noreply, socket}
+  end
   @impl true
   def handle_event(
         "send_initial_alert",
