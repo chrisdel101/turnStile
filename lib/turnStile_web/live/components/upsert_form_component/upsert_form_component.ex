@@ -187,12 +187,17 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                 # IO.inspect(existing_users, label: "existing_users")
                 if length(existing_users) > 0 do
                   # send self(), {:updated_card, card: "CARD123"}
-                  send(self(), {:display, %{existing_users: existing_users, user_changeset: user_changeset}})
-                  # {:noreply, socket}
-                  {:noreply,
-                  socket
-                |> push_patch(
-                  to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
+                  send(self(),
+                  {:display,
+                  %{existing_users: existing_users,
+                   user_changeset: user_changeset,
+                   redirect_to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+
+                  {:noreply, socket}
+                #   {:noreply,
+                #   socket
+                # |> push_patch(
+                #   to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
 
                     else
                   case Patients.insert_user_changeset(user_changeset) do

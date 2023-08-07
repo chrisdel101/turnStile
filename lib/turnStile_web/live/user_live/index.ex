@@ -84,7 +84,7 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   def handle_info({:display,
-  %{existing_users: existing_users, user_changeset: user_changeset}
+  %{existing_users: existing_users, user_changeset: user_changeset, redirect_to: redirect_to}
   }, socket) do
     socket =
       socket
@@ -93,9 +93,13 @@ defmodule TurnStileWeb.UserLive.Index do
     # IO.inspect(existing_users, label: "message in handle_info")
     # IO.inspect(user_changeset, label: "message in handle_info")
     IO.inspect("UUUUUUUU", label: "message in handle_info")
-    {:noreply, socket}
+    redirect_to
     # update the list of cards in the socket
-    {:noreply, socket}
+    # {:noreply, socket}
+    {:noreply,
+    socket
+     |> push_patch(
+    to: redirect_to)}
   end
   @impl true
   def handle_event(
@@ -373,7 +377,7 @@ defmodule TurnStileWeb.UserLive.Index do
   defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
     # IO.inspect(params, label: "apply_action on display")
     # IO.puts("HELLO")
-    IO.inspect(socket.assigns, label: "apply_action on display")
+    # IO.inspect(socket.assigns, label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
     |> assign(:search_field_value, search_field_value)
@@ -381,7 +385,8 @@ defmodule TurnStileWeb.UserLive.Index do
     socket.assigns.current_employee.current_organization_login_id,
     socket.assigns.current_employee.id))
     |> assign(:page_title, "Matching Users")
-    # |> assign(:changeset, socket.assigns.changeset)
+    |> assign(:user_changeset, socket.assigns.user_changeset)
     |> assign(:users, socket.assigns.users)
+    |> assign(:existing_users, socket.assigns.existing_users)
   end
 end
