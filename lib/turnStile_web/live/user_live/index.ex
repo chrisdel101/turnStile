@@ -49,7 +49,7 @@ defmodule TurnStileWeb.UserLive.Index do
   # called on :display; users list found during :new;
     def handle_params(%{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params, _url, socket) do
       # IO.inspect(params, label: "params on index YYYY")
-      IO.inspect(socket.assigns, label: "params on index YYYY")
+      # IO.inspect(socket.assigns, label: "params on index YYYY")
     #  socket =
     #   socket
     #   |> assign(:search_field_name, search_field_name)
@@ -83,8 +83,17 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, assign(socket, :users, users)}
   end
 
-  def handle_info({:updated_card, card}, socket) do
-    IO.inspect(card, label: "message in handle_info")
+  def handle_info({:display,
+  %{existing_users: existing_users, user_changeset: user_changeset}
+  }, socket) do
+    socket =
+      socket
+      |> assign(:existing_users, existing_users)
+      |> assign(:user_changeset, user_changeset)
+    # IO.inspect(existing_users, label: "message in handle_info")
+    # IO.inspect(user_changeset, label: "message in handle_info")
+    IO.inspect("UUUUUUUU", label: "message in handle_info")
+    {:noreply, socket}
     # update the list of cards in the socket
     {:noreply, socket}
   end
@@ -362,9 +371,9 @@ defmodule TurnStileWeb.UserLive.Index do
   end
   # :display - rendering search page displa
   defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
-    IO.inspect(params, label: "apply_action on display")
+    # IO.inspect(params, label: "apply_action on display")
     # IO.puts("HELLO")
-    # IO.inspect(socket.assigns)
+    IO.inspect(socket.assigns, label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
     |> assign(:search_field_value, search_field_value)
@@ -372,7 +381,7 @@ defmodule TurnStileWeb.UserLive.Index do
     socket.assigns.current_employee.current_organization_login_id,
     socket.assigns.current_employee.id))
     |> assign(:page_title, "Matching Users")
-    |> assign(:changeset, socket.assigns.changeset)
+    # |> assign(:changeset, socket.assigns.changeset)
     |> assign(:users, socket.assigns.users)
   end
 end

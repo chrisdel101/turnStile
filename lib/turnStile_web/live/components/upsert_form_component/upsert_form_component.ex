@@ -144,17 +144,18 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
 
   # add new user from index page
-  defp save_user(socket, :new, user_params) do
-    IO.puts("FIRED")
-    # current_employee = socket.assigns[:current_employee]
-    # socket = assign(socket, existing_users: [1,2,3])
-    # send self(), {:dislay, users: [1,2,3]}
-    # {:noreply, socket}
-    send self(), {:updated_card, card: "CARD123"}
+  # defp save_user(socket, :new, user_params) do
+  #   IO.puts("FIRED")
+  #   # current_employee = socket.assigns[:current_employee]
+  #   # socket = assign(socket, existing_users: [1,2,3])
+  #   # send self(), {:dislay, users: [1,2,3]}
+  #   # {:noreply, socket}
+  #   send self(), {:updated_card, card: "CARD123"}
 
-  end
-  defp save_user(socket, :new1, user_params) do
+  # end
+  defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
+
     # IO.inspect(current_employee, label: "user_params: save_user")
 
     # check employee has organization role
@@ -185,24 +186,13 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                 # if is user exists redirect to search list
                 # IO.inspect(existing_users, label: "existing_users")
                 if length(existing_users) > 0 do
-                  # MUST assign users to socket here
-                  # cannot pass list as route params: but assigning to assign not ideal
-                  socket =
-                    socket
-                    |> assign(:existing_users, existing_users)
-                    |> assign(:user_changeset, user_changeset)
-
-                  # IO.puts("HELLO")
-                  # IO.inspect(socket.assigns, label: "UPSERT")
-                  # TurnStileWeb.UserLive.Index.handle_info(%{"search_field_name" => search_field_name, "search_field_value" => search_field_value}, socket)
-                    # :display users list component
-                    # - pass the name and value of search_feild that matched
-                    # - save current user state in case employee wants to go back and use this
-                    send self(), {:dislay, %{socket.assigns.exist | existing_users: existing_users}}
-                    # {:noreply,
-                    # socket
-                    # |> push_patch(
-                    #   to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
+                  # send self(), {:updated_card, card: "CARD123"}
+                  send(self(), {:display, %{existing_users: existing_users, user_changeset: user_changeset}})
+                  # {:noreply, socket}
+                  {:noreply,
+                  socket
+                |> push_patch(
+                  to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
 
                     else
                   case Patients.insert_user_changeset(user_changeset) do
