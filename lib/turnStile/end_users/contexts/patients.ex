@@ -141,55 +141,70 @@ defmodule TurnStile.Patients do
   - first name is optional
   """
   def search_users_by_last_and_first_name(last_name, first_name, levenstein_val_last_name_query \\ 1, levenstein_val_first_name_query \\ 2) do
-    # run direct search
-    first_search_result = Repo.all(search_last_name_direct_query(last_name))
-    # IO.inspect("first_search_result: #{inspect(first_search_result)}")
-    if !is_nil(first_search_result) && length(first_search_result) > 0 do
-      # IO.inspect("first_search_result: #{inspect(first_search_result)}")
-      # if multiple with last name, narrow down last name search by first name
-      if length(first_search_result) > 1 && !is_nil(first_name) do
-        refine_query_by_appending_first_name(
-          search_last_name_direct_query(last_name),
-          first_name,
-          levenstein_val_first_name_query
-        )
-      else
-        # if single last name return it
-        first_search_result
-      end
-    else
-      # run search with LIKE parameter
-      second_search_result = Repo.all(search_last_name_ilike_query(last_name))
 
-      if !is_nil(second_search_result) && length(second_search_result) > 0 do
-        # IO.inspect("second_search_result: #{inspect(second_search_result)}")
-        # if multiple with last name, narrow down last name search by first name
-        if length(second_search_result) > 1 && !is_nil(first_name) do
-          refine_query_by_appending_first_name(
-            search_last_name_ilike_query(last_name),
-            first_name,
-            levenstein_val_first_name_query
-          )
-        else
-          # return single result
-          second_search_result
-        end
-      else
-        # run seach with levenstein
-        users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query))
-        # narrow down last name search by first name
-         IO.inspect("third search result: #{inspect(users)}")
-        if length(users) > 1 && !is_nil(first_name) do
-          refine_query_by_appending_first_name(
-            search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query),
-            first_name,
-            levenstein_val_first_name_query
-          )
-        else
+      case check_both_name_direct = TurnStile.Repo.all(TurnStile.Patients.search_last_name_and_first_name_direct_query(first_name, last_name)) do
+        users when not is_nil(check_both_name_direct) and length(check_both_name_direct) > 0 ->
           users
+      _  ->
+        case check_both_names_ilike = TurnStile.Repo.all(search_last_name_and_first_name_ilike_query(last_name, first_name)) do
+          users when not is_nil(check_both_names_ilike) and length(check_both_names_ilike) > 0 ->
+          users
+        _ ->
+          # run direct search with just last name
+          first_search_result = Repo.all(search_last_name_direct_query(last_name))
+          # IO.inspect("first_search_resul1t: #{inspect(first_search_result)}")
+          if !is_nil(first_search_result) && length(first_search_result) > 0 do
+            # IO.inspect("first_search_result1: #{inspect(first_search_result)}")
+            # if multiple with last name, narrow down last name search by first name
+            if length(first_search_result) > 1 && !is_nil(first_name) do
+              IO.inspect("first_search_result refine: #{inspect(first_search_result)}")
+              refine_query_by_appending_first_name(
+                search_last_name_direct_query(last_name),
+                first_name,
+                levenstein_val_first_name_query
+              )
+            else
+              IO.inspect("first_search_result success: #{inspect(first_search_result)}")
+              # if single last name return it
+              first_search_result
+            end
+          else
+            # run search with LIKE parameter
+            second_search_result = Repo.all(search_last_name_ilike_query(last_name))
+
+            if !is_nil(second_search_result) && length(second_search_result) > 0 do
+              IO.inspect("second_search_result: #{inspect(second_search_result)}")
+              # if multiple with last name, narrow down last name search by first name
+              if length(second_search_result) > 1 && !is_nil(first_name) do
+                refine_query_by_appending_first_name(
+                  search_last_name_ilike_query(last_name),
+                  first_name,
+                  levenstein_val_first_name_query
+                )
+              else
+                # return single result
+                second_search_result
+              end
+            else
+              # run seach with levenstein
+              users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query))
+              # narrow down last name search by first name
+               IO.inspect("third search result: #{inspect(users)}")
+              if length(users) > 1 && !is_nil(first_name) do
+                refine_query_by_appending_first_name(
+                  search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query),
+                  first_name,
+                  levenstein_val_first_name_query
+                )
+              else
+                users
+              end
+            end
+          end
+
         end
       end
-    end
+
   end
   # if search by last name fails run this on single input
   def search_users_by_first_name(first_name) do
@@ -237,7 +252,18 @@ defmodule TurnStile.Patients do
       end
     end
   end
-
+  def search_last_name_and_first_name_ilike_query(first_name, last_name) do
+    from(u in User,
+      where: ilike(u.last_name, ^"%#{last_name}%") and ilike(u.first_name, ^"%#{first_name}%"),
+      select: u
+    )
+  end
+  def search_last_name_and_first_name_direct_query(first_name, last_name) do
+    from(u in User,
+      where: u.last_name == ^last_name and u.first_name == ^first_name,
+      select: u
+    )
+  end
   def search_last_name_direct_query(last_name) do
     from(u in User,
       where: u.last_name == ^last_name,

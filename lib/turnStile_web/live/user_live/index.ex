@@ -91,9 +91,9 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply, assign(socket, :users, users)}
   end
   # called from :search; when search results are found
-  def handle_info({:users_found, existing_users_found} , socket) do
+  def handle_info({:users_found, %{"existing_users_found" => existing_users_found}} , socket) do
 
-    # IO.inspect(existing_users_found, label: "UUUU message in handle_info")
+    IO.inspect(existing_users_found, label: "UUUU message in handle_info")
     # IO.inspect("UUUUUUUU", label: "message in handle_info")
     # call update to refresh state on :display
     send_update(DisplayListComponent, id: "display")
@@ -110,8 +110,8 @@ defmodule TurnStileWeb.UserLive.Index do
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
     IO.inspect(existing_users_found, label: "message in handle_info")
-    IO.inspect(user_changeset, label: "message in handle_info")
-    IO.inspect("UUUUUUUU", label: "message in handle_info")
+    # IO.inspect(user_changeset, label: "message in handle_info")
+    # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
     redirect_to
       # redirect to :display component
     {:noreply,
