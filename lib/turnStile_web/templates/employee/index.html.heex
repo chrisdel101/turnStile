@@ -20,7 +20,6 @@
           <span>
             <%= employee.last_name %> |
           </span>
-          <%IO.inspect("HERE") %>
           <%IO.inspect(TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(@conn, employee)) %>
           <%= if !TurnStileWeb.EmployeeAuth.has_employee_edit_permissions?(@conn, employee) do %>
             <span>Show</span>

@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.UserLive.Index do
+  defmodule TurnStileWeb.UserLive.Index do
   use TurnStileWeb, :live_view
   alias TurnStile.Patients
   alias TurnStile.Patients.User
@@ -93,7 +93,7 @@ defmodule TurnStileWeb.UserLive.Index do
   # called from :search; when search results are found
   def handle_info({:users_found, %{"existing_users_found" => existing_users_found}} , socket) do
 
-    IO.inspect(existing_users_found, label: "UUUU message in handle_info")
+    IO.inspect("existing_users_found", label: "UUUU message in handle_info")
     # IO.inspect("UUUUUUUU", label: "message in handle_info")
     # call update to refresh state on :display
     send_update(DisplayListComponent, id: "display")
@@ -104,19 +104,19 @@ defmodule TurnStileWeb.UserLive.Index do
   def handle_info({:users_found,
   %{existing_users_found: existing_users_found, user_changeset: user_changeset,
   redirect_to: redirect_to}
-  } = msg , socket) do
+  }, socket) do
     socket =
       socket
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
-    IO.inspect(existing_users_found, label: "message in handle_info")
+    IO.inspect("existing_users_found", label: "message in handle_info")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-    redirect_to
       # redirect to :display component
     {:noreply,
       socket
       |> push_patch(to: redirect_to)}
+    # {:noreply, socket}
   end
   @impl true
   def handle_event(
@@ -392,8 +392,7 @@ defmodule TurnStileWeb.UserLive.Index do
   # :display - rendering search page displa
   defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
     # IO.inspect(params, label: "apply_action on display")
-    # IO.puts("HELLO")
-    IO.inspect(socket.assigns, label: "apply_action on display")
+    # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
     |> assign(:search_field_value, search_field_value)
@@ -404,5 +403,6 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
     |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
+
   end
 end

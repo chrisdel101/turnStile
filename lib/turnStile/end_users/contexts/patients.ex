@@ -91,17 +91,30 @@ defmodule TurnStile.Patients do
   def get_user(id) do
     Repo.get(User, id) |> Repo.preload([:employee, :organization])
   end
-
-  def get_users_by_field(field, value) do
-   if is_atom(field) do
-    q = from(u in User,
-    where: field(u, ^field) == ^value,
-    preload: [:employee, :organization])
-    Repo.all(q)
-   else
-    IO.puts("get_users_by_field: field must be an atom")
+  # handle when value is a string
+  def get_users_by_field(field, value) when is_binary(value) do
+    if is_atom(field) do
+      q = from(u in User,
+        where: ilike(field(u, ^field), ^String.downcase(value)),
+        preload: [:employee, :organization]
+      )
+      Repo.all(q)
+    else
+      IO.puts("get_users_by_field: field must be an atom")
     end
-   end
+  end
+  # handle when value is an integer
+  def get_users_by_field(field, value) when is_integer(value) do
+    if is_atom(field) do
+      q = from(u in User,
+        where: field(u, ^field) == ^value,
+        preload: [:employee, :organization]
+      )
+      Repo.all(q)
+    else
+      IO.puts("get_users_by_field: field must be an atom")
+    end
+  end
 
   # - there could be multiple users w. the same phone so we return a list
   # TODO - make more robust search

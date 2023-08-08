@@ -87,7 +87,6 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
-    save_user(socket, :new, user_params)
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(socket.assigns, label: "action")
     # no submit if validation errors
@@ -179,20 +178,18 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
               %Ecto.Changeset{} = user_changeset ->
                 # IO.inspect(user_changeset, label: "user_changeset")
                 # check if user already exists
-                {search_field_name, search_field_value, existing_users} = lookup_user(
+                {search_field_name, search_field_value, existing_users} = lookup_user_direct(
                   %User{} = apply_changes(user_changeset),
                   length(@user_search_fields) -1
                 )
                 # if is user exists redirect to search list
                 # IO.inspect(existing_users, label: "existing_users")
                 if length(existing_users) > 0 do
-                  # send self(), {:updated_card, card: "CARD123"}
                   send(self(),
                   {:users_found,
                   %{existing_users_found: existing_users,
                    user_changeset: user_changeset,
                    redirect_to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
-
                   {:noreply, socket}
                     else
                   case Patients.insert_user_changeset(user_changeset) do
@@ -233,14 +230,14 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   @doc """
   Lookup user by field
-  - search users by fields; does direct queries only, nothing extra
+  - search users by fields; does direct queries only; is not a search, only queries by exact match ILIKE
   ; returns list of users or []
   - loop from end of list user_search_fields checking each; if none, call func with next
   - if index is 0 end loop
   """
-  def lookup_user(user_struct, nil), do: []
-  def lookup_user(user_struct, 0), do: []
-  def lookup_user(user_struct, list_index) do
+  def lookup_user_direct(user_struct, nil), do: []
+  def lookup_user_direct(user_struct, 0), do: []
+  def lookup_user_direct(user_struct, list_index) do
     search_field_name = Enum.at(@user_search_fields, list_index)
     # IO.inspect(list_index, label: "list_index")
     # IO.inspect(search_field, label: "search_field")
@@ -250,7 +247,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         # IO.inspect(users, label: "USERS")
         if users === [] do
           # call recursively
-          lookup_user(user_struct, list_index - 1)
+          lookup_user_direct(user_struct, list_index - 1)
         else
           # TODO: send field found by to display
           IO.puts("User(s) exist. Found by #{search_field_name}")

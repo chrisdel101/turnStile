@@ -4,10 +4,11 @@ defmodule TurnStileWeb.UserLive.DisplayListComponent do
 
   @impl true
   def update(props, socket) do
-    # IO.inspect(props, label: "props")
+    # IO.inspect("", label: "upate fired")
     {:ok,
      socket
      |> assign(props)
+     |> assign(:user_changeset, props.user_changeset)
      |> assign(:live_action, props.action)
      |> assign(:users, props.users)}
   end

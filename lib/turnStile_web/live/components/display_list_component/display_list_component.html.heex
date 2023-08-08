@@ -1,8 +1,17 @@
 <div>
-    <% IO.inspect(@live_action) %>
     <h3><%= @message %> </h3>
     <%= if @live_action === :display &&  @search_field_name && @search_field_value do %>
-        <p>The following users match the <%= @search_field_name %>:  <%= @search_field_value %></p>
+        <p>The following users match the        <strong><%= @search_field_name %>: </strong> <%= @search_field_value %>
+        </p>
+     <%= if !is_nil(@user_changeset) &&  @user_changeset !== %{} do %> 
+        <div>For user:
+        <ul>
+            <li>Last Name: <%= Ecto.Changeset.get_field(@user_changeset, :last_name) %></li>
+            <li>First Name<%= Ecto.Changeset.get_field(@user_changeset, :first_name) %></li>
+            <li>Health Card Number <%= Ecto.Changeset.get_field(@user_changeset, :health_card_num) %></li>
+        </ul>
+        </div>
+     <% end %>
     <% end %>
   <div class="users-list">
     <%!-- <% IO.inspect(@users) %> --%>
@@ -14,6 +23,8 @@
           <dl>
             <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
             <dd><%= user.health_card_num %></dd>
+            <dd><%= user.phone %></dd>
+            <dd><%= user.email %></dd>
           </dl>
       </div>
     <% end %>
