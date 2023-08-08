@@ -370,10 +370,16 @@
   end
   # :insert - adding a new user that already exists in DB
   # user is formed struct
-  defp apply_action(socket, :insert, %{"user_id" => user_id}) do
+  defp apply_action(socket, :insert, %{"user_id" => user_id} = params) do
     socket
     |> assign(:page_title, "Insert Saved User")
     |> assign(:user, Patients.get_user(user_id))
+  end
+  # TODO - make this work for back action from display
+  defp apply_action(socket, :insert, %{"user_changeset" => %User{} = user_changeset} = params) do
+    socket
+    |> assign(:page_title, "Insert Saved User")
+    |> assign(:user, user_changeset)
   end
   # :index - rendering index page
   defp apply_action(socket, :index, _params) do

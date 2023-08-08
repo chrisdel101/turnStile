@@ -4,7 +4,7 @@
         <p>The following users match the        <strong><%= @search_field_name %>: </strong> <%= @search_field_value %>
         </p>
      <%= if !is_nil(@user_changeset) &&  @user_changeset !== %{} do %> 
-        <div>For user:
+        <div>Entered User Data:
         <ul>
             <li>Last Name: <%= Ecto.Changeset.get_field(@user_changeset, :last_name) %></li>
             <li>First Name<%= Ecto.Changeset.get_field(@user_changeset, :first_name) %></li>
@@ -16,8 +16,8 @@
   <div class="users-list">
     <%!-- <% IO.inspect(@users) %> --%>
     <%= if length(@users) > 0 do %>
-      <h4><strong>Click on a user to activate</strong></h4>
-      <p>Skip:  <%= link "Add Original User ", to: Routes.user_index_path(@socket, :insert, @current_employee.current_organization_login_id, @current_employee.id) %></p>
+      <p>Back:  <%= link "Add Original User ", to: Routes.user_index_path(@socket, :insert, @current_employee.current_organization_login_id, @current_employee.id) %></p>
+      <h4><strong>Click on a list user to activate</strong></h4>
       <%= for user <- @users do %>
         <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
           <dl>

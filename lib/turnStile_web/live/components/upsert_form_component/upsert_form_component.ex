@@ -235,8 +235,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   - loop from end of list user_search_fields checking each; if none, call func with next
   - if index is 0 end loop
   """
-  def lookup_user_direct(user_struct, nil), do: []
-  def lookup_user_direct(user_struct, 0), do: []
+  def lookup_user_direct(user_struct, nil), do: {nil, nil, []}
+  def lookup_user_direct(user_struct, 0), do: {nil, nil, []}
   def lookup_user_direct(user_struct, list_index) do
     search_field_name = Enum.at(@user_search_fields, list_index)
     # IO.inspect(list_index, label: "list_index")
