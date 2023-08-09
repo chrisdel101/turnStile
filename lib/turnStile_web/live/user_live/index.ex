@@ -426,8 +426,11 @@
   end
   # :index - rendering index page
   defp apply_action(socket, :index, _params) do
-    IO.inspect("index", label: "apply_action on index")
+    # IO.inspect(socket.assigns, label: "apply_action on index")
     socket
+      # delete garage data from hanging around
+    |> maybe_delete_key(:user_changeset)
+    |> maybe_delete_key(:existing_users_found)
     |> assign(:page_title, "Listing Users")
     |> assign(:user, nil)
   end
@@ -452,5 +455,16 @@
     |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
     |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
+  end
+
+  defp maybe_delete_key(socket, key) do
+    if socket.assigns[key] != nil do
+      socket = %{
+        socket |
+        assigns: Map.delete(socket.assigns, key)
+      }
+    else
+      socket
+    end
   end
 end

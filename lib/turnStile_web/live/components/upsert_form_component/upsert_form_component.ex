@@ -88,12 +88,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
-  def handle_event("save", %{"user" => _user_params}, socket) do
-      handle_send_data(socket)
-      {:noreply, socket}
-  end
-
-  # handle save for new and edit
+ # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(socket.assigns, label: "action")
@@ -181,23 +176,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
               %Ecto.Changeset{} = user_changeset ->
-                # handle_send_data(socket)
-                # IO.inspect(user_changeset, label: "user_changeset")
-                # check if user already exists
-                {search_field_name, search_field_value, existing_users} = lookup_user_direct(
-                  %User{} = apply_changes(user_changeset),
-                  length(@user_search_fields) -1
-                )
-                # if is user exists redirect to search list
-                # IO.inspect(existing_users, label: "existing_users")
-                if length(existing_users) > 0 do
-                  send(self(),
-                  {:users_found,
-                  %{existing_users_found: existing_users,
-                   user_changeset: user_changeset,
-                   redirect_to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+                if send_existing_user_data?(user_changeset, socket) do
                   {:noreply, socket}
-                    else
+                else
                   case Patients.insert_user_changeset(user_changeset) do
                     {:ok, _user} ->
                       {:noreply,
@@ -278,10 +259,20 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
-  defp handle_send_data(socket) do
+  defp send_existing_user_data?(user_changeset, socket) do
+    case handle_existing_users_send_data(user_changeset, socket) do
+      {:ok} ->
+        true
+      nil ->
+        false
+    end
+  end
+
+  defp handle_existing_users_send_data(user_changeset, socket) do
     current_employee = socket.assigns[:current_employee]
-    user_struct = TurnStile.Patients.get_user(1)
-    user_changeset = Patients.change_user(user_struct)
+    # user_struct = TurnStile.Patients.get_user(1)
+    # user_changeset = Patients.change_user(user_struct)
+    user_struct = apply_changes(user_changeset) || %User{}
     {search_field_name, search_field_value, existing_users} = lookup_user_direct(
       user_struct,
       length(@user_search_fields) -1
@@ -302,8 +293,11 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     %{existing_users_found: existing_users,
       user_changeset: user_changeset,
       redirect_to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+      {:ok}
     end
+    nil
   end
+
   defp is_user_active?(user) do
     user.active
   end
