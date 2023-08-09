@@ -25,9 +25,11 @@
     # on interval call :update func below
     if connected?(socket), do: Process.send_after(self(), :update, @interval)
     # subscribe - broadcast is in alert controller
+    # - delegates to handle_info funcs when called w params
+    Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE")) # goes to :update
     Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE"))
     main_index_users_list = Patients.filter_active_users_x_mins_past_last_update(organization_id, @filter_active_users_mins)
-    IO.inspect(socket.assigns, label: "INDEX: socket.assigns")
+    # IO.inspect(socket.assigns, label: "INDEX: socket.assigns")
     {:ok,
      assign(
       socket,
@@ -42,7 +44,6 @@
      )}
   end
 
-
   @impl true
   # called via live_patch in index.html; :alert gets assigned as action
   # called on index when no user_id present
@@ -54,8 +55,8 @@
   end
 
   # called on :display; users list found during :new;
-    def handle_params(%{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params, _url, socket) do
-      IO.inspect(params, label: "params on index YYYY")
+    def handle_params(%{"search_field_name" => _search_field_name, "search_field_value" => _search_field_value} = params, _url, socket) do
+      # IO.inspect(params, label: "params on index YYYY")
       # IO.inspect(socket.assigns, label: "params on index YYYY")
     #  socket =
     #   socket
@@ -64,30 +65,48 @@
     end
   # called on :index; this is main index page;
   # called on :search button click
+  # called on :display back redirect from handle_info above
   def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
-    # IO.inspect(params, label: "params on index XXX")
-
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    # back from display
+    if Map.get(socket.assigns, :user_changeset) do
+      # IO.inspect(socket.assigns.user_changeset.data, label: "params on index XXX")
+      {:noreply, apply_action(socket, socket.assigns.live_action, %{"user_changeset" => socket.assigns.user_changeset})}
+    else
+      # all other calls
+      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    end
   end
 
-    @impl true
-    def handle_info(%{user_alert_status: _user_alert_status}, socket) do
-      # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
+  @impl true
+  def handle_info(%{user_alert_status: _user_alert_status}, socket) do
+     # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
       Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
 
     {:noreply, assign(socket, :users, users)}
   end
+  # comes via send :upsert from :new
+  def handle_info(%{"existing_users" => existing_users, "user_changeset" => user_changeset}, socket) do
 
+    socket =
+      socket
+      |> assign(:existing_users, existing_users)
+      |> assign(:user_changeset, user_changeset)
+
+    # IO.inspect(socket.assign., label: "PUBSUB EX: message in handle_info")
+    IO.inspect(socket.assigns.user_changeset, label: "SEND: message in handle_info")
+
+    {:noreply, socket}
+  end
+  # pubsub comes thru subscribe in mount
   def handle_info(:update, socket) do
     # update_and_reschedule and call
     if connected?(socket), do: Process.send_after(self(), :update, @interval)
-
     users =
       Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
 
-    # IO.inspect(users, label: "YYYYYYY")
+    # IO.inspect(users, label: "update info")
     {:noreply, assign(socket, :users, users)}
   end
   # called from :search; when search results are found
@@ -110,6 +129,23 @@
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
     IO.inspect("existing_users_found", label: "message in handle_info")
+    # IO.inspect(user_changeset, label: "message in handle_info")
+    # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
+      # redirect to :display component
+    {:noreply,
+      socket
+      |> push_patch(to: redirect_to)}
+    # {:noreply, socket}
+  end
+  # called from :display display when going back to original user
+  def handle_info({:reject_existing_users,
+  %{user_changeset: user_changeset,
+  redirect_to: redirect_to}
+  }, socket) do
+    socket =
+      socket
+      |> assign(:user_changeset, user_changeset)
+    IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
       # redirect to :display component
@@ -370,16 +406,23 @@
   end
   # :insert - adding a new user that already exists in DB
   # user is formed struct
-  defp apply_action(socket, :insert, %{"user_id" => user_id} = params) do
+  defp apply_action(socket, :insert, %{"user_id" => user_id} = _params) do
     socket
     |> assign(:page_title, "Insert Saved User")
     |> assign(:user, Patients.get_user(user_id))
   end
-  # TODO - make this work for back action from display
-  defp apply_action(socket, :insert, %{"user_changeset" => %User{} = user_changeset} = params) do
+  # :insert - going back from display form
+  defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
+    IO.inspect(user_changeset.data, label: "apply_action on insertAAAA")
+    socket
+    |> assign(:page_title, "Insert New User")
+    |> assign(:user_changeset, user_changeset)
+  end
+  # :insert - opened out of sequence with no params
+  defp apply_action(socket, :insert, params) do
+    IO.inspect(params, label: "apply_action on insertAAAA")
     socket
     |> assign(:page_title, "Insert Saved User")
-    |> assign(:user, user_changeset)
   end
   # :index - rendering index page
   defp apply_action(socket, :index, _params) do
@@ -397,7 +440,7 @@
   end
   # :display - rendering search page displa
   defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
-    # IO.inspect(params, label: "apply_action on display")
+    IO.inspect(params, label: "apply_action on display")
     # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
@@ -409,6 +452,5 @@
     |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
     |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
-
   end
 end

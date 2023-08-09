@@ -16,8 +16,11 @@
   <div class="users-list">
     <%!-- <% IO.inspect(@users) %> --%>
     <%= if length(@users) > 0 do %>
-      <p>Back:  <%= link "Add Original User ", to: Routes.user_index_path(@socket, :insert, @current_employee.current_organization_login_id, @current_employee.id) %></p>
+     <p phx-click="custom-back" phx-target={@myself}>
+      <%= link "Add Original User", to: "#"%>
+     </p>
       <h4><strong>Click on a list user to activate</strong></h4>
+      <%!-- send to current component with phx-target --%>
       <%= for user <- @users do %>
         <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
           <dl>

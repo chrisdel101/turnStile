@@ -10,24 +10,27 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   @impl true
   # empty user struct getting passed as props; see index apply_action(:new)
-
-  def update(%{user: user, action: action} = props, socket) do
+  # - search insert passes user struct
+  # - dispay insert passes a user changeset
+  def update(%{user: user, action: action, user_changeset: user_changeset} = props, socket) do
     # IO.inspect(props, label: "props")
     # IO.inspect(action)
     user =
       case user do
-        # :insert: it's a formed user then fill in the form
-        %User{} = user ->
+        # :insert: from search: it's a formed user then fill in the form
+        %User{} ->
           user
-
         # :new: if user is empty map it's a blank user form
-        %{} = user ->
+        %{} ->
+          %User{}
+        # if form is opened out of sequence, stop error by setting user to
+        nil ->
           %User{}
       end
-      # IO.inspect(user, label: "user")
       # IO.inspect(action)
-    # build default user changeset
-    changeset = Patients.change_user(user)
+      # build default user changeset
+    changeset = if !is_nil(user_changeset), do: user_changeset, else: Patients.change_user(user)
+    # IO.inspect(changeset, label: "changeset upsert")
 
     {:ok,
      socket
@@ -83,6 +86,11 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
           {:noreply, socket}
       end
     end
+  end
+
+  def handle_event("save", %{"user" => _user_params}, socket) do
+      handle_send_data(socket)
+      {:noreply, socket}
   end
 
   # handle save for new and edit
@@ -141,7 +149,6 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
-
   # add new user from index page
   # defp save_user(socket, :new, user_params) do
   #   IO.puts("FIRED")
@@ -150,8 +157,6 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   #   # send self(), {:dislay, users: [1,2,3]}
   #   # {:noreply, socket}
   #   send self(), {:updated_card, card: "CARD123"}
-
-  # end
   defp save_user(socket, :new, user_params) do
     current_employee = socket.assigns[:current_employee]
 
@@ -176,6 +181,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
               %Ecto.Changeset{} = user_changeset ->
+                # handle_send_data(socket)
                 # IO.inspect(user_changeset, label: "user_changeset")
                 # check if user already exists
                 {search_field_name, search_field_value, existing_users} = lookup_user_direct(
@@ -235,8 +241,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   - loop from end of list user_search_fields checking each; if none, call func with next
   - if index is 0 end loop
   """
-  def lookup_user_direct(user_struct, nil), do: {nil, nil, []}
-  def lookup_user_direct(user_struct, 0), do: {nil, nil, []}
+  def lookup_user_direct(_user_struct, nil), do: {nil, nil, []}
+  def lookup_user_direct(_user_struct, 0), do: {nil, nil, []}
   def lookup_user_direct(user_struct, list_index) do
     search_field_name = Enum.at(@user_search_fields, list_index)
     # IO.inspect(list_index, label: "list_index")
@@ -262,7 +268,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
   defp handle_get_users_by_field(field, field_value) do
     case Patients.get_users_by_field(field, field_value) do
-      [] = users ->
+      [] = _users ->
         # IO.puts("empty")
         []
       users ->
@@ -272,6 +278,32 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
+  defp handle_send_data(socket) do
+    current_employee = socket.assigns[:current_employee]
+    user_struct = TurnStile.Patients.get_user(1)
+    user_changeset = Patients.change_user(user_struct)
+    {search_field_name, search_field_value, existing_users} = lookup_user_direct(
+      user_struct,
+      length(@user_search_fields) -1
+    )
+    if length(existing_users) > 0 do
+      # Phoenix.PubSub.broadcast(TurnStile.PubSub, PubSubTopicsMap.get_topic("EXISTING_USERS"), %{
+      #   "existing_users" => existing_users,
+      #   "user_changeset" => user_changeset
+      # })
+      # socket
+      # |> assign(:existing_users, existing_users)
+      # |> assign(:user_changeset, existing_users)
+      # {:noreply,
+      # socket
+      # |> push_patch(to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
+    send(self(),
+    {:users_found,
+    %{existing_users_found: existing_users,
+      user_changeset: user_changeset,
+      redirect_to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+    end
+  end
   defp is_user_active?(user) do
     user.active
   end
