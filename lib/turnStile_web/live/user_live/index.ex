@@ -112,7 +112,7 @@
   # called from :search; when search results are found
   def handle_info({:users_found, %{"existing_users_found" => existing_users_found}} , socket) do
 
-    IO.inspect("existing_users_found", label: "UUUU message in handle_info")
+    # IO.inspect("existing_users_found", label: "UUUU message in handle_info")
     # IO.inspect("UUUUUUUU", label: "message in handle_info")
     # call update to refresh state on :display
     send_update(DisplayListComponent, id: "display")
@@ -128,7 +128,7 @@
       socket
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
-    IO.inspect("existing_users_found", label: "message in handle_info")
+    # IO.inspect("existing_users_found", label: "message in handle_info")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
       # redirect to :display component
@@ -138,6 +138,7 @@
     # {:noreply, socket}
   end
   # called from :display display when going back to original user
+  # - redirect back to upsert
   def handle_info({:reject_existing_users,
   %{user_changeset: user_changeset,
   redirect_to: redirect_to}
@@ -145,14 +146,13 @@
     socket =
       socket
       |> assign(:user_changeset, user_changeset)
-    IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
+    # IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
       # redirect to :display component
     {:noreply,
       socket
       |> push_patch(to: redirect_to)}
-    # {:noreply, socket}
   end
   @impl true
   def handle_event(
@@ -413,14 +413,14 @@
   end
   # :insert - going back from display form
   defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
-    IO.inspect(user_changeset.data, label: "apply_action on insertAAAA")
+    # IO.inspect(user_changeset.data, label: "apply_action on insertAAAA")
     socket
     |> assign(:page_title, "Insert New User")
     |> assign(:user_changeset, user_changeset)
   end
-  # :insert - opened out of sequence with no params
-  defp apply_action(socket, :insert, params) do
-    IO.inspect(params, label: "apply_action on insertAAAA")
+  # :insert - if opened out of sequence with no params; like if route called directly
+  defp apply_action(socket, :insert, _params) do
+    # IO.inspect(params, label: "apply_action on insertAAAA")
     socket
     |> assign(:page_title, "Insert Saved User")
   end
@@ -436,14 +436,14 @@
   end
   # :search - rendering search page
   defp apply_action(socket, :search, params) do
-    IO.inspect(params, label: "apply_action on search")
+    # IO.inspect(params, label: "apply_action on search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
   end
   # :display - rendering search page displa
   defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
-    IO.inspect(params, label: "apply_action on display")
+    # IO.inspect(params, label: "apply_action on display")
     # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
@@ -459,7 +459,7 @@
 
   defp maybe_delete_key(socket, key) do
     if socket.assigns[key] != nil do
-      socket = %{
+      %{
         socket |
         assigns: Map.delete(socket.assigns, key)
       }

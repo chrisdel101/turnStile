@@ -20,12 +20,10 @@ defmodule TurnStile.Patients.User do
 
     timestamps()
   end
-
   @doc false
   def create_changeset(user, attrs) do
     user
     |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
-    |> unique_constraint(:health_card_num, message: "A member with this number already exists. Search the system for an existing profile.")
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
     |> validate_alert_format_matches_alert_format_set()
   end
@@ -34,7 +32,9 @@ defmodule TurnStile.Patients.User do
     user
     |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
-    |> validate_alert_format_matches_alert_format_set()
+    |>
+    validate_alert_format_matches_alert_format_set()
+    |> unique_constraint(:health_card_num, message: "A member with this number already exists. Duplicates cannot exist for this field.")
   end
 
 

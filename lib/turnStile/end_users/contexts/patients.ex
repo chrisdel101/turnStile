@@ -258,7 +258,7 @@ defmodule TurnStile.Patients do
       else
         # run seach with levenstein
         # IO.inspect(append_first_name_levenshtein_query(last_name_query, first_name, levenstein_level), label: "ZZZZZ")
-        x =
+
           Repo.all(
             append_first_name_levenshtein_query(last_name_query, first_name, levenstein_level)
           )
@@ -522,14 +522,20 @@ defmodule TurnStile.Patients do
   end
 
   def insert_user_changeset(user_changeset) do
-    # convert val to int
-    user =
-      Ecto.Changeset.put_change(
+  # when health card num, is a string
+  user =
+    # make sure it exists as a change
+    case Ecto.Changeset.get_change(user_changeset, :health_card_num) do
+      val when is_binary(val) ->
+        IO.inspect(val, label: "val")
+        Ecto.Changeset.put_change(
         user_changeset,
         :health_card_num,
         TurnStile.Utils.convert_to_int(user_changeset.changes.health_card_num)
       )
-
+      _ ->
+        user_changeset
+      end
     case Repo.insert(user) do
       {:ok, user} ->
         {:ok,
@@ -538,6 +544,7 @@ defmodule TurnStile.Patients do
 
       {:error, error} ->
         {:error, error}
+
     end
   end
 
