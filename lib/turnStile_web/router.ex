@@ -241,17 +241,6 @@ defmodule TurnStileWeb.Router do
     get "/", OrganizationController, :index
   end
 
-
-  # scope "/", TurnStileWeb do
-  #   pipe_through [:browser, :require_authenticated_admin]
-  #   live "/alerts", AlertLive.Index, :index
-  #   live "/alerts/new", AlertLive.Index, :new
-  #   live "/alerts/:id/edit", AlertLive.Index, :edit
-
-  #   live "/alerts/:id", AlertLive.Show, :show
-  #   live "/alerts/:id/show/edit", AlertLive.Show, :edit
-  # end
-
   scope "/", TurnStileWeb do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
 

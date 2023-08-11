@@ -154,15 +154,16 @@ defmodule TurnStile.Patients do
   - first name is optional
   """
   def search_users_by_last_and_first_name(last_name, first_name, levenstein_val_last_name_query \\ 1, levenstein_val_first_name_query \\ 2) do
-
-      case check_both_name_direct = TurnStile.Repo.all(TurnStile.Patients.search_last_name_and_first_name_direct_query(first_name, last_name)) do
+      # query for both names first before more indepth indepedent searhes
+      case check_both_name_direct = search_last_name_and_first_name_direct(first_name, last_name) do
         users when not is_nil(check_both_name_direct) and length(check_both_name_direct) > 0 ->
           users
       _  ->
-        case check_both_names_ilike = TurnStile.Repo.all(search_last_name_and_first_name_ilike_query(last_name, first_name)) do
+        case check_both_names_ilike = search_last_name_and_first_name_ilike(last_name, first_name) do
           users when not is_nil(check_both_names_ilike) and length(check_both_names_ilike) > 0 ->
           users
         _ ->
+          # IO.inspect(last_name, label: 'last_name')
           # run direct search with just last name
           first_search_result = Repo.all(search_last_name_direct_query(last_name))
           # IO.inspect("first_search_resul1t: #{inspect(first_search_result)}")
@@ -265,23 +266,23 @@ defmodule TurnStile.Patients do
       end
     end
   end
-  def search_last_name_and_first_name_ilike_query(first_name, last_name) do
-    from(u in User,
-      where: ilike(u.last_name, ^"%#{last_name}%") and ilike(u.first_name, ^"%#{first_name}%"),
-      select: u
-    )
+  def search_last_name_and_first_name_ilike(first_name, last_name) do
+     if !is_nil(first_name) && !is_nil(last_name) do
+      q = from(u in User,
+        where: ilike(u.last_name, ^"%#{last_name}%") and ilike(u.first_name, ^"%#{first_name}%"),
+        select: u
+      )
+      Repo.all(q)
+    end
   end
-  def search_last_name_and_first_name_direct_query(first_name, last_name) do
-    from(u in User,
-      where: u.last_name == ^last_name and u.first_name == ^first_name,
-      select: u
-    )
-  end
-  def search_last_name_direct_query(last_name) do
-    from(u in User,
-      where: u.last_name == ^last_name,
-      select: u
-    )
+  def search_last_name_and_first_name_direct(first_name, last_name) do
+    if !is_nil(first_name) && !is_nil(last_name) do
+      q = from(u in User,
+        where: u.last_name == ^last_name and u.first_name == ^first_name,
+        select: u
+      )
+      Repo.all(q)
+    end
   end
 
   def search_last_name_direct_query(last_name) do

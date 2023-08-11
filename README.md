@@ -3,7 +3,7 @@
 This is a rough draft README for assising in development.
 
 To start your Phoenix server:
-
+  * run `create extension fuzzystrmatch` in psql. This is required to run levenstein distance queries.
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.setup`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
@@ -11,16 +11,6 @@ To start your Phoenix server:
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
-
-
 # Development Notes
 
 ### Generators used to build tables and get pages
@@ -45,7 +35,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - in auth migration: add roles with ` execute("create type admin_role as enum #{TurnStile.Utils.convert_to_parens_string(AdminPermissionRolesEnum.get_admin_all_roles())}")`
   - half of context created here
 8. Opertations Admin: context, complete web html, route resources 
-- `mix phx.gen.html Operations Admin admins --no-schema`
+* `mix phx.gen.html Operations Admin admins --no-schema`
 - other half of context created here
 
 ### Handle Receiving Alerts
