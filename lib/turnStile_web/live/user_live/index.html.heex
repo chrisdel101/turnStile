@@ -30,7 +30,7 @@
     
       <span><%= live_patch "Back", to: Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id) %></span>
     <% end %>
-    <%= if @live_action in [:search, :display] do %>
+    <%= if @live_action in [:search, :display_users] do %>
       <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
         <.live_component
           module={TurnStileWeb.UserLive.SearchComponent}
@@ -42,8 +42,8 @@
         />
         <.live_component
           module={TurnStileWeb.UserLive.DisplayListComponent}
-          users={@existing_users_found}
-          user_changeset={@user_changeset}
+          users={assigns[:existing_users_found] || []}
+          user_changeset={assigns[:user_changeset]}
           search_field_name={@search_field_name}
           search_field_value={@search_field_value}
           id={:display}

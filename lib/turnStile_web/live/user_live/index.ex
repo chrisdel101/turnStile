@@ -72,6 +72,7 @@
       # IO.inspect(socket.assigns.user_changeset.data, label: "params on index XXX")
       {:noreply, apply_action(socket, socket.assigns.live_action, %{"user_changeset" => socket.assigns.user_changeset})}
     else
+      # IO.inspect("", label: "params on index XXX")
       # all other calls
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
@@ -436,13 +437,13 @@
   end
   # :search - rendering search page
   defp apply_action(socket, :search, params) do
-    # IO.inspect(params, label: "apply_action on search")
+    IO.inspect(params, label: "apply_action on search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
   end
   # :display - rendering search page displa
-  defp apply_action(socket, :display, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
+  defp apply_action(socket, :display_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
     # IO.inspect(params, label: "apply_action on display")
     # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket

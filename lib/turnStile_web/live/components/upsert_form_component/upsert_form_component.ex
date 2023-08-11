@@ -91,7 +91,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
  # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
-    # IO.inspect(socket.assigns, label: "action")
+    # IO.inspect(user_params, label: "user_params")
     # no submit if validation errors
     if !socket.assigns.changeset.valid? do
       handle_event("validate", %{"user" => user_params}, socket)
@@ -324,23 +324,13 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       user_struct,
       length(@user_search_fields) -1
     )
-    IO.inspect(existing_users , label: "existing_users")
+    # IO.inspect(existing_users , label: "existing_users")
     if length(existing_users) > 0 do
-      # Phoenix.PubSub.broadcast(TurnStile.PubSub, PubSubTopicsMap.get_topic("EXISTING_USERS"), %{
-      #   "existing_users" => existing_users,
-      #   "user_changeset" => user_changeset
-      # })
-      # socket
-      # |> assign(:existing_users, existing_users)
-      # |> assign(:user_changeset, existing_users)
-      # {:noreply,
-      # socket
-      # |> push_patch(to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value))}
     send(self(),
     {:users_found,
     %{existing_users_found: existing_users,
       user_changeset: user_changeset,
-      redirect_to: Routes.user_index_path(socket, :display, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+      redirect_to: Routes.user_index_path(socket, :display_users, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
 
     {:ok}
       else
