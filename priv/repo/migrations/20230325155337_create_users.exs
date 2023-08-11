@@ -9,7 +9,8 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :last_name, :string, null: false
       add :email, :citext
       add :phone, :string
-      add :health_card_num, :integer
+      add :health_card_num, :bigint
+      add :date_of_birth, :date
       add :is_active?, :boolean
       add :user_alert_status, :user_alert_status
       add :alert_format_set, :alert_format

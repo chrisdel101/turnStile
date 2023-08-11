@@ -197,7 +197,8 @@ TurnStile.Repo.transaction(fn ->
     phone: "3065190138",
     email: "arssonist@yahoo.com",
     alert_format_set: "email",
-    health_card_num: 9999
+    health_card_num: 9999,
+    date_of_birth: Date.from_iso8601!("1900-01-01")
   }
 
   # user w/ emp and org assocs
@@ -209,7 +210,8 @@ TurnStile.Repo.transaction(fn ->
     phone: "3067814109",
     email: "arssonist@yahoo.com",
     alert_format_set: "email",
-    health_card_num: 5678
+    health_card_num: 5678,
+    date_of_birth: Date.from_iso8601!("1900-01-02")
   }
 
   # user w/ emp and org assocs
@@ -221,7 +223,8 @@ TurnStile.Repo.transaction(fn ->
     email: "joe3@schmoe.com",
     phone: "7771213151",
     alert_format_set: "sms",
-    health_card_num: 9101
+    health_card_num: 9101,
+    date_of_birth: Date.from_iso8601!("1900-01-03")
   }
 
   # user w/ emp and org assocs
@@ -233,7 +236,8 @@ TurnStile.Repo.transaction(fn ->
     email: "joe4@schmoe.com",
     phone: "7776171819",
     alert_format_set: "sms",
-    health_card_num: 1121
+    health_card_num: 1121,
+    date_of_birth: Date.from_iso8601!("1900-01-04")
   }
   {:ok, user4} = TurnStile.Patients.create_user_w_assocs(employee4, user4, role4, organization1)
 
@@ -244,7 +248,8 @@ TurnStile.Repo.transaction(fn ->
     phone: "7773434353",
     health_card_num: 1202,
     alert_format_set: "sms",
-    is_active?: false
+    is_active?: false,
+    date_of_birth: Date.from_iso8601!("1900-01-05")
   }
 
   {:ok, user9} = TurnStile.Patients.create_user_w_assocs(employee3, user9, role3, organization1)
@@ -256,7 +261,8 @@ TurnStile.Repo.transaction(fn ->
     phone: "7777383940",
     health_card_num: 2212,
     alert_format_set: "sms",
-    is_active?: false
+    is_active?: false,
+    date_of_birth: Date.from_iso8601!("1900-01-06")
   }
   {:ok, user10} = TurnStile.Patients.create_user_w_assocs(employee2, user10, role2, organization1)
 
@@ -267,7 +273,8 @@ TurnStile.Repo.transaction(fn ->
     phone: "7774142434",
     health_card_num: 3222,
     alert_format_set: "sms",
-    is_active?: false
+    is_active?: false,
+    date_of_birth: Date.from_iso8601!("1900-01-07")
   }
   {:ok, user11} = TurnStile.Patients.create_user_w_assocs(employee4, user11, role4, organization1)
 
@@ -442,7 +449,8 @@ TurnStile.Repo.transaction(fn ->
     email: "joe5@schmoe.com",
     phone: "7772021222",
     health_card_num: 3141,
-    alert_format_set: "email"
+    alert_format_set: "email",
+    date_of_birth: Date.from_iso8601!("1900-01-08")
 
   }
 
@@ -455,7 +463,8 @@ TurnStile.Repo.transaction(fn ->
     email: "joe6@schmoe.com",
     phone: "7773242526",
     alert_format_set: "sms",
-    health_card_num: 5161
+    health_card_num: 5161,
+    date_of_birth: Date.from_iso8601!("1900-01-09")
   }
 
   # user w/ emp and org assocs
@@ -467,7 +476,8 @@ TurnStile.Repo.transaction(fn ->
     email: "joe7@schmoe.com",
     phone: "7772728293",
     alert_format_set: "sms",
-    health_card_num: 7181
+    health_card_num: 7181,
+    date_of_birth: Date.from_iso8601!("1900-01-10")
   }
 
   # user w/ emp and org assocs
@@ -479,7 +489,8 @@ TurnStile.Repo.transaction(fn ->
     email: "joe8@schmoe.com",
     phone: "7770313233",
     alert_format_set: "sms",
-    health_card_num: 8191
+    health_card_num: 8191,
+    date_of_birth: Date.from_iso8601!("1900-01-11")
   }
   {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, role9, organization2)
   user12 = %{
@@ -489,6 +500,7 @@ TurnStile.Repo.transaction(fn ->
     phone: "7774142434",
     alert_format_set: "sms",
     health_card_num: 4232,
+    date_of_birth: Date.from_iso8601!("1900-01-12")
   }
 
   {:ok, user12} = TurnStile.Patients.create_user_w_assocs(employee10, user12, role10, organization2)

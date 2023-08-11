@@ -53,12 +53,16 @@ defmodule TurnStile.Company do
     if not is_nil(slug) do
       query = from o in Organization, where: o.slug == ^slug
       orgs = TurnStile.Repo.all(query)
-      # return most recent one
-      if length(orgs) > 1 do
-        List.last(orgs)
-        # orgs
-      else
-        hd(orgs)
+      cond do
+        # return most recent one
+        length(orgs) > 1 ->
+          List.last(orgs)
+      # return only recent
+        length(orgs) === 1 ->
+          hd(orgs)
+      # safely check in case no list returned
+        true ->
+          nil
       end
       # TurnStile.Repo.get_by(TurnStile.Company.Organization, slug: slug)
     end

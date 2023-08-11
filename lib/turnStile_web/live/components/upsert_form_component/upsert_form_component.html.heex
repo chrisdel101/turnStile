@@ -38,6 +38,10 @@
       <%= text_input f, :phone, value:  Ecto.Changeset.get_field(@changeset, :phone) %>
       <%= error_tag f, :phone %>
 
+      <%= label f, "Date of Birth" %>
+      <%= date_input f, :date_of_birth, value:  Ecto.Changeset.get_field(@changeset, :date_of_birth)%>
+      <%= error_tag f, :date_of_birth %>
+
       <%= label(f, "Choose main alert type:") %>
       <%= label(f, :alert_format_set, "SMS") %>
       <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"))%>

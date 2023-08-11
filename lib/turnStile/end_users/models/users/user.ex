@@ -8,6 +8,7 @@ defmodule TurnStile.Patients.User do
     field :health_card_num, :integer
     field :last_name, :string
     field :phone, :string
+    field :date_of_birth, :date
     field :is_active?, :boolean, default: true
     field :user_alert_status, :string,
       default: UserAlertStatusTypesMap.get_user_status("UNALERTED")
@@ -23,14 +24,14 @@ defmodule TurnStile.Patients.User do
   @doc false
   def create_changeset(user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set, :date_of_birth])
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
     |> validate_alert_format_matches_alert_format_set()
   end
   # same as create but w/ not default - since overwrites changes
   def update_changeset(user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set])
+    |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set, :date_of_birth])
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
     |>
     validate_alert_format_matches_alert_format_set()
