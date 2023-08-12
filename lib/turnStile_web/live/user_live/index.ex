@@ -63,24 +63,30 @@
     #   |> assign(:search_field_name, search_field_name)
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
-  # called on :index; this is main index page;
-  # called on :search button click
-  # called on :display back redirect from handle_info above
-  def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
-    # back from display
-    if Map.get(socket.assigns, :user_changeset) do
-      # IO.inspect(socket.assigns.user_changeset.data, label: "params on index XXX")
-      {:noreply, apply_action(socket, socket.assigns.live_action, %{"user_changeset" => socket.assigns.user_changeset})}
-    else
-      # IO.inspect("", label: "params on index XXX")
+    # called on :select: back from :display_existing_user
+    def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id, "user_id" => user_id } = params, _url, socket) do
+      IO.inspect(user_id, label: "handle_params main index:back from display")
       # all other calls
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
-  end
+    # called on :index - main index render
+    # called on :search button click
+    def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
+      if Map.get(socket.assigns, :user_changeset) do
+        # back action from from display "Add Original User"
+        IO.inspect(socket.assigns, label: "handle_params main index: w changeset")
+        IO.inspect(socket.assigns.live_action, label: "handle_params main index: w changeset")
+        {:noreply, apply_action(socket, socket.assigns.live_action, %{"user_changeset" => socket.assigns[:user_changeset]})}
+      else
+        IO.inspect(params, label: "handle_params main index: no changeset")
+        # all other calls
+        {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      end
+    end
 
   @impl true
-  def handle_info(%{user_alert_status: _user_alert_status}, socket) do
-     # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
+  def handle_info(%{user_alert_status: user_alert_status}, socket) do
+     IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
       Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
@@ -113,14 +119,15 @@
   # called from :search; when search results are found
   def handle_info({:users_found, %{"existing_users_found" => existing_users_found}} , socket) do
 
-    # IO.inspect("existing_users_found", label: "UUUU message in handle_info")
+    IO.puts("index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}")
     # IO.inspect("UUUUUUUU", label: "message in handle_info")
     # call update to refresh state on :display
     send_update(DisplayListComponent, id: "display")
     {:noreply, assign(socket, :existing_users_found, existing_users_found)}
     # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
   end
-  # called from :new upsert when existing users are found
+  # called from :new upsert send(); when existing users are found this sent back
+  # redirect to display component
   def handle_info({:users_found,
   %{existing_users_found: existing_users_found, user_changeset: user_changeset,
   redirect_to: redirect_to}
@@ -129,7 +136,7 @@
       socket
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
-    # IO.inspect("existing_users_found", label: "message in handle_info")
+    IO.put("index handle_info: sent from upsert send(): changeset and ext users")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
       # redirect to :display component
@@ -148,7 +155,7 @@
       socket
       |> assign(:user_changeset, user_changeset)
     # IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
-    # IO.inspect(user_changeset, label: "message in handle_info")
+    IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
       # redirect to :display component
     {:noreply,
@@ -392,7 +399,7 @@
   # -called from when live_patch clicked on index
   defp apply_action(socket, :alert, params) do
     %{"id" => user_id} = params
-    # IO.inspect(Patients.get_user(user_id), label: ":alerts")
+    IO.inspect(Patients.get_user(user_id), label: "apply_action :alerts")
     socket
     # -applies to index page behind the alert panel
     # - sent as prop through html to panel_component
@@ -400,7 +407,8 @@
   end
   # :new - adding a new user from scratch
   # user is blank map - assign user in upsert update
-  defp apply_action(socket, :new, _params) do
+  defp apply_action(socket, :new, params) do
+    IO.inspect(params, label: "apply_action :new")
     socket
     |> assign(:page_title, "Add New User")
     |> assign(:user, %{})
@@ -408,26 +416,28 @@
   # :insert - adding a new user that already exists in DB
   # user is formed struct
   defp apply_action(socket, :insert, %{"user_id" => user_id} = _params) do
+    IO.inspect(user_id, label: "apply_action :insert")
     socket
     |> assign(:page_title, "Insert Saved User")
     |> assign(:user, Patients.get_user(user_id))
   end
   # :insert - going back from display form
+  # called when clicked on an existing user and redirecting
   defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
-    # IO.inspect(user_changeset.data, label: "apply_action on insertAAAA")
+    IO.inspect(user_changeset, label: "apply_action :insert changeset")
     socket
-    |> assign(:page_title, "Insert New User")
+    |> assign(:page_title, "Select Existing User")
     |> assign(:user_changeset, user_changeset)
   end
   # :insert - if opened out of sequence with no params; like if route called directly
-  defp apply_action(socket, :insert, _params) do
-    # IO.inspect(params, label: "apply_action on insertAAAA")
+  defp apply_action(socket, :insert, params) do
+    IO.inspect(params, label: "apply_action :insert out of sequence")
     socket
     |> assign(:page_title, "Insert Saved User")
   end
   # :index - rendering index page
   defp apply_action(socket, :index, _params) do
-    # IO.inspect(socket.assigns, label: "apply_action on index")
+    IO.inspect(socket.assigns, label: "apply_action :index")
     socket
       # delete garage data from hanging around
     |> maybe_delete_key(:user_changeset)
@@ -437,14 +447,14 @@
   end
   # :search - rendering search page
   defp apply_action(socket, :search, params) do
-    IO.inspect(params, label: "apply_action on search")
+    IO.inspect(params, label: "apply_action :search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
   end
-  # :display - rendering search page displa
-  defp apply_action(socket, :display_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
-    # IO.inspect(params, label: "apply_action on display")
+  # :display_existing_users - render display page
+  defp apply_action(socket, :display_existing_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
+    IO.inspect(params, label: "apply_action :display_existing_users")
     # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
@@ -456,6 +466,16 @@
     |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
     |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
+  end
+  # :select - back from new when users found
+  # when user is clicked on
+  defp apply_action(socket, :select, %{"user_id" => user_id}) do
+    user = Patients.get_user(user_id)
+    changeset = Patients.change_user(user, %{})
+    IO.inspect(changeset, label: "apply_action :select")
+    socket
+    |> assign(:page_title, "Active Exisiting User")
+    |> assign(:user_changeset, changeset)
   end
 
   defp maybe_delete_key(socket, key) do

@@ -92,6 +92,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(user_params, label: "user_params")
+    IO.inspect(socket.assigns.action, label: "handle_event upsert: action")
     # no submit if validation errors
     if !socket.assigns.changeset.valid? do
       handle_event("validate", %{"user" => user_params}, socket)
@@ -121,7 +122,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
             {:noreply, socket}
           end
         # returning to form with changeset; on existing users reject
-        :insert ->
+        action when action in [:insert, :select] ->
           # IO.inspect(socket.assigns.action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
             save_user(socket, socket.assigns.action, user_params)
@@ -158,8 +159,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
   # back from :display - on :new when existing users found
   # - will have alreay passed thru :new checks & permissions
-  defp save_user(socket, :insert, user_params) do
-    # IO.inspect(socket.assigns, label: "save_user :insert")
+  defp save_user(socket, action, user_params) when action in [:select, :insert] do
+    IO.inspect(socket.assigns, label: "save_user :select")
     current_employee = socket.assigns[:current_employee]
     # user changeset is passed back from :display, should exist in assigns
     changeset1 = Map.get(socket.assigns, :changeset) || Patients.change_user(user_params)
@@ -330,7 +331,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     {:users_found,
     %{existing_users_found: existing_users,
       user_changeset: user_changeset,
-      redirect_to: Routes.user_index_path(socket, :display_users, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+      redirect_to: Routes.user_index_path(socket, :display_existing_users, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
 
     {:ok}
       else
