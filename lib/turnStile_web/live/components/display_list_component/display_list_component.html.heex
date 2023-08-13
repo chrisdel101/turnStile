@@ -14,14 +14,16 @@
      <% end %>
     <% end %>
   <div class="users-list">
-  <div id={"search-user-1"}  class="search-user" phx-click="select_user" phx-value-user_id={"1"} phx-target={@myself} >HERE </div>   <%!-- <% IO.inspect(@users) %> --%>
+  <%!-- <div id={"search-user-1"}  class="search-user" phx-click="select_user" phx-value-user_id={"1"} phx-target={@myself} >HERE </div>   <% IO.inspect(@users) %> --%>
     <%= if length(@users) > 0 do %>
      <p phx-click="custom-back" phx-target={@myself}>
       <%= link "Add Original User", to: "#"%>
      </p>
-      <h4><strong>Click on a list user to activate</strong></h4>
+      <h4><strong>Click on a list user to activate</strong>. Showing inactive users.</h4>
       <%!-- send to current component with phx-target --%>
       <%= for user <- @users do %>
+        <%!-- <% IO.inspect(@users) %>  --%>
+        <%= if user.is_active? == false do %>
         <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
           <dl>
             <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
@@ -30,6 +32,7 @@
             <dd><%= user.email %></dd>
           </dl>
       </div>
+        <% end %>
     <% end %>
   <%= else %>
     <p>No users found</p>    
