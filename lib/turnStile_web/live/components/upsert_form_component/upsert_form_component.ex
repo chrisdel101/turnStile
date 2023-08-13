@@ -20,21 +20,34 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         # :insert: from search: it's a formed user struct then fill in the form
         %User{} ->
           user
+
         # :new: if user is empty map it's a blank user form
         %{} ->
           %User{}
+
         # if form is opened out of sequence, stop error by setting user to
         nil ->
           %User{}
       end
-      # IO.inspect(action)
-      # build default user changeset
+
+    # IO.inspect(action)
+
+    # build default user changeset
     changeset = if !is_nil(user_changeset), do: user_changeset, else: Patients.change_user(user)
     # IO.inspect(changeset, label: "changeset upsert")
+
+    disable_input = if action && action === :select, do: true, else: false
+
+    disabled_hover_info =
+      if disable_input === true, do: "Form is readonly. To edit, go back.", else: nil
 
     {:ok,
      socket
      |> assign(props)
+     #  disable form on :select - make readonly
+     |> assign(:disable_input, disable_input)
+     #  add 'title' attr for user info purposes
+     |> assign(:disabled_hover_info, disabled_hover_info)
      # assign user struct so 'validate' works
      |> assign(:user, apply_changes(changeset))
      |> assign(:live_action, action)
@@ -88,14 +101,17 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
- # handle save for new and edit
+  # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(user_params, label: "user_params")
     IO.inspect(socket.assigns.action, label: "handle_event upsert: action")
-    # no submit if validation errors
-    if !socket.assigns.changeset.valid? do
-      handle_event("validate", %{"user" => user_params}, socket)
+    # CHANGED - DELETE AND UNDO AFTER TESTING
+    # if !socket.assigns.changeset.valid? do
+    if socket.assigns.action === :new do
+      fake_save_user(socket, socket.assigns.action, user_params)
+      # no submit if validation errors
+      # handle_event("validate", %{"user" => user_params}, socket)
     else
       case socket.assigns.action do
         action when action in [:edit] ->
@@ -109,10 +125,11 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             {:noreply, socket}
           end
+
         # creating new employee
         :new ->
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            save_user(socket, socket.assigns.action, user_params)
+            fake_save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket
@@ -121,8 +138,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             {:noreply, socket}
           end
+
         # returning to form with changeset; on existing users reject
-        action when action in [:insert, :select] ->
+        :insert ->
           # IO.inspect(socket.assigns.action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
             save_user(socket, socket.assigns.action, user_params)
@@ -134,10 +152,106 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
             {:noreply, socket}
           end
-        _ ->
+
+        :select ->
+          # IO.inspect(socket.assigns.action, label: "AAAAAA")
+          if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
+            activate_user(socket, socket.assigns.action, user_params)
+          else
+            socket =
+              socket
+              |> put_flash(:error, "Insuffient permissions to perform user add")
+              |> push_redirect(to: socket.assigns.return_to)
+
             {:noreply, socket}
+          end
+
+        _ ->
+          {:noreply, socket}
       end
     end
+  end
+
+  # back from :display - on :new when existing users found
+  defp activate_user(socket, action, user_params) when action in [:select, :insert] do
+    # should have access to use passed from display
+    user = socket.assigns[:user]
+    # check if user is already active
+    if user && user.is_active? do
+      socket =
+        socket
+        |> put_flash(
+          :warning,
+          "This user is aleady active and should be in the main list. Look through your list of users again."
+        )
+
+      {:noreply, socket}
+    else
+      with user_changeset <- Patients.change_user(user, %{is_active?: true}),
+          # if changes are valid
+          true <- (user_changeset && Ecto.Changeset.get_change(user_changeset, :is_active?)) do
+
+            case TurnStile.Repo.update(user_changeset) do
+              {:ok, user} ->
+                IO.inspect(user, label: "activate_user :update user")
+                send(self(), :update)
+                socket =
+                  socket
+                  |> put_flash(
+                    :success,
+                    "User activated successfully. User should now be in the main list.")
+                {:noreply, socket}
+
+              {:error, %Ecto.Changeset{} = changeset} ->
+                socket =
+                  socket
+                  |> put_flash(:error, "User not activated")
+
+                {:noreply, assign(socket, :changeset, changeset)}
+            end
+          #   socket =
+          #     socket
+          #     |> put_flash(
+          #       :success,
+          #       "User activated successfully. User should now be in the main list.")
+          #   send(self(), :update)
+
+          # end
+          # {:noreply, socket}
+          #  )}
+
+        #  |> push_redirect(to: socket.assigns.return_to)}
+
+        # _ ->
+          # socket =
+          #   socket
+          #   |> put_flash(:error, "User not activated. A changeset error occured.")
+
+          # {:noreply, assign(socket, :changeset, changeset)}
+      end
+    end
+
+    # IO.inspect(user, label: "activate_user :select user")
+
+    #           socket
+    #           |> put_flash(:info, "User created successfully")
+    #           |> push_redirect(to: socket.assigns.return_to)}
+    #       # failures here are due to contraints
+    #       {:error, %Ecto.Changeset{} = changeset} ->
+    #         socket =
+    #           socket
+    #           |> put_flash(:error, "Unable to create this user. See error messages below.")
+
+    #           {:noreply, assign(socket, :changeset, changeset)}
+    #     end
+
+    #   _ -> # build_user_changeset_w_assocs not a User
+    #     socket =
+    #       socket
+    #       |> put_flash(:error, "User not created: An error occured during creation")
+
+    # {:noreply, socket}
+    # end
   end
 
   # edit from show - main edit current function
@@ -157,10 +271,10 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
-  # back from :display - on :new when existing users found
-  # - will have alreay passed thru :new checks & permissions
-  defp save_user(socket, action, user_params) when action in [:select, :insert] do
-    IO.inspect(socket.assigns, label: "save_user :select")
+
+  # back from :display - on :search when existing users found
+  defp save_user(socket, :insert, user_params) do
+    IO.inspect(socket.assigns, label: "save_user :insert")
     current_employee = socket.assigns[:current_employee]
     # user changeset is passed back from :display, should exist in assigns
     changeset1 = Map.get(socket.assigns, :changeset) || Patients.change_user(user_params)
@@ -172,6 +286,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     # IO.inspect(changeset2, label: "save_user :insert2")
     organization =
       TurnStile.Company.get_organization(current_employee.current_organization_login_id)
+
     case Patients.build_user_changeset_w_assocs(changeset2, current_employee, organization) do
       %Ecto.Changeset{} = user_changeset ->
         # IO.inspect(user_changeset, label: "save_user :insert3")
@@ -179,19 +294,21 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         case Patients.insert_user_changeset(user_changeset) do
           {:ok, _user} ->
             {:noreply,
-              socket
-              |> put_flash(:info, "User created successfully")
-              |> push_redirect(to: socket.assigns.return_to)}
+             socket
+             |> put_flash(:info, "User created successfully")
+             |> push_redirect(to: socket.assigns.return_to)}
+
           # failures here are due to contraints
           {:error, %Ecto.Changeset{} = changeset} ->
             socket =
               socket
               |> put_flash(:error, "Unable to create this user. See error messages below.")
 
-              {:noreply, assign(socket, :changeset, changeset)}
+            {:noreply, assign(socket, :changeset, changeset)}
         end
 
-      _ -> # build_user_changeset_w_assocs not a User
+      # build_user_changeset_w_assocs not a User
+      _ ->
         socket =
           socket
           |> put_flash(:error, "User not created: An error occured during creation")
@@ -199,6 +316,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         {:noreply, socket}
     end
   end
+
   # add new user from index page
   # defp save_user(socket, :new, user_params) do
   defp save_user(socket, :new, user_params) do
@@ -226,7 +344,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
             case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
               %Ecto.Changeset{} = user_changeset ->
                 # send msg data to parent & redirect
-                if send_existing_user_data?(user_changeset, socket) do
+                if send_existing_users_update?(user_changeset, socket) do
                   {:noreply, socket}
                 else
                   case Patients.insert_user_changeset(user_changeset) do
@@ -245,7 +363,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                   end
                 end
 
-              _ -> # build_user_changeset_w_assocs not a User
+              # build_user_changeset_w_assocs not a User
+              _ ->
                 socket =
                   socket
                   |> put_flash(:error, "User not created: An error occured during creation")
@@ -253,7 +372,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                 {:noreply, socket}
             end
 
-          false -># has_user_add_permissions not true
+          # has_user_add_permissions not true
+          false ->
             IO.puts("Employee does not have correct permissions")
 
             socket =
@@ -274,13 +394,22 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   """
   def lookup_user_direct(_user_struct, nil), do: {nil, nil, []}
   def lookup_user_direct(_user_struct, 0), do: {nil, nil, []}
-  def lookup_user_direct(user_struct, list_index) do
+
+  def lookup_user_direct(user_struct, list_index, organization_id) do
+    # search_fields are keys on user struct
     search_field_name = Enum.at(@user_search_fields, list_index)
     # IO.inspect(list_index, label: "list_index")
     # IO.inspect(search_field, label: "search_field")
     cond do
+      # check if user has the key
       Map.get(user_struct, search_field_name) ->
-        users = handle_get_users_by_field(search_field_name, Map.get(user_struct, search_field_name))
+        users =
+          handle_get_users_by_field(
+            search_field_name,
+            Map.get(user_struct, search_field_name),
+            organization_id
+          )
+
         # IO.inspect(users, label: "USERS")
         if users === [] do
           # call recursively
@@ -297,11 +426,12 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
-  defp handle_get_users_by_field(field, field_value) do
-    case Patients.get_users_by_field(field, field_value) do
+  defp handle_get_users_by_field(field, field_value, organization_id) do
+    case Patients.get_users_by_field(field, field_value, organization_id) do
       [] = _users ->
         # IO.puts("empty")
         []
+
       users ->
         # users
         # IO.inspect(users)
@@ -309,10 +439,11 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
 
-  defp send_existing_user_data?(user_changeset, socket) do
+  defp send_existing_users_update?(user_changeset, socket) do
     case handle_existing_users_send_data(user_changeset, socket) do
       {:ok} ->
         true
+
       _ ->
         false
     end
@@ -321,20 +452,36 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   defp handle_existing_users_send_data(user_changeset, socket) do
     current_employee = socket.assigns[:current_employee]
     user_struct = apply_changes(user_changeset)
-    {search_field_name, search_field_value, existing_users} = lookup_user_direct(
-      user_struct,
-      length(@user_search_fields) -1
-    )
+
+    {search_field_name, search_field_value, existing_users} =
+      lookup_user_direct(
+        user_struct,
+        length(@user_search_fields) - 1,
+        (current_employee && current_employee.current_organization_login_id) || 0
+      )
+
     # IO.inspect(existing_users , label: "existing_users")
     if length(existing_users) > 0 do
-    send(self(),
-    {:users_found,
-    %{existing_users_found: existing_users,
-      user_changeset: user_changeset,
-      redirect_to: Routes.user_index_path(socket, :display_existing_users, current_employee.current_organization_login_id, current_employee.id, search_field_name: search_field_name, search_field_value: search_field_value) }})
+      send(
+        self(),
+        {:users_found,
+         %{
+           existing_users_found: existing_users,
+           user_changeset: user_changeset,
+           redirect_to:
+             Routes.user_index_path(
+               socket,
+               :display_existing_users,
+               current_employee.current_organization_login_id,
+               current_employee.id,
+               search_field_name: search_field_name,
+               search_field_value: search_field_value
+             )
+         }}
+      )
 
-    {:ok}
-      else
+      {:ok}
+    else
       nil
     end
   end
@@ -344,6 +491,57 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
 
   defp maybe_store_return_to(socket) do
+  end
 
+  defp fake_save_user(socket, :new, _user_params) do
+    current_employee = socket.assigns[:current_employee]
+
+    user_params = %{
+      first_name: "Joe3",
+      last_name: "Schmoe",
+      email: "joe3@schmoe.com",
+      phone: "7771213151",
+      alert_format_set: "sms",
+      health_card_num: 9999,
+      date_of_birth: Date.from_iso8601!("1900-01-03")
+    }
+
+    organization =
+      TurnStile.Company.get_organization(current_employee.current_organization_login_id)
+
+    changeset = Patients.create_user(user_params)
+
+    case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
+      %Ecto.Changeset{} = user_changeset ->
+        # send msg data to parent & redirect
+        IO.inspect(user_changeset, label: "fake user changeset")
+
+        if send_existing_users_update?(user_changeset, socket) do
+          {:noreply, socket}
+        else
+          case Patients.insert_user_changeset(user_changeset) do
+            {:ok, _user} ->
+              {:noreply,
+               socket
+               |> put_flash(:info, "User created successfully")
+               |> push_redirect(to: socket.assigns.return_to)}
+
+            {:error, %Ecto.Changeset{} = changeset} ->
+              socket =
+                socket
+                |> put_flash(:error, "User not created")
+
+              {:noreply, assign(socket, :changeset, changeset)}
+          end
+        end
+
+      # build_user_changeset_w_assocs not a User
+      _ ->
+        socket =
+          socket
+          |> put_flash(:error, "User not created: An error occured during creation")
+
+        {:noreply, socket}
+    end
   end
 end

@@ -136,7 +136,7 @@
       socket
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
-    IO.put("index handle_info: sent from upsert send(): changeset and ext users")
+    IO.puts("index handle_info: sent from upsert send(): changeset and ext users")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
       # redirect to :display component
@@ -437,7 +437,7 @@
   end
   # :index - rendering index page
   defp apply_action(socket, :index, _params) do
-    IO.inspect(socket.assigns, label: "apply_action :index")
+    # IO.inspect(socket.assigns, label: "apply_action :index")
     socket
       # delete garage data from hanging around
     |> maybe_delete_key(:user_changeset)

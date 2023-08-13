@@ -14,7 +14,7 @@
      <% end %>
     <% end %>
   <div class="users-list">
-    <%!-- <% IO.inspect(@users) %> --%>
+  <div id={"search-user-1"}  class="search-user" phx-click="select_user" phx-value-user_id={"1"} phx-target={@myself} >HERE </div>   <%!-- <% IO.inspect(@users) %> --%>
     <%= if length(@users) > 0 do %>
      <p phx-click="custom-back" phx-target={@myself}>
       <%= link "Add Original User", to: "#"%>

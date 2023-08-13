@@ -67,7 +67,31 @@ __Developement__
 - `mix phx.server`
 -  Visit [localhost:4000](http://localhost:4000)
 
+
 # Notes
+
+#### Elixir
+
+Ternary operator syntax
+
+`disable_input = if action && action === :select, do: true, else: false`
+
+### Phoenix 
+
+Temlating syntax notes:
+
+- `attribue: variable`: this works as valid elixir
+- always use `get_field`. Checks all parts of the changeset for values
+- readonly, title, and value usage
+```
+<%= text_input f, :phone, value:  Ecto.Changeset.get_field(@changeset, :phone), readonly: @disable_input, title: @disabled_hover_info %>
+      <%= error_tag f, :phone %>
+```
+- radio button usage
+```
+ <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"), disabled: @disable_input, title: @disabled_hover_info)%>
+```
+
 #### Handling Associations
 
 __1-Many__

@@ -55,8 +55,11 @@ defmodule TurnStile.Patients do
 
     Repo.all(q)
   end
-
+  @doc """
+  filter_active_users_x_mins_past_last_update
+  """
   # use active query to get deactivated w/in a time period - less/eq to x mins ago
+  # handles listing users based on normal operations: keeps deactivated users in the list for info purposes
   def filter_active_users_x_mins_past_last_update(organization_id, duration_in_mins) do
     q =
       from(u in list_active_users_query(organization_id),
@@ -91,28 +94,42 @@ defmodule TurnStile.Patients do
   def get_user(id) do
     Repo.get(User, id) |> Repo.preload([:employee, :organization])
   end
+  @doc """
+  get_users_by_field
+  - check if a user has a key value pair
+  - two versions: one for string and one for integer
+  - make sure to limit users to w.in organization
+  """
   # handle when value is a string
-  def get_users_by_field(field, value) when is_binary(value) do
-    if is_atom(field) do
-      q = from(u in User,
-        where: ilike(field(u, ^field), ^String.downcase(value)),
-        preload: [:employee, :organization]
-      )
-      Repo.all(q)
+  def get_users_by_field(field, value, organization_id) when is_binary(value) do
+    if is_nil(organization_id) do
+      raise RuntimeError, "Error: get_users_by_field: organization_id cannot be nil"
     else
-      IO.puts("get_users_by_field: field must be an atom")
+      if is_atom(field) do
+        q = from(u in User,
+          where: ilike(field(u, ^field), ^String.downcase(value)),
+          preload: [:employee, :organization]
+        )
+        Repo.all(q)
+      else
+        IO.puts("get_users_by_field: field must be an atom")
+      end
     end
   end
   # handle when value is an integer
-  def get_users_by_field(field, value) when is_integer(value) do
-    if is_atom(field) do
-      q = from(u in User,
-        where: field(u, ^field) == ^value,
-        preload: [:employee, :organization]
-      )
-      Repo.all(q)
+  def get_users_by_field(field, value, organization_id) when is_integer(value) do
+    if is_nil(organization_id) do
+      raise RuntimeError, "Error: get_users_by_field: organization_id cannot be nil"
     else
-      IO.puts("get_users_by_field: field must be an atom")
+      if is_atom(field) do
+        q = from(u in User,
+          where: field(u, ^field) == ^value,
+          preload: [:employee, :organization]
+        )
+        Repo.all(q)
+      else
+        IO.puts("get_users_by_field: field must be an atom")
+      end
     end
   end
 
@@ -585,7 +602,6 @@ defmodule TurnStile.Patients do
     changeset =
       user
       |> User.update_changeset(attrs)
-
     case Repo.update(changeset) do
       {:ok, user} ->
         {:ok,

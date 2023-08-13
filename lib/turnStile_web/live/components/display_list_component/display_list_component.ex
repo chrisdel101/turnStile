@@ -24,7 +24,7 @@ defmodule TurnStileWeb.UserLive.DisplayListComponent do
   def handle_event("custom-back", unsigned_params, socket) do
     current_employee = socket.assigns.current_employee
     handle_send_data(unsigned_params, socket)
-    {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :display_users, current_employee.current_organization_login_id, current_employee.id))}
+    {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :display_existing_users, current_employee.current_organization_login_id, current_employee.id))}
     {:noreply, socket}
   end
   # send msg back to index handle_msg

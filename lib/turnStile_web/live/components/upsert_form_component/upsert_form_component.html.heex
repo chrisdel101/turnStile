@@ -23,34 +23,34 @@
     </main>
       
     <%= label f, :first_name %>
-      <%= text_input f, :first_name, value: Ecto.Changeset.get_field(@changeset, :first_name)  %>
+      <%= text_input f, :first_name, value: Ecto.Changeset.get_field(@changeset, :first_name), readonly: @disable_input, title: @disabled_hover_info %>
       <%= error_tag f, :first_name %>
 
       <%= label f, :last_name %>
-      <%= text_input f, :last_name, value:  Ecto.Changeset.get_field(@changeset, :last_name) %>
+      <%= text_input f, :last_name, value:  Ecto.Changeset.get_field(@changeset, :last_name), readonly: @disable_input, title: @disabled_hover_info %>
       <%= error_tag f, :last_name %>
 
       <%= label f, :email %>
-      <%= text_input f, :email, value: Ecto.Changeset.get_field(@changeset, :email) %>
+      <%= text_input f, :email, value: Ecto.Changeset.get_field(@changeset, :email), readonly: @disable_input, title: @disabled_hover_info%>
       <%= error_tag f, :email %>
 
       <%= label f, :phone %>
-      <%= text_input f, :phone, value:  Ecto.Changeset.get_field(@changeset, :phone) %>
+      <%= text_input f, :phone, value:  Ecto.Changeset.get_field(@changeset, :phone), readonly: @disable_input, title: @disabled_hover_info %>
       <%= error_tag f, :phone %>
 
       <%= label f, "Date of Birth" %>
-      <%= date_input f, :date_of_birth, value:  Ecto.Changeset.get_field(@changeset, :date_of_birth)%>
+      <%= date_input f, :date_of_birth, value:  Ecto.Changeset.get_field(@changeset, :date_of_birth), readonly: @disable_input, title: @disabled_hover_info%>
       <%= error_tag f, :date_of_birth %>
 
       <%= label(f, "Choose main alert type:") %>
       <%= label(f, :alert_format_set, "SMS") %>
-      <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"))%>
+      <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"), disabled: @disable_input, title: @disabled_hover_info)%>
       
       <%= label(f, :alert_format_set, "Email") %>
-      <%= radio_button(f, :alert_format_set, "email", phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("EMAIL")) %>
+      <%= radio_button(f, :alert_format_set, "email", phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("EMAIL"), disabled: @disable_input, title: @disabled_hover_info) %>
 
       <%= label f, :health_card_num %>
-      <%= number_input f, :health_card_num, value:  Ecto.Changeset.get_field(@changeset, :health_card_num) %>
+      <%= number_input f, :health_card_num, value:  Ecto.Changeset.get_field(@changeset, :health_card_num), readonly: @disable_input, title: @disabled_hover_info %>
       <%= error_tag f, :health_card_num %>
    
   
