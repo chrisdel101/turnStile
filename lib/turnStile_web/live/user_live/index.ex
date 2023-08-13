@@ -413,28 +413,29 @@
     |> assign(:page_title, "Add New User")
     |> assign(:user, %{})
   end
-  # :insert - adding a new user that already exists in DB
-  # user is formed struct
-  defp apply_action(socket, :insert, %{"user_id" => user_id} = _params) do
-    IO.inspect(user_id, label: "apply_action :insert")
-    socket
-    |> assign(:page_title, "Insert Saved User")
-    |> assign(:user, Patients.get_user(user_id))
-  end
-  # :insert - going back from display form
-  # called when clicked on an existing user and redirecting
-  defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
-    IO.inspect(user_changeset, label: "apply_action :insert changeset")
-    socket
-    |> assign(:page_title, "Select Existing User")
-    |> assign(:user_changeset, user_changeset)
-  end
-  # :insert - if opened out of sequence with no params; like if route called directly
-  defp apply_action(socket, :insert, params) do
-    IO.inspect(params, label: "apply_action :insert out of sequence")
-    socket
-    |> assign(:page_title, "Insert Saved User")
-  end
+  # MAYBE REMOVE :insert
+  # # :insert - adding a new user that already exists in DB
+  # # user is formed struct
+  # defp apply_action(socket, :insert, %{"user_id" => user_id} = _params) do
+  #   IO.inspect(user_id, label: "apply_action :insert")
+  #   socket
+  #   |> assign(:page_title, "Insert Saved User")
+  #   |> assign(:user, Patients.get_user(user_id))
+  # end
+  # # :insert - going back from display form
+  # # called when clicked on an existing user and redirecting
+  # defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
+  #   IO.inspect(user_changeset, label: "apply_action :insert changeset")
+  #   socket
+  #   |> assign(:page_title, "Select Existing User")
+  #   |> assign(:user_changeset, user_changeset)
+  # end
+  # # :insert - if opened out of sequence with no params; like if route called directly
+  # defp apply_action(socket, :insert, params) do
+  #   IO.inspect(params, label: "apply_action :insert out of sequence")
+  #   socket
+  #   |> assign(:page_title, "Insert Saved User")
+  # end
   # :index - rendering index page
   defp apply_action(socket, :index, _params) do
     # IO.inspect(socket.assigns, label: "apply_action :index")
@@ -474,7 +475,7 @@
     changeset = Patients.change_user(user, %{})
     IO.inspect(changeset, label: "apply_action :select")
     socket
-    |> assign(:page_title, "Active Exisiting User")
+    |> assign(:page_title, "Activate Exisiting User?")
     |> assign(:user_changeset, changeset)
   end
 
