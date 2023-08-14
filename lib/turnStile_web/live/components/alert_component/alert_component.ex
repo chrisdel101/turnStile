@@ -217,12 +217,6 @@
                   socket
                   |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
                 }
-              {:error, error} ->
-                {
-                  :noreply,
-                  socket
-                  |> put_flash(:error, "Failure in alert send. #{error}")
-                }
               end
           true ->
             {

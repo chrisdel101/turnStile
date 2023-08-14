@@ -145,7 +145,7 @@ defmodule TurnStileWeb.OrganizationController do
 
                   case TurnStile.Roles.insert_role(employee.id, updated_org.id, role) do
                     {:error, error} ->
-                      # delete any created employees
+                      # delete any prev created employees
                       if !is_nil(employee) do
                         Staff.delete_employee(employee)
                       end
@@ -347,9 +347,7 @@ defmodule TurnStileWeb.OrganizationController do
   # plug
   # sets flag to false unless manulally set to true
   defp track_form_stage(conn, _opts, bool \\ false) do
-    IO.inspect(bool, label: "bool")
-
-    conn =
+    # IO.inspect(bool, label: "bool")
       conn
       |> assign(:org_form_submitted, bool)
   end

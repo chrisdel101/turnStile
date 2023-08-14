@@ -1,5 +1,4 @@
 defmodule TurnStileWeb.Plugs.EmptyParams do
-  import Plug.Conn
 
   def init(default), do: default
 

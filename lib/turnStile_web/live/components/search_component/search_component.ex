@@ -65,10 +65,10 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
         # if name2 is not empty
         !is_nil(name2) && name2 !== "" ->
         # try flipping the names to last/first name and run again
-          users = Patients.search_users_by_last_and_first_name(name1, name2)
+          Patients.search_users_by_last_and_first_name(name1, name2)
         is_nil(name2) || name2 == "" ->
           # if name2 is empty, search name1 for first name
-          users = Patients.search_users_by_first_name(name1)
+          Patients.search_users_by_first_name(name1)
         true ->
           []
       end

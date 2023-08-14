@@ -364,17 +364,17 @@ defmodule TurnStileWeb.AlertController do
   - handles the state machine for user alert status
   - if user states is invalid don't allow user to make incoming requests, i.e after cancel or expiration
   """
-  def manage_user_alert_status(user, new_alert_status) do
+  def _manage_user_alert_status(user, new_alert_status) do
     cond do
       # update to new status from pending
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("PENDING") && (new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") || new_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED")) ->
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("CONFIRMATION")
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") && (new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") || new_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED")) ->
+      # user.user_alert_status == UserAlertStatusTypesMap.get_user_status("CONFIRMATION")
         new_alert_status
       # check for expired user
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("EXPIRED") ->
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("EXPIRED") ->
         UserAlertStatusTypesMap.get_user_status("EXPIRED")
          # check for cancelled user
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_statuses("CANCELLED") ->
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
         UserAlertStatusTypesMap.get_user_status("CANCELLED")
       true ->
         IO.puts("manage_user_alert_status: invalid state")

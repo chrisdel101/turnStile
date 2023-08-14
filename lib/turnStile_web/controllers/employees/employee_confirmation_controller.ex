@@ -9,23 +9,6 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     render(conn, "new.html")
   end
 
-  def create(conn, %{"employee" => %{"email" => email}}) do
-    if employee = Staff.get_employee_by_email(email) do
-      Staff.deliver_employee_confirmation_instructions(
-        employee,
-        &Routes.employee_confirmation_url(conn, :edit, &1)
-      )
-    end
-
-    conn
-    |> put_flash(
-      :info,
-      "If your email is in our system and it has not been confirmed yet, " <>
-        "you will receive an email with instructions shortly."
-    )
-    |> redirect(to: "/")
-  end
-
   # comes from email tokenized URL
   def confirm(conn, %{"token" => token}) do
     # get org id from tokenized URL
@@ -38,11 +21,16 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     # get org id from tokenized URL
     changeset = Staff.change_employee_password(%Employee{}, %{}, true)
     organization_id = Map.get(conn.params, "id")
-    render(conn, "setup.html", organization_id: organization_id, token: token, changeset: changeset)
+
+    render(conn, "setup.html",
+      organization_id: organization_id,
+      token: token,
+      changeset: changeset
+    )
   end
 
   # TODO- not working - unsure when employee + supossed to be are coming from below
-# ******
+  # ******
   # Do not log in the employee after confirmation to avoid a
   # leaked token giving the employee access to the account.
   def update(conn, params) do
@@ -53,6 +41,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
           "password_confirmation" => password_confirmation
         }
       } = params
+
     current_employee = conn.assigns[:current_employee]
 
     if current_employee do
@@ -80,9 +69,9 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
         IO.puts("YEAHYEAH")
 
         case Staff.update_employee_password(employee, "password", %{
-               "password" => password,
-               "password_confirmation" => password_confirmation
-             }) do
+          "password" => password,
+          "password_confirmation" => password_confirmation
+        }) do
           {:ok, employee} ->
             if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
               params = %{flash: "Account confirmed."}
@@ -100,19 +89,23 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
 
               # require manual login
             else
-
               conn
               |> put_flash(:info, "Employee confirmed successfully.")
               |> redirect(to: "/")
             end
 
           {:error, %Ecto.Changeset{} = changeset} ->
-            changeset = %{changeset | action: :insert}
+            changeset = %{changeset | action: :update}
+
             conn
             # IO.puts("ERRORERRORERROR")
             # IO.inspect(changeset)
-            |>
-            render("setup.html", changeset: changeset, organization_id: organization_id, token: token)
+            |> render("setup.html",
+              changeset: changeset,
+              organization_id: organization_id,
+              token: token
+            )
+
             # IO.puts("ERRORERRORERROR")
         end
 

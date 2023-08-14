@@ -220,9 +220,6 @@ defmodule TurnStileWeb.AlertUtils do
           # handle twilio errors
           {:error, error_map, error_code} ->
             {:error, error_map, error_code}
-
-          _ ->
-            {:error, "An unknown error occured"}
         end
       else
         case ExTwilio.Message.create(
@@ -237,9 +234,6 @@ defmodule TurnStileWeb.AlertUtils do
           # handle twilio errors
           {:error, error_map, error_code} ->
             {:error, error_map, error_code}
-
-          _ ->
-            {:error, "An unknown error occured"}
         end
       end
     end

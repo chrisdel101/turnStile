@@ -129,7 +129,6 @@ defmodule TurnStileWeb.Router do
     pipe_through [:browser]
 
     delete "/employees/log_out", EmployeeSessionController, :delete
-    post "/employees/confirm", EmployeeConfirmationController, :create
     get "/employees/setup/:token", EmployeeConfirmationController, :setup #used for employee setup reply email link
     get "/employees/confirm/:token", EmployeeConfirmationController, :confirm # used for init employee if confirm email link is reqiured (is same as above. Combine?)
     post "/employees/confirm/:token", EmployeeConfirmationController, :update

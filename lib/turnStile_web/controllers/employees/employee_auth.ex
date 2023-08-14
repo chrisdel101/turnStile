@@ -57,7 +57,7 @@ defmodule TurnStileWeb.EmployeeAuth do
         |> put_session(:employee_token, token)
         |> put_session(:live_socket_id, "employee_sessions:#{Base.url_encode64(token)}")
         |> maybe_write_remember_me_cookie(token, params)
-        |> redirect(to: "/organizations/#{organization_id}" || employee_return_to)
+        |> redirect(to: employee_return_to || "/organizations/#{organization_id}")
       {:error, error} ->
         conn
         |> put_flash(:error, error)

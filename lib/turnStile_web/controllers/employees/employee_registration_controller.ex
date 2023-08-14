@@ -14,6 +14,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
     render(conn, "new.html", changeset: changeset, organization_id: organization_id)
   end
 
+  # - create all other employees via register; o
+  # organizations/:id/employees/register
   def create(conn, %{"employee" => employee_params}) do
     current_employee = conn.assigns[:current_employee]
     # if no logged in employee
@@ -111,6 +113,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
                     case TurnStile.Roles.insert_role(employee.id, updated_org.id, role_w_org) do
                       {:error, error} ->
+                        IO.puts("Error: registration create error: role creation failed. #{error}")
                         # delete employee prev inserted
                         Staff.delete_employee(employee)
                         conn
@@ -120,7 +123,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                               Routes.employee_registration_path(conn, :new, organization_id)
                           )
 
-                      {:ok, role} ->
+                      {:ok, _role} ->
                         IO.inspect("YYYYYY")
                         IO.inspect(employee)
                         # require email account confirmation
@@ -194,6 +197,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
   @doc """
   create_initial_owner - creates the first employee of an organization
   - is automatically assigned the owner role
+  - called in Organziation controller create
   """
   def create_initial_owner(conn, organization, %{"employee" => employee_params}) do
     # extract org id

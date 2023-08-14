@@ -1,7 +1,6 @@
   defmodule TurnStileWeb.UserLive.Index do
   use TurnStileWeb, :live_view
   alias TurnStile.Patients
-  alias TurnStile.Patients.User
   alias TurnStile.Staff
   alias TurnStileWeb.EmployeeAuth
   alias TurnStileWeb.AlertUtils
@@ -65,7 +64,7 @@
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
     # called on :select: back from :display_existing_user
-    def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id, "user_id" => user_id } = params, _url, socket) do
+    def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id, "user_id" => _user_id } = params, _url, socket) do
       # IO.inspect(user_id, label: "handle_params main index:back from display")
       # all other calls
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
@@ -221,7 +220,7 @@
         # IO.inspect(changeset, label: "changeset in handle_event")
         case AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
           {:ok, alert} ->
-            if alert.alert_format == AlertFormatTypesMap.get_alert("EMAIL") do
+            if alert.alert_format === "AlertFormatTypesMap.get_alert("EMAIL")" do
               case AlertUtils.send_email_alert(alert) do
                 {:ok, _email_msg} ->
 

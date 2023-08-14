@@ -16,7 +16,7 @@ defmodule TurnStileWeb.UserLive.Show do
     {:ok,
      assign(
        socket,
-       current_employee: current_employee,
+       current_employee: current_employee
      )}
   end
 

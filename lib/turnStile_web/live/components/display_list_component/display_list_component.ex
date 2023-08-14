@@ -28,7 +28,7 @@ defmodule TurnStileWeb.UserLive.DisplayListComponent do
     {:noreply, socket}
   end
   # send msg back to index handle_msg
-  defp handle_send_data(unsigned_params, socket) do
+  defp handle_send_data(_unsigned_params, socket) do
     current_employee = socket.assigns[:current_employee]
     user_changeset = socket.assigns[:user_changeset]
     IO.inspect(user_changeset, label: "handle_send_data")

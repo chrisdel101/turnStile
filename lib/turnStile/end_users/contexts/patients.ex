@@ -690,7 +690,7 @@ defmodule TurnStile.Patients do
   deliver_user_email_alert_reply_instructions
   - handles the
   """
-  # confirmation_url_fun is a callback that gets passed a token and returns a url (i.e &TurnStile.Utils.build_user_alert_url(&1, &2, &3)))
+  # confirmation_url_fun is a callback that gets passed a token and returns a url (i.e &TurnStile.Utils.build_user_alert_url(&1, &2)))
   def deliver_user_email_alert_reply_instructions(%User{} = user, alert, build_url_func) do
     # {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
     # IO.puts("CREATING TOKEN")

@@ -12,9 +12,11 @@ defmodule TurnStileWeb.EmployeeResetPasswordController do
 
   def create(conn, %{"employee" => %{"email" => email}}) do
     if employee = Staff.get_employee_by_email(email) do
+      organization_id = Map.get(conn.params,"id")
+      # IO.inspect(organization_id, label: "organization_id")
       Staff.deliver_employee_reset_password_instructions(
         employee,
-        &Routes.employee_reset_password_url(conn, :edit, &1)
+        &Routes.employee_reset_password_url(conn, :edit, organization_id, &1)
       )
     end
 
@@ -32,12 +34,14 @@ defmodule TurnStileWeb.EmployeeResetPasswordController do
 
   # Do not log in the employee after reset password to avoid a
   # leaked token giving the employee access to the account.
+  # TODO:need better way to get get org id; getting from params in not secure
   def update(conn, %{"employee" => employee_params}) do
+    organization_id = Map.get(conn.params,"id")
     case Staff.reset_employee_password(conn.assigns.employee, employee_params) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Password reset successfully.")
-        |> redirect(to: Routes.employee_session_path(conn, :new))
+        |> redirect(to: Routes.employee_session_path(conn, :new, organization_id))
 
       {:error, changeset} ->
         render(conn, "edit.html", changeset: changeset)

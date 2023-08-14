@@ -170,7 +170,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
 
   # back from :display - on :new when existing users found
-  defp activate_user(socket, action, user_params) when action in [:select, :insert] do
+  defp activate_user(socket, action, _user_params) when action in [:select, :insert] do
     # should have access to use passed from display
     user = socket.assigns[:user]
     # check if user is already active
@@ -186,7 +186,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     else
       with user_changeset <- Patients.change_user(user, %{is_active?: true}),
           # if changes are valid
-          true <- (user_changeset && Ecto.Changeset.get_change(user_changeset, :is_active?)) do
+          true <- Ecto.Changeset.get_change(user_changeset, :is_active?) do
 
             case TurnStile.Repo.update(user_changeset) do
               {:ok, user} ->
