@@ -220,7 +220,7 @@
         # IO.inspect(changeset, label: "changeset in handle_event")
         case AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
           {:ok, alert} ->
-            if alert.alert_format === "AlertFormatTypesMap.get_alert("EMAIL")" do
+            if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
               case AlertUtils.send_email_alert(alert) do
                 {:ok, _email_msg} ->
 
