@@ -10,6 +10,9 @@ defmodule TurnStile.Patients do
   alias TurnStile.Patients.UserToken
   alias TurnStile.Roles
 
+  @now NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+
   @doc """
   Returns the list of users.
 
@@ -528,7 +531,7 @@ defmodule TurnStile.Patients do
     # convert val to int
     user = Map.put(user, :health_card_num, TurnStile.Utils.convert_to_int(user.health_card_num))
 
-    case Repo.insert(user) do
+    case Repo.insert(maybe_set_is_activated(user)) do
       {:ok, user} ->
         {:ok,
          user
@@ -554,7 +557,8 @@ defmodule TurnStile.Patients do
       _ ->
         user_changeset
       end
-    case Repo.insert(user) do
+
+    case Repo.insert(maybe_set_is_activated(user)) do
       {:ok, user} ->
         {:ok,
          user
@@ -563,6 +567,24 @@ defmodule TurnStile.Patients do
       {:error, error} ->
         {:error, error}
 
+    end
+  end
+  # takes changeset
+  defp maybe_set_is_activated(%Ecto.Changeset{} = user) do
+    if Ecto.Changeset.get_field(user, :is_active?) do
+      user
+    |> Ecto.Changeset.put_change(:activated_at, @now)
+    else
+      user
+    end
+  end
+    # takes struct
+  defp maybe_set_is_activated(%User{} = user) do
+    if user.is_active? do
+      user
+      |> Map.put(:activated_at, @now)
+    else
+      user
     end
   end
 
@@ -634,7 +656,7 @@ defmodule TurnStile.Patients do
   def deactivate_user(%User{} = user) do
     IO.inspect(user, label: "user")
     # new_user = change_user(user, %{is_active?: false})
-    {:ok, new_user} = update_user(user, %{is_active?: false})
+    {:ok, new_user} = update_user(user, %{is_active?: false, deactivated_at: @now})
     IO.inspect(new_user, label: "new_user")
   end
 

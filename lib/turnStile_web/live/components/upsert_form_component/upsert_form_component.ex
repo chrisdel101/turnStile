@@ -193,6 +193,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
                 IO.inspect(user, label: "activate_user :update user")
                 # send update to :index - refresh the list
                 send(self(), :update)
+                # TODO: redirect to index
                 socket =
                   socket
                   |> put_flash(

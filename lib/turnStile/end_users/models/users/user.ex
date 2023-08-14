@@ -1,6 +1,7 @@
 defmodule TurnStile.Patients.User do
   use Ecto.Schema
   import Ecto.Changeset
+  @now NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
 
   schema "users" do
     field :email, :string
@@ -17,7 +18,10 @@ defmodule TurnStile.Patients.User do
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert , on_delete: :delete_all
     belongs_to :organization, TurnStile.Company.Organization
+
     field :confirmed_at, :naive_datetime
+    field :activated_at, :naive_datetime
+    field :deactivated_at, :naive_datetime
 
     timestamps()
   end
@@ -43,8 +47,7 @@ defmodule TurnStile.Patients.User do
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(user) do
-    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    change(user, confirmed_at: now)
+    change(user, confirmed_at: @now)
   end
   # validate field matches alert_format_set on upsert form
   def validate_alert_format_matches_alert_format_set(changeset) do
