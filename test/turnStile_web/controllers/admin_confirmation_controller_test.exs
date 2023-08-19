@@ -76,7 +76,7 @@ defmodule TurnStileWeb.AdminConfirmationControllerTest do
       conn = post(conn, Routes.admin_confirmation_path(conn, :update, token))
       assert redirected_to(conn) == "/"
       assert get_flash(conn, :info) =~ "Admin confirmed successfully"
-      assert Operations.get_admin!(admin.id).confirmed_at
+      assert Operations.get_admin(admin.id).confirmed_at
       refute get_session(conn, :admin_token)
       assert Repo.all(Operations.AdminToken) == []
 
@@ -99,7 +99,7 @@ defmodule TurnStileWeb.AdminConfirmationControllerTest do
       conn = post(conn, Routes.admin_confirmation_path(conn, :update, "oops"))
       assert redirected_to(conn) == "/"
       assert get_flash(conn, :error) =~ "Admin confirmation link is invalid or it has expired"
-      refute Operations.get_admin!(admin.id).confirmed_at
+      refute Operations.get_admin(admin.id).confirmed_at
     end
   end
 end

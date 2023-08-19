@@ -5,6 +5,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Patients
   alias TurnStile.Patients.User
+  @dialyzer {:no_match, save_user: 3}
 
   @user_search_fields [:email, :phone, :last_name, :health_card_num]
 

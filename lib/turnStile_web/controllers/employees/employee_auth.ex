@@ -527,10 +527,10 @@ defmodule TurnStileWeb.EmployeeAuth do
 
   defp handle_missing_employee(conn) do
     IO.puts("handle_missing_employee: no current_employee")
-
+    # redirect to index
     conn
     |> maybe_store_return_to()
-    |> redirect(to: Routes.organization_employee_path(conn, :index, nil))
+    |> redirect(to: Routes.page_path(conn, :index))
     |> halt()
   end
 

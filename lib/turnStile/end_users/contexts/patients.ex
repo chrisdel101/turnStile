@@ -11,6 +11,8 @@ defmodule TurnStile.Patients do
   alias TurnStile.Roles
 
   @now NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+  @dialyzer {:no_match, confirm_user_session_token: 2}
+  @dialyzer {:no_match, get_user_by_session_token: 1}
 
 
   @doc """
@@ -784,6 +786,8 @@ defmodule TurnStile.Patients do
   end
 
   # - checks for user token existence but ignores expiration
+  @spec confirm_user_session_token_exists(any, any) ::
+          nil | [%{optional(atom) => any}] | %{optional(atom) => any}
   def confirm_user_session_token_exists(token, _opts \\ []) do
     # check if user exists
     # token = Base.encode64(token)

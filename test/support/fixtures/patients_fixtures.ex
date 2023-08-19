@@ -7,7 +7,7 @@ defmodule TurnStile.PatientsFixtures do
   @doc """
   Generate a user.
   """
-  def user_fixture(attrs \\ %{}) do
+  def user_fixture(_attrs \\ %{}) do
     # {:ok, user} =
     #   attrs
     #   |> Enum.into(%{

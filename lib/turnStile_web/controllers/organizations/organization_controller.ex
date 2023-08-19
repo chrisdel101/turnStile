@@ -54,10 +54,10 @@ defmodule TurnStileWeb.OrganizationController do
         # make slug
         slug = Slug.slugify(name)
         # check DB for org
-        organizations? = Company.check_organization_exists_by_slug(slug)
+        existing_orgs = Company.check_organization_exists_by_slug(slug)
         org_params = Map.put_new(org_params, "slug", slug)
         # handle duplicate org
-        if is_nil(organizations?) || length(organizations?) !== 0 do
+        if length(existing_orgs) > 0 do
           conn
           |> put_flash(:info, "That Organization already exists. Try another name.")
           |> render("new.html", changeset: changeset)
@@ -134,21 +134,19 @@ defmodule TurnStileWeb.OrganizationController do
             {:ok, employee, log_in?} ->
               case TurnStile.Company.update_employee_assoc(organization, employee) do
                 {:ok, updated_org} ->
-                  IO.inspect(updated_org, label: "updated_org")
+                  IO.inspect(updated_org, label: "updated_org123")
                   # add has_many role assocations
                   role = TurnStile.Roles.assocaiate_role_with_employee(role, employee)
                   role = TurnStile.Roles.assocaiate_role_with_organization(role, updated_org)
 
                   IO.inspect(employee, label: "employee")
-                  IO.inspect(updated_org, label: "updated_org")
+                  # IO.inspect(updated_org, label: "updated_org")
                   IO.inspect(role, label: "role")
 
                   case TurnStile.Roles.insert_role(employee.id, updated_org.id, role) do
                     {:error, error} ->
-                      # delete any prev created employees
-                      if !is_nil(employee) do
-                        Staff.delete_employee(employee)
-                      end
+                      # delete any prev created employees in workflow
+                      Staff.delete_employee(employee)
                       {:error, error}
 
                     {:ok, role} ->
@@ -188,11 +186,9 @@ defmodule TurnStileWeb.OrganizationController do
 
                 {:error, error} ->
                   IO.inspect(error, label: "ERROR")
-                  # delete any added employee so far
-                  if !is_nil(employee) do
-
+                  # delete any emplpyees created during failed workflow
                     Staff.delete_employee(employee)
-                  end
+
                   conn
                   |> assign(:org_form_submitted, true)
                   |> put_flash(:error, "Error in assocaitions. Employee not created. Try again.")
@@ -216,7 +212,7 @@ defmodule TurnStileWeb.OrganizationController do
           end
 
           # adding existing employee to new org
-          # TODO: feature UNTESTED
+          # TODO: feature UNTESTED - seems to work
         else
           # existing employee will be owner on new org
           role =
@@ -227,7 +223,7 @@ defmodule TurnStileWeb.OrganizationController do
 
           case TurnStile.Company.update_employee_assoc(organization, current_employee) do
             {:ok, updated_org} ->
-              IO.inspect(updated_org, label: "updated_org")
+              IO.inspect(updated_org, label: "updated_org567")
               # add has_many role assocations
               role = TurnStile.Roles.assocaiate_role_with_employee(role, current_employee)
               role = TurnStile.Roles.assocaiate_role_with_organization(role, updated_org)

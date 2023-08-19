@@ -23,13 +23,14 @@ defmodule TurnStileWeb.EmployeeResetPasswordController do
     conn
     |> put_flash(
       :info,
-      "If your email is in our system, you will receive instructions to reset your password shortly."
+      conditional_flash_message(employee)
     )
     |> redirect(to: "/")
   end
 
   def edit(conn, _params) do
-    render(conn, "edit.html", changeset: Staff.change_employee_password(conn.assigns.employee))
+    organization_id = Map.get(conn.params,"id")
+    render(conn, "edit.html", organization_id: organization_id, changeset: Staff.change_employee_password(conn.assigns.employee))
   end
 
   # Do not log in the employee after reset password to avoid a
@@ -58,6 +59,27 @@ defmodule TurnStileWeb.EmployeeResetPasswordController do
       |> put_flash(:error, "Reset password link is invalid or it has expired.")
       |> redirect(to: "/")
       |> halt()
+    end
+  end
+  # tell user if their address exists based on env flag; default to not telling
+  defp conditional_flash_message(employee) do
+    case employee do
+      nil ->
+        true
+        cond do
+          System.get_env("EMPLOYEE_PASSWORD_RESET_EMAIL_FOUND_ALERT") == "true" ->
+            "That email address was not found in our system. Please try a different email address."
+          true -> # default message
+            "If your email is in our system, you will receive instructions to reset your password shortly."
+        end
+      # is not nil
+      _ ->
+        cond do
+          System.get_env("EMPLOYEE_PASSWORD_RESET_EMAIL_FOUND_ALERT") == "true" ->
+            "Your address was found. You will receive instructions to reset your password shortly"
+          true -> # default message
+            "If your email is in our system, you will receive instructions to reset your password shortly."
+        end
     end
   end
 end

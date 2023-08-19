@@ -51,14 +51,14 @@ defmodule TurnStile.Operations do
 
   ## Examples
 
-      iex> get_admin!(123)
+      iex> get_admin(123)
       %Admin{}
 
-      iex> get_admin!(456)
+      iex> get_admin(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_admin!(id), do: Repo.get!(Admin, id)
+  def get_admin(id), do: Repo.get(Admin, id)
 
   ## Admin registration
 

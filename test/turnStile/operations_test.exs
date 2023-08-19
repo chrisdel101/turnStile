@@ -35,16 +35,16 @@ defmodule TurnStile.OperationsTest do
     end
   end
 
-  describe "get_admin!/1" do
+  describe "get_admin/1" do
     test "raises if id is invalid" do
       assert_raise Ecto.NoResultsError, fn ->
-        Operations.get_admin!(-1)
+        Operations.get_admin(-1)
       end
     end
 
     test "returns the admin with the given id" do
       %{id: id} = admin = admin_fixture()
-      assert %Admin{id: ^id} = Operations.get_admin!(admin.id)
+      assert %Admin{id: ^id} = Operations.get_admin(admin.id)
     end
   end
 
@@ -170,7 +170,7 @@ defmodule TurnStile.OperationsTest do
       email = unique_admin_email()
       {:ok, admin} = Operations.apply_admin_email(admin, valid_admin_password(), %{email: email})
       assert admin.email == email
-      assert Operations.get_admin!(admin.id).email != email
+      assert Operations.get_admin(admin.id).email != email
     end
   end
 
@@ -518,9 +518,9 @@ defmodule TurnStile.OperationsTest do
       assert Operations.list_admins() == [admin]
     end
 
-    test "get_admin!/1 returns the admin with given id" do
+    test "get_admin/1 returns the admin with given id" do
       admin = admin_fixture()
-      assert Operations.get_admin!(admin.id) == admin
+      assert Operations.get_admin(admin.id) == admin
     end
 
     test "create_admin/1 with valid data creates a admin" do
@@ -543,13 +543,13 @@ defmodule TurnStile.OperationsTest do
     test "update_admin/2 with invalid data returns error changeset" do
       admin = admin_fixture()
       assert {:error, %Ecto.Changeset{}} = Operations.update_admin(admin, @invalid_attrs)
-      assert admin == Operations.get_admin!(admin.id)
+      assert admin == Operations.get_admin(admin.id)
     end
 
     test "delete_admin/1 deletes the admin" do
       admin = admin_fixture()
       assert {:ok, %Admin{}} = Operations.delete_admin(admin)
-      assert_raise Ecto.NoResultsError, fn -> Operations.get_admin!(admin.id) end
+      assert_raise Ecto.NoResultsError, fn -> Operations.get_admin(admin.id) end
     end
 
     test "change_admin/1 returns a admin changeset" do

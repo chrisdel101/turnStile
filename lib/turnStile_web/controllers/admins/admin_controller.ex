@@ -16,36 +16,53 @@ defmodule TurnStileWeb.AdminController do
 
 
   def show(conn, %{"id" => id}) do
-    admin = Operations.get_admin!(id)
+    admin = Operations.get_admin(id)
     render(conn, "show.html", admin: admin)
   end
 
   def edit(conn, %{"id" => id}) do
-    admin = Operations.get_admin!(id)
-    changeset = Operations.change_admin(admin)
-    render(conn, "edit.html", admin: admin, changeset: changeset)
+    admin = Operations.get_admin(id)
+    if admin do
+      changeset = Operations.change_admin(admin)
+      render(conn, "edit.html", admin: admin, changeset: changeset)
+    else
+      conn
+      |> put_flash(:error, "Admin not found.")
+      |> redirect(to: Routes.admin_path(conn, :index))
+    end
   end
 
   def update(conn, %{"id" => id, "admin" => admin_params}) do
-    admin = Operations.get_admin!(id)
+    admin = Operations.get_admin(id)
+    if admin do
+      case Operations.update_admin(admin, admin_params) do
+        {:ok, admin} ->
+          conn
+          |> put_flash(:info, "Admin updated successfully.")
+          |> redirect(to: Routes.admin_path(conn, :show, admin))
 
-    case Operations.update_admin(admin, admin_params) do
-      {:ok, admin} ->
-        conn
-        |> put_flash(:info, "Admin updated successfully.")
-        |> redirect(to: Routes.admin_path(conn, :show, admin))
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "edit.html", admin: admin, changeset: changeset)
+        {:error, %Ecto.Changeset{} = changeset} ->
+          render(conn, "edit.html", admin: admin, changeset: changeset)
+      end
+    else
+      conn
+      |> put_flash(:error, "Admin not found.")
+      |> redirect(to: Routes.admin_path(conn, :index))
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    admin = Operations.get_admin!(id)
-    {:ok, _admin} = Operations.delete_admin(admin)
+    admin = Operations.get_admin(id)
+    if admin do
+     {:ok, _admin} = Operations.delete_admin(admin)
+     conn
+     |> put_flash(:info, "Admin deleted successfully.")
+     |> redirect(to: Routes.admin_path(conn, :index))
+    else
+      conn
+      |> put_flash(:error, "Admin not found.")
+      |> redirect(to: Routes.admin_path(conn, :index))
+    end
 
-    conn
-    |> put_flash(:info, "Admin deleted successfully.")
-    |> redirect(to: Routes.admin_path(conn, :index))
   end
 end

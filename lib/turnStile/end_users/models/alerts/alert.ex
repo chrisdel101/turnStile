@@ -1,6 +1,7 @@
 defmodule TurnStile.Alerts.Alert do
   use Ecto.Schema
   import Ecto.Changeset
+  @dialyzer {:no_match, validate_category_for_response: 2}
 
   @moduledoc """
   Alert Schema

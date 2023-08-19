@@ -5,7 +5,8 @@ defmodule TurnStileEmployeeRegistrationControllerTest do
 
   describe "GET /employees/register" do
     test "renders registration page", %{conn: conn} do
-      conn = get(conn, Routes.employee_registration_path(conn, :new))
+      organization_id = 1 # add random id to make it work
+      conn = get(conn, Routes.employee_registration_path(conn, :new, organization_id))
       response = html_response(conn, 200)
       assert response =~ "<h1>Register</h1>"
       assert response =~ "Log in</a>"
@@ -13,18 +14,19 @@ defmodule TurnStileEmployeeRegistrationControllerTest do
     end
 
     test "redirects if already logged in", %{conn: conn} do
-      conn = conn |> log_in_employee(employee_fixture()) |> get(Routes.employee_registration_path(conn, :new))
+      organization_id = 1 # add random id to make it work
+      conn = conn |> log_in_employee(employee_fixture()) |> get(Routes.employee_registration_path(conn, :new, organization_id))
       assert redirected_to(conn) == "/"
     end
   end
 
-  describe "POST /employees/register" do
+  describe "POST organizations/:id/employees/register" do
     @tag :capture_log
     test "creates account and logs the employee in", %{conn: conn} do
       email = unique_employee_email()
-
+      organization_id = 1 # add random id to make it work
       conn =
-        post(conn, Routes.employee_registration_path(conn, :create), %{
+        post(conn, Routes.employee_registration_path(conn, :create, organization_id), %{
           "employee" => merge_employee_attributes(email: email)
         })
 
@@ -40,8 +42,9 @@ defmodule TurnStileEmployeeRegistrationControllerTest do
     end
 
     test "render errors for invalid data", %{conn: conn} do
+      organization_id = 1 # add random id to make it work
       conn =
-        post(conn, Routes.employee_registration_path(conn, :create), %{
+        post(conn, Routes.employee_registration_path(conn, :create, organization_id), %{
           "employee" => %{"email" => "with spaces", "password" => "too short"}
         })
 

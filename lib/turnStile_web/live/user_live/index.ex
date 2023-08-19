@@ -12,7 +12,10 @@
   # live_actions [:new, :index, :alert, :edit]
   @interval 100000
   @filter_active_users_mins 30
-  # @dialyzer {:Wno_match, handle_event: 3}
+  @wait_time_mins 60
+  # @dialyzer {:nowarn_function, handle_event: 3}
+  @dialyzer {:no_match, handle_event: 3}
+
 
   @impl true
   def mount(_params, session, socket) do
@@ -161,9 +164,8 @@
     {:noreply,
       socket
       |> push_patch(to: redirect_to)}
-  end
-  @impl true
-  # @dialyzer {:Wno_match, handle_event/3}
+    end
+    @impl true
   def handle_event(
         "send_initial_alert",
         %{"alert-format" => alert_format, "user-id" => user_id,
@@ -241,12 +243,12 @@
                       }
 
                     {:error, error} -> # handle_updating_user_alert_send_status error
-                    IO.inspect(error, label: "email index alert error in handle_event")
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(:error, "Failure in alert send. #{error}")
-                      }
+                      IO.inspect(error, label: "email index alert error in handle_event")
+                        {
+                          :noreply,
+                          socket
+                          |> put_flash(:error, "Failure in alert send. #{error}")
+                        }
                   end
 
                 {:error, error} -> # system/mailgun SMS error
