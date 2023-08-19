@@ -266,7 +266,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
             {:noreply, assign(socket, :changeset, changeset)}
         end
 
-      # build_user_changeset_w_assocs not a User
+      # error occured in  build_user_changeset_w_assocs
       _ ->
         socket =
           socket
@@ -444,55 +444,55 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       nil
     end
   end
-  defp _fake_save_user(socket, :new, _user_params) do
-    current_employee = socket.assigns[:current_employee]
+  # defp _fake_save_user(socket, :new, _user_params) do
+  #   current_employee = socket.assigns[:current_employee]
 
-    user_params = %{
-      first_name: "Joe3",
-      last_name: "Schmoe",
-      email: "joe3@schmoe.com",
-      phone: "7771213151",
-      alert_format_set: "sms",
-      health_card_num: 9999,
-      date_of_birth: Date.from_iso8601!("1900-01-03")
-    }
+  #   user_params = %{
+  #     first_name: "Joe3",
+  #     last_name: "Schmoe",
+  #     email: "joe3@schmoe.com",
+  #     phone: "7771213151",
+  #     alert_format_set: "sms",
+  #     health_card_num: 9999,
+  #     date_of_birth: Date.from_iso8601!("1900-01-03")
+  #   }
 
-    organization =
-      TurnStile.Company.get_organization(current_employee.current_organization_login_id)
+  #   organization =
+  #     TurnStile.Company.get_organization(current_employee.current_organization_login_id)
 
-    changeset = Patients.create_user(user_params)
+  #   changeset = Patients.create_user(user_params)
 
-    case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
-      %Ecto.Changeset{} = user_changeset ->
-        # send msg data to parent & redirect
-        IO.inspect(user_changeset, label: "fake user changeset")
+  #   case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
+  #     %Ecto.Changeset{} = user_changeset ->
+  #       # send msg data to parent & redirect
+  #       IO.inspect(user_changeset, label: "fake user changeset")
 
-        if send_existing_users_update?(user_changeset, socket) do
-          {:noreply, socket}
-        else
-          case Patients.insert_user_changeset(user_changeset) do
-            {:ok, _user} ->
-              {:noreply,
-               socket
-               |> put_flash(:info, "User created successfully")
-               |> push_redirect(to: socket.assigns.return_to)}
+  #       if send_existing_users_update?(user_changeset, socket) do
+  #         {:noreply, socket}
+  #       else
+  #         case Patients.insert_user_changeset(user_changeset) do
+  #           {:ok, _user} ->
+  #             {:noreply,
+  #              socket
+  #              |> put_flash(:info, "User created successfully")
+  #              |> push_redirect(to: socket.assigns.return_to)}
 
-            {:error, %Ecto.Changeset{} = changeset} ->
-              socket =
-                socket
-                |> put_flash(:error, "User not created")
+  #           {:error, %Ecto.Changeset{} = changeset} ->
+  #             socket =
+  #               socket
+  #               |> put_flash(:error, "User not created")
 
-              {:noreply, assign(socket, :changeset, changeset)}
-          end
-        end
+  #             {:noreply, assign(socket, :changeset, changeset)}
+  #         end
+  #       end
 
-      # build_user_changeset_w_assocs not a User
-      _ ->
-        socket =
-          socket
-          |> put_flash(:error, "User not created: An error occured during creation")
+  #     # build_user_changeset_w_assocs not a User
+  #     _ ->
+  #       socket =
+  #         socket
+  #         |> put_flash(:error, "User not created: An error occured during creation")
 
-        {:noreply, socket}
-    end
-  end
+  #       {:noreply, socket}
+  #   end
+  # end
 end

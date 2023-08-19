@@ -25,10 +25,6 @@ defmodule TurnStileWeb.UserConfirmationController do
         conn
         |> put_flash(:error, error_msg)
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
-      {:error, %Ecto.Changeset{} = changeset} ->
-        conn
-        |> put_flash(:error, "An error occured")
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
       nil ->
         conn
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
@@ -49,10 +45,6 @@ defmodule TurnStileWeb.UserConfirmationController do
       {:error, error_msg} ->
         conn
         |> put_flash(:error, error_msg)
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
-      {:error, %Ecto.Changeset{} = changeset} ->
-        conn
-        |> put_flash(:error, "An error occured")
         |> redirect(to: Routes.user_session_path(conn, :new, user_id))
     end
   end

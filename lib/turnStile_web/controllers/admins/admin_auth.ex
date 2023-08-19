@@ -142,11 +142,5 @@ defmodule TurnStileWeb.AdminAuth do
     end
   end
 
-  defp _maybe_store_return_to(%{method: "GET"} = conn) do
-    put_session(conn, :admin_return_to, current_path(conn))
-  end
-
-  defp maybe_store_return_to(conn), do: conn
-
   defp signed_in_path(_conn), do: "/"
 end

@@ -74,7 +74,6 @@ defmodule TurnStile.Utils do
         string when is_binary(string) ->
           case String.to_integer(string) do
             integer when is_integer(integer) -> integer
-            _ -> 0
           end
 
         _ ->
@@ -125,7 +124,7 @@ defmodule TurnStile.Utils do
 
   def convert_to_readable_datetime(datetime, opts \\ [])
 
-  def convert_to_readable_datetime(%DateTime{} = d, opts) do
+  def convert_to_readable_datetime(%DateTime{} = d, _opts) do
     "#{d.year}-#{d.month}-#{d.day} #{d.hour}:#{d.minute}:#{d.second}"
   end
   # i.e convert_to_readable_datetime(user.updated_at, timezone: user.employee.timezone)
@@ -163,7 +162,7 @@ defmodule TurnStile.Utils do
   end
 
   def convert_atom_map_to_arrow(atom_map) do
-    arrow_map = atom_map |> Enum.into(%{}, fn {key, value} -> {Atom.to_string(key), value} end)
+    atom_map |> Enum.into(%{}, fn {key, value} -> {Atom.to_string(key), value} end)
     # reduce way
     # arrow_map =
     #   atom_map

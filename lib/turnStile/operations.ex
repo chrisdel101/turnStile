@@ -379,7 +379,7 @@ defmodule TurnStile.Operations do
       {:error, ...}
 
   """
-  def create_admin(attrs \\ %{}) do
+  def create_admin(_attrs \\ %{}) do
     raise "TODO"
   end
 
@@ -395,7 +395,7 @@ defmodule TurnStile.Operations do
       {:error, ...}
 
   """
-  def update_admin(%Admin{} = admin, attrs) do
+  def update_admin(%Admin{} = _admin, _attrs) do
     raise "TODO"
   end
 
@@ -411,7 +411,7 @@ defmodule TurnStile.Operations do
       {:error, ...}
 
   """
-  def delete_admin(%Admin{} = admin) do
+  def delete_admin(%Admin{} = _admin) do
     raise "TODO"
   end
 
@@ -424,7 +424,7 @@ defmodule TurnStile.Operations do
       %Todo{...}
 
   """
-  def change_admin(%Admin{} = admin, _attrs \\ %{}) do
+  def change_admin(%Admin{} = _admin, _attrs \\ %{}) do
     raise "TODO"
   end
 end

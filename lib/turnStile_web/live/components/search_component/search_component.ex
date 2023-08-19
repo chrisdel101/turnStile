@@ -2,8 +2,6 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
   use TurnStileWeb, :live_component
   alias TurnStile.Patients
 
-  @json TurnStile.Utils.read_json("alert_text.json")
-
   @impl true
   def update(props, socket) do
     # IO.inspect(props, label: "props")

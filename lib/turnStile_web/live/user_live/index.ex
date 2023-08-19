@@ -12,7 +12,7 @@
   # live_actions [:new, :index, :alert, :edit]
   @interval 100000
   @filter_active_users_mins 30
-  @wait_time_mins 60
+  # @dialyzer {:Wno_match, handle_event: 3}
 
   @impl true
   def mount(_params, session, socket) do
@@ -163,6 +163,7 @@
       |> push_patch(to: redirect_to)}
   end
   @impl true
+  # @dialyzer {:Wno_match, handle_event/3}
   def handle_event(
         "send_initial_alert",
         %{"alert-format" => alert_format, "user-id" => user_id,
@@ -217,13 +218,14 @@
 
         # IO.inspect(attrs, label: "attrs in handle_event")
         changeset = Alerts.create_new_alert(%Alert{}, attrs)
-        # IO.inspect(changeset, label: "changeset in handle_event")
+        IO.inspect(changeset, label: "changeset in handle_event")
         case AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
           {:ok, alert} ->
+
             if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
               case AlertUtils.send_email_alert(alert) do
-                {:ok, _email_msg} ->
-
+                {:ok, email_msg} ->
+                  IO.inspect(email_msg, label: "email_msgXXX")
                   case AlertUtils.handle_updating_user_alert_send_status(
                     socket.assigns.user,
                     AlertCategoryTypesMap.get_alert("INITIAL")) do

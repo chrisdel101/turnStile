@@ -2,7 +2,6 @@ defmodule TurnStileWeb.AdminController do
   use TurnStileWeb, :controller
 
   alias TurnStile.Operations
-  alias TurnStile.Operations.Admin
   # new & create removed; use registration
 
   # /admins - list all admins

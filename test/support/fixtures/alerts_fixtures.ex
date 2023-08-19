@@ -7,14 +7,7 @@ defmodule TurnStile.AlertsFixtures do
   @doc """
   Generate a alert.
   """
-  def alert_fixture(attrs \\ %{}) do
-    {:ok, alert} =
-      attrs
-      |> Enum.into(%{
+  def alert_fixture(_attrs \\ %{}) do
 
-      })
-      |> TurnStile.Alerts.create_alert()
-
-    alert
   end
 end

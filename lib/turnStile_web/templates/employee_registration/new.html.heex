@@ -59,5 +59,4 @@
   <%= if !@current_employee do%>
   <%= link "Log in", to: "/organizations/#{@organization_id}" %> |
   <% end %>
-  <%= link "Forgot your password?", to: Routes.employee_reset_password_path(@conn, :new, @organization_id) %>
 </p>
