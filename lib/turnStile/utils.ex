@@ -196,6 +196,12 @@ defmodule TurnStile.Utils do
       # Further processing
       confirmation_url
   end
+  def build_user_registration_url(encoded_user_token) do
+    base_url = TurnStileWeb.Endpoint.url()
+      confirmation_url = "#{base_url}//user/register/#{encoded_user_token}"
+      # Further processing
+      confirmation_url
+  end
 
   # check if user cookie exists; return user or nil; UNUSED
   def _check_if_user_cookie(cookies_map) do

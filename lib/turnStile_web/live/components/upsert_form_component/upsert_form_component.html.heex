@@ -1,62 +1,74 @@
 <div>
   <h2><%= @page_title %></h2>
-  <.form
-    let={f}
-    for={@changeset}
-    id="user-upsert-form"
-    phx-target={@myself}
-    phx-change="validate"
-    phx-submit="save">
-    <main class="container">
-      <p class="alert alert-info" role="alert"
-        phx-click="lv:clear-flash"
-        phx-value-key="info"><%= live_flash(@flash, :info) %></p>
-      <p class="alert alert-success" role="alert"
+  <div>
+    <h4>Quick Add</h4>
+    <p>Generate a code and give it to the user. User can use the code to register themselves on website.</p>
+    <button phx-click="generate" phx-target={@myself}>Get Code</button>
+    <%= if assigns[:code] do %>
+      <div class="verification-code">
+        <p><strong>Code: <%= @code %></strong></p>
+      </div>
+    <% end %>
+    
+    <h4>Manual Add</h4>
+    <.form
+      let={f}
+      for={@changeset}
+      id="user-upsert-form"
+      phx-target={@myself}
+      phx-change="validate"
+      phx-submit="save">
+      <main class="container">
+        <p class="alert alert-info" role="alert"
           phx-click="lv:clear-flash"
-          phx-value-key="success"><%= live_flash(@flash, :success) %></p>
-      <p class="alert alert-danger" role="alert"
-        phx-click="lv:clear-flash"
-        phx-value-key="error"><%= live_flash(@flash, :error) %></p>
-      <p class="alert alert-warning" role="alert"
-        phx-click="lv:clear-flash"
-        phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
-    </main>
-      
-    <%= label f, :first_name %>
-      <%= text_input f, :first_name, value: Ecto.Changeset.get_field(@changeset, :first_name), readonly: @disable_input, title: @disabled_hover_info %>
-      <%= error_tag f, :first_name %>
+          phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+        <p class="alert alert-success" role="alert"
+            phx-click="lv:clear-flash"
+            phx-value-key="success"><%= live_flash(@flash, :success) %></p>
+        <p class="alert alert-danger" role="alert"
+          phx-click="lv:clear-flash"
+          phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+        <p class="alert alert-warning" role="alert"
+          phx-click="lv:clear-flash"
+          phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
+      </main>
+        
+      <%= label f, :first_name %>
+        <%= text_input f, :first_name, value: Ecto.Changeset.get_field(@changeset, :first_name), readonly: @disable_input, title: @disabled_hover_info %>
+        <%= error_tag f, :first_name %>
 
-      <%= label f, :last_name %>
-      <%= text_input f, :last_name, value:  Ecto.Changeset.get_field(@changeset, :last_name), readonly: @disable_input, title: @disabled_hover_info %>
-      <%= error_tag f, :last_name %>
+        <%= label f, :last_name %>
+        <%= text_input f, :last_name, value:  Ecto.Changeset.get_field(@changeset, :last_name), readonly: @disable_input, title: @disabled_hover_info %>
+        <%= error_tag f, :last_name %>
 
-      <%= label f, :email %>
-      <%= text_input f, :email, value: Ecto.Changeset.get_field(@changeset, :email), readonly: @disable_input, title: @disabled_hover_info%>
-      <%= error_tag f, :email %>
+        <%= label f, :email %>
+        <%= text_input f, :email, value: Ecto.Changeset.get_field(@changeset, :email), readonly: @disable_input, title: @disabled_hover_info%>
+        <%= error_tag f, :email %>
 
-      <%= label f, :phone %>
-      <%= text_input f, :phone, value:  Ecto.Changeset.get_field(@changeset, :phone), readonly: @disable_input, title: @disabled_hover_info %>
-      <%= error_tag f, :phone %>
+        <%= label f, :phone %>
+        <%= text_input f, :phone, value:  Ecto.Changeset.get_field(@changeset, :phone), readonly: @disable_input, title: @disabled_hover_info %>
+        <%= error_tag f, :phone %>
 
-      <%= label f, "Date of Birth" %>
-      <%= date_input f, :date_of_birth, value:  Ecto.Changeset.get_field(@changeset, :date_of_birth), readonly: @disable_input, title: @disabled_hover_info%>
-      <%= error_tag f, :date_of_birth %>
+        <%= label f, "Date of Birth" %>
+        <%= date_input f, :date_of_birth, value:  Ecto.Changeset.get_field(@changeset, :date_of_birth), readonly: @disable_input, title: @disabled_hover_info%>
+        <%= error_tag f, :date_of_birth %>
 
-      <%= label(f, "Choose main alert type:") %>
-      <%= label(f, :alert_format_set, "SMS") %>
-      <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"), disabled: @disable_input, title: @disabled_hover_info)%>
-      
-      <%= label(f, :alert_format_set, "Email") %>
-      <%= radio_button(f, :alert_format_set, "email", phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("EMAIL"), disabled: @disable_input, title: @disabled_hover_info) %>
+        <%= label(f, "Choose main alert type:") %>
+        <%= label(f, :alert_format_set, "SMS") %>
+        <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"), disabled: @disable_input, title: @disabled_hover_info)%>
+        
+        <%= label(f, :alert_format_set, "Email") %>
+        <%= radio_button(f, :alert_format_set, "email", phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("EMAIL"), disabled: @disable_input, title: @disabled_hover_info) %>
 
-      <%= label f, :health_card_num %>
-      <%= number_input f, :health_card_num, value:  Ecto.Changeset.get_field(@changeset, :health_card_num), readonly: @disable_input, title: @disabled_hover_info %>
-      <%= error_tag f, :health_card_num %>
-   
-  
-    <div>
-      <%= submit "Save", phx_disable_with: "Saving..."
-      %>
-    </div>
-  </.form>
+        <%= label f, :health_card_num %>
+        <%= number_input f, :health_card_num, value:  Ecto.Changeset.get_field(@changeset, :health_card_num), readonly: @disable_input, title: @disabled_hover_info %>
+        <%= error_tag f, :health_card_num %>
+    
+    
+      <div>
+        <%= submit "Save", phx_disable_with: "Saving..."
+        %>
+      </div>
+    </.form>
+  </div>
 </div>

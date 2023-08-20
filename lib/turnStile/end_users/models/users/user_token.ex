@@ -13,7 +13,7 @@ defmodule TurnStile.Patients.UserToken do
    def get_email_token_validity_hours, do: @email_token_validity_hours
 
    def get_session_token_validity_seconds, do: @session_token_validity_seconds
-
+  #  - contexts  - ["confirm", "reset_password", "verification"]
 
 
   schema "user_tokens" do
@@ -47,6 +47,32 @@ defmodule TurnStile.Patients.UserToken do
   def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
     {token, %UserToken{token: token, context: "session", user_id: user.id}}
+  end
+  @doc """
+  generate_user_verification_code
+  - generate a code for user to access a form to register
+  - is used to generate a DB code and URL
+  """
+  # use with 3 to get a six digit alphanumeric code
+  def generate_user_verification_code(digits) do
+    :crypto.strong_rand_bytes(digits) |> Base.encode16()
+  end
+  # generated and saved before user is crearted yet, so cannot contain any user info
+  def build_verification_code_token(user_verification_code) do
+    build_hashed_verification_token(user_verification_code)
+  end
+  defp build_hashed_verification_token(user_verification_code) do
+    # hash the code given to user
+    hashed_token = :crypto.hash(@hash_algorithm, user_verification_code)
+    # encode the original code and make into URL, store the hash in the DB
+    {Base.url_encode64(user_verification_code, padding: false),
+    %UserToken{
+      token: hashed_token,
+      context: "verification",
+      sent_to: nil,
+      user_id: nil
+      }
+    }
   end
 
   @doc """

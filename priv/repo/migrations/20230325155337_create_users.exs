@@ -25,7 +25,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
     create unique_index(:users, [:health_card_num])
 
     create table(:user_tokens) do
-      add :user_id, references(:users, on_delete: :delete_all), null: false
+      add :user_id, references(:users, on_delete: :delete_all) # remmove null:false to allow for verication tokens
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string

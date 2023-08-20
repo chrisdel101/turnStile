@@ -1,0 +1,10 @@
+.search-user {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    min-height: 100px;
+  }
+  .verification-code{
+    color: green
+  }

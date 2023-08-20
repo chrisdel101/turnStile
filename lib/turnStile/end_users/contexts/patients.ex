@@ -44,10 +44,12 @@ defmodule TurnStile.Patients do
 
   # query for all active users in an organization
   def list_active_users_query(organization_id) do
+    if !is_nil(organization_id) do
     from(u in User,
       where: u.organization_id == ^organization_id,
       where: u.is_active? == true
     )
+    end
   end
 
   # use active query and refine it little
@@ -857,17 +859,36 @@ defmodule TurnStile.Patients do
   end
 
   @doc """
+  Generates a verification code token. used for user to register themsevlves when give a verification code
+  """
+  def build_and_insert_user_verification_code_token(user_verification_token) do
+    {encoded_token, user_token} = UserToken.build_verification_code_token(user_verification_token)
+    # IO.inspect(Base.encode16(token), label: "encoded user_token")
+    case Repo.insert(user_token) do
+      {:ok, token} ->
+        {TurnStile.Utils.build_user_registration_url(encoded_token), token, encoded_token}
+        {token.token, token}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+  @doc """
   Generates a session token.
   """
   def build_and_insert_user_session_token(user) do
     {_token, user_token} = UserToken.build_session_token(user)
     # IO.inspect(Base.encode16(token), label: "encoded user_token")
-    case Repo.insert(user_token) do
-      {:ok, token} ->
-        {token.token, token}
+    if !is_token_user_id_nil?(user_token) do
+      case Repo.insert(user_token) do
+        {:ok, token} ->
+          {token.token, token}
 
-      {:error, error} ->
-        {:error, error}
+        {:error, error} ->
+          {:error, error}
+      end
+    else
+      {:error, "Error: build_and_insert_user_session_token: null value in column 'user_id' violates not-null constraint"}
     end
   end
 
@@ -879,16 +900,21 @@ defmodule TurnStile.Patients do
   """
   def build_and_insert_email_token(%User{} = user) do
     {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+
     # IO.puts("CREATING TOKEN")
     # IO.inspect(encoded_token)
     # IO.inspect(user_token)
-    case Repo.insert(user_token) do
-      {:ok, token} ->
-        # IO.inspect(token, label: "INSERTED TOKEN")
-        {TurnStile.Utils.build_user_alert_url(user, encoded_token), token, encoded_token}
+    if !is_token_user_id_nil?(user_token) do
+      case Repo.insert(user_token) do
+        {:ok, token} ->
+          # IO.inspect(token, label: "INSERTED TOKEN")
+          {TurnStile.Utils.build_user_alert_url(user, encoded_token), token, encoded_token}
 
-      {:error, error} ->
-        {:error, error}
+        {:error, error} ->
+          {:error, error}
+      end
+    else
+      {:error, "Error: build_and_insert_email_token: null value in column 'user_id' violates not-null constraint"}
     end
   end
 
@@ -933,5 +959,9 @@ defmodule TurnStile.Patients do
 
   def reset_user_alert_status(user) do
     update_user(user, %{user_alert_status: "unalerted"})
+  end
+
+  defp is_token_user_id_nil?(token) do
+    is_nil(Map.get(token, :user_id))
   end
 end

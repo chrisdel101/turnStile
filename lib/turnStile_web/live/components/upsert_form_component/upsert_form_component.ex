@@ -45,6 +45,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     {:ok,
      socket
      |> assign(props)
+     |> maybe_assign_code(nil)
      #  disable form on :select - make readonly
      |> assign(:disable_input, disable_input)
      #  add 'title' attr for user info purposes
@@ -101,7 +102,15 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       end
     end
   end
+  def handle_event("generate", _params, socket) do
+    # generate a code
+    code = TurnStile.Utils.generate_user_verification_code(3)
+    # appear on page; give to to user
+    socket = maybe_assign_code(socket, %{"code" => code})
+    # generate valid URL link in DB from this code
 
+    {:noreply, socket}
+  end
   # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
@@ -496,4 +505,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   #       {:noreply, socket}
   #   end
   # end
+  def maybe_assign_code(socket, nil), do: socket
+  def maybe_assign_code(socket, %{"code" => code}) do
+    socket
+    |> assign(:code, code)
+  end
 end
