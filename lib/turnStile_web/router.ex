@@ -168,6 +168,13 @@ defmodule TurnStileWeb.Router do
 
   end
 
+  scope "/user/register/", TurnStileWeb do
+    pipe_through [:browser, :redirect_if_user_is_authenticated]
+  #  init call by user; redirects after token confirmation
+    get "/:token", UserRegistrationController, :new
+    post "/:token", UserRegistrationController, :handle_create
+  end
+
   scope "/user", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
   #  init call by user; redirects after token confirmation
@@ -177,9 +184,9 @@ defmodule TurnStileWeb.Router do
   scope "/user", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user
   ]
-
+    # render user session page
     get "/:user_id", UserSessionController, :new
-
+    # when logout button is clicked
     delete "/:user_id/log_out", UserSessionController, :delete
     # sends conf/cancel buttons request on page
     post "/:user_id", UserConfirmationController, :update

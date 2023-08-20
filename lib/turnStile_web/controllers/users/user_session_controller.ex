@@ -1,4 +1,9 @@
 defmodule TurnStileWeb.UserSessionController do
+   @moduledoc """
+    UserSessionController
+  - renders the template for users coming from email alerts
+  - handles delete call
+  """
   use TurnStileWeb, :controller
 
   alias TurnStileWeb.UserAuth

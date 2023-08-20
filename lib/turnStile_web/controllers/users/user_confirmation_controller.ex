@@ -1,4 +1,10 @@
+
 defmodule TurnStileWeb.UserConfirmationController do
+  @moduledoc """
+    UserConfirmationController
+  - after user is verified, they are sent to this controller to handle intreactions with application
+  - used to interact with their alerts
+  """
   use TurnStileWeb, :controller
   import Plug.Conn
 
@@ -10,6 +16,7 @@ defmodule TurnStileWeb.UserConfirmationController do
   @confirm_key "CONFIRMATION"
   @cancel_value "2"
   @cancel_key "CANCELLATION"
+
 
   def update(conn, %{"_action" => "confirm", "user_id" => user_id}) do
     a = AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @confirm_value, "response_key" => @confirm_key})
