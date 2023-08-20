@@ -127,10 +127,8 @@ defmodule TurnStileWeb.Router do
 
   scope "/organizations/:id", TurnStileWeb do
     pipe_through [:browser]
-
     delete "/employees/log_out", EmployeeSessionController, :delete
-    get "/employees/setup/:token", EmployeeConfirmationController, :setup #used for employee setup reply email link
-    get "/employees/confirm/:token", EmployeeConfirmationController, :confirm # used for init employee if confirm email link is reqiured (is same as above. Combine?)
+    get "/employees/setup/:token", EmployeeConfirmationController, :setup #after employee creared, email URL directs them here viareply email link
     post "/employees/confirm/:token", EmployeeConfirmationController, :update
     put "/employees/confirm/:token", EmployeeConfirmationController, :update
   end

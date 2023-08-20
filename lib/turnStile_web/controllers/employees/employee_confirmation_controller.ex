@@ -10,13 +10,6 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
   end
 
   # comes from email tokenized URL
-  def confirm(conn, %{"token" => token}) do
-    # get org id from tokenized URL
-    organization_id = Map.get(conn.params, "id")
-    render(conn, "confirm.html", organization_id: organization_id, token: token)
-  end
-
-  # comes from email tokenized URL
   def setup(conn, %{"token" => token}) do
     # get org id from tokenized URL
     changeset = Staff.change_employee_password(%Employee{}, %{}, true)
@@ -66,12 +59,11 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
     # check link has valid token
     case Staff.confirm_employee(token) do
       {:ok, employee} ->
-        IO.puts("YEAHYEAH")
 
         case Staff.update_employee_password(employee, "password", %{
-          "password" => password,
-          "password_confirmation" => password_confirmation
-        }) do
+               "password" => password,
+               "password_confirmation" => password_confirmation
+             }) do
           {:ok, employee} ->
             if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
               params = %{flash: "Account confirmed."}
