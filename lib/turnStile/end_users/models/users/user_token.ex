@@ -6,15 +6,16 @@ defmodule TurnStile.Patients.UserToken do
   @hash_algorithm :sha256
   @rand_size 32
 
-   # TOKEN LIFE SETTINGS for app
-   @email_token_validity_hours 6
-   @session_token_validity_seconds 60 * 60 * 6 # 6 hours
+  # TOKEN LIFE SETTINGS for app
+  @email_token_validity_hours 6
+  # 6 hours
+  @session_token_validity_seconds 60 * 60 * 6
 
-   def get_email_token_validity_hours, do: @email_token_validity_hours
+  def get_email_token_validity_hours, do: @email_token_validity_hours
 
-   def get_session_token_validity_seconds, do: @session_token_validity_seconds
+  def get_session_token_validity_seconds, do: @session_token_validity_seconds
   #  - contexts  - ["confirm", "reset_password", "verification"]
-
+  @verifcation_validity_mins 5
 
   schema "user_tokens" do
     field :token, :binary
@@ -48,6 +49,7 @@ defmodule TurnStile.Patients.UserToken do
     token = :crypto.strong_rand_bytes(@rand_size)
     {token, %UserToken{token: token, context: "session", user_id: user.id}}
   end
+
   @doc """
   generate_user_verification_code
   - generate a code for user to access a form to register
@@ -57,22 +59,23 @@ defmodule TurnStile.Patients.UserToken do
   def generate_user_verification_code(digits) do
     :crypto.strong_rand_bytes(digits) |> Base.encode16()
   end
+
   # generated and saved before user is crearted yet, so cannot contain any user info
   def build_verification_code_token(user_verification_code) do
     build_hashed_verification_token(user_verification_code)
   end
+
   defp build_hashed_verification_token(user_verification_code) do
     # hash the code given to user
     hashed_token = :crypto.hash(@hash_algorithm, user_verification_code)
     # encode the original code and make into URL, store the hash in the DB
     {Base.url_encode64(user_verification_code, padding: false),
-    %UserToken{
-      token: hashed_token,
-      context: "verification",
-      sent_to: nil,
-      user_id: nil
-      }
-    }
+     %UserToken{
+       token: hashed_token,
+       context: "verification",
+       sent_to: nil,
+       user_id: nil
+     }}
   end
 
   @doc """
@@ -90,9 +93,12 @@ defmodule TurnStile.Patients.UserToken do
 
     {:ok, query}
   end
+
   def verify_session_token_valid_query(%Ecto.Query{} = query) do
-    query = from user in query,
-    where: user.inserted_at > ago(@session_token_validity_seconds, "second")
+    query =
+      from user in query,
+        where: user.inserted_at > ago(@session_token_validity_seconds, "second")
+
     {:ok, query}
   end
 
@@ -128,6 +134,49 @@ defmodule TurnStile.Patients.UserToken do
      }}
   end
 
+  def verify_verification_token_exists_query(encoded_token, context) when is_binary(encoded_token) do
+    case Base.url_decode64(encoded_token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        query =
+          from token in token_and_context_query(hashed_token, context),
+            select: token
+
+        {:ok, query}
+
+      :error ->
+        # no users matching token
+        :invalid_input_token
+    end
+  end
+  # takes encoded token, decodes it, and finds if has hash;
+  # is_binary means string too or token input using when
+  def verify_verification_token_valid_query(encoded_token, context)
+      when is_binary(encoded_token) do
+    case Base.url_decode64(encoded_token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        mins = verification_mins_for_context(context)
+
+        query =
+          from token in token_and_context_query(hashed_token, context),
+            where: token.inserted_at > ago(^mins, "minute"),
+            select: token
+
+        {:ok, query}
+
+      :error ->
+        :invalid_input_token
+    end
+  end
+  # verify_email_token_valid_query
+    # same result as above but is piped a query- takes result of first query adds time limit via ago
+    def verify_verification_token_valid_query(%Ecto.Query{} = query, _context) do
+      query = from token in query,
+      where: token.inserted_at > ago(@verifcation_validity_mins, "minute")
+      {:ok, query}
+    end
+
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
@@ -147,45 +196,55 @@ defmodule TurnStile.Patients.UserToken do
     # - so if the > then it's actually past the ago time and is actually false, if < then it's before the ago time and is true
   """
   def verify_email_token_exists_query(encoded_token, context) do
-      case Base.url_decode64(encoded_token, padding: false) do
+    case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
         query =
           from token in token_and_context_query(hashed_token, context),
-          join: user in assoc(token, :user),
-          select: user
+            join: user in assoc(token, :user),
+            select: user
 
         {:ok, query}
+
       :error ->
         # no users matching token
         :invalid_input_token
     end
   end
-  # takes a token
+
+  # takes an  token encoeded token using when to check
   def verify_email_token_valid_query(token, context) when is_binary(token) do
-        case Base.url_decode64(token, padding: false) do
+    case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
         hours = email_hours_for_context(context)
+
         query =
           from token in token_and_context_query(hashed_token, context),
             join: user in assoc(token, :user),
-            where: token.inserted_at > ago(^hours  , "hour"),
+            where: token.inserted_at > ago(^hours, "hour"),
             select: user
 
         {:ok, query}
+
       :error ->
         :invalid_input_token
     end
   end
+
   # verify_email_token_valid_query
-    # same result as above but is piped a query- takes result of first query adds time limit via ago
+  # same result as above but is piped a query- takes result of first query adds time limit via ago
   def verify_email_token_valid_query(%Ecto.Query{} = query, _context) do
-      query = from user in query,
-      where: user.inserted_at > ago(@email_token_validity_hours, "hour")
-      {:ok, query}
-    end
+    query =
+      from user in query,
+        where: user.inserted_at > ago(@email_token_validity_hours, "hour")
+
+    {:ok, query}
+  end
+
   defp email_hours_for_context("confirm"), do: @email_token_validity_hours
+  defp verification_mins_for_context("verification"), do: @verifcation_validity_mins
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
@@ -223,17 +282,20 @@ defmodule TurnStile.Patients.UserToken do
     case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
         query =
           from token in token_and_context_query(hashed_token, context),
-          join: user in assoc(token, :user),
-          select: token
+            join: user in assoc(token, :user),
+            select: token
+
         {:ok, query}
 
       :error ->
-       # invalid input token - no query made
+        # invalid input token - no query made
         :invalid_input_token
     end
   end
+
   @doc """
   Returns the token struct for the given token value and context.
   """
@@ -253,7 +315,7 @@ defmodule TurnStile.Patients.UserToken do
 
   def user_and_contexts_query(user, [_ | _] = contexts) do
     if !is_nil(user) do
-    from t in UserToken, where: t.user_id == ^user.id and t.context in ^contexts
+      from t in UserToken, where: t.user_id == ^user.id and t.context in ^contexts
     end
   end
 

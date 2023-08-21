@@ -788,8 +788,6 @@ defmodule TurnStile.Patients do
   end
 
   # - checks for user token existence but ignores expiration
-  @spec confirm_user_session_token_exists(any, any) ::
-          nil | [%{optional(atom) => any}] | %{optional(atom) => any}
   def confirm_user_session_token_exists(token, _opts \\ []) do
     # check if user exists
     # token = Base.encode64(token)
@@ -848,6 +846,39 @@ defmodule TurnStile.Patients do
     end
   end
 
+  def confirm_user_verification_token(encoded_token, _opts \\ []) do
+    # check if user exists query
+    case UserToken.verify_verification_token_exists_query(encoded_token, "verification") do
+      {:ok, query} ->
+        # IO.inspect(Repo.one(query), label: "HERE")
+        # check if token exist
+        case Repo.one(query) do
+          nil ->
+            IO.puts("confirm_user_verification_token: No token found")
+            {nil, :not_found}
+            # so token does exist
+          %UserToken{} = user_token ->
+            # IO.inspect(user_token.token, label: "confirm_user_verification_token token")
+            case UserToken.verify_verification_token_valid_query(query, "verification") do
+              {:ok, %Ecto.Query{} = query2} ->
+                # so token does not expired
+                case Repo.one(query2) do
+                  %UserToken{} = user_token2 ->
+                    {:ok, user_token2}
+                  nil ->
+                    IO.puts("confirm_user_verification_token: token expired")
+                    {:expired, user_token}
+                end
+              :invalid_input_token ->
+                :invalid_input_token
+            end
+        end
+
+      :invalid_input_token ->
+        :invalid_input_token
+    end
+  end
+
   # skip - don't run multi in testing
   defp confirm_user_multi(user) do
     Ecto.Multi.new()
@@ -863,11 +894,13 @@ defmodule TurnStile.Patients do
   """
   def build_and_insert_user_verification_code_token(user_verification_token) do
     {encoded_token, user_token} = UserToken.build_verification_code_token(user_verification_token)
-    # IO.inspect(Base.encode16(token), label: "encoded user_token")
+    # IO.inspect(encoded_token, label: "encoded user_token")
     case Repo.insert(user_token) do
       {:ok, token} ->
-        {TurnStile.Utils.build_user_registration_url(encoded_token), token, encoded_token}
-        {token.token, token}
+        {
+          TurnStile.Utils.build_user_registration_url(encoded_token),
+          token, encoded_token
+        }
 
       {:error, error} ->
         {:error, error}
