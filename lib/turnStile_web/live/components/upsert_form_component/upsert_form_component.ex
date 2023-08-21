@@ -1,11 +1,11 @@
 defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # handles the logic for the modals
+  alias TurnStile.Patients.UserToken
   use TurnStileWeb, :live_component
   import Ecto.Changeset
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Patients
   alias TurnStile.Patients.User
-  @dialyzer {:no_match, save_user: 3}
 
   @user_search_fields [:email, :phone, :last_name, :health_card_num]
 
@@ -104,7 +104,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
   def handle_event("generate", _params, socket) do
     # generate a code
-    code = TurnStile.Utils.generate_user_verification_code(3)
+    code = UserToken.generate_user_verification_code(3)
     # appear on page; give to to user
     socket = maybe_assign_code(socket, %{"code" => code})
     # generate valid URL link in DB from this code
@@ -123,7 +123,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       case socket.assigns.action do
         action when action in [:edit] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
-            save_user(socket, socket.assigns.action, user_params)
+            TurnStileWeb.UserLive.Index.save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket
@@ -136,7 +136,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         # creating new employee
         :new ->
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            save_user(socket, socket.assigns.action, user_params)
+            TurnStileWeb.UserLive.Index.save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket
@@ -150,7 +150,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         :insert ->
           # IO.inspect(socket.assigns.action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            save_user(socket, socket.assigns.action, user_params)
+            TurnStileWeb.UserLive.Index.save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket
@@ -220,291 +220,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
             end
       end
     end
-
   end
 
-  # edit from show - main edit current function
-  defp save_user(socket, :edit, user_params) do
-    case Patients.update_user(socket.assigns.user, user_params) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "User updated successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        socket =
-          socket
-          |> put_flash(:error, "User not created")
-
-        {:noreply, assign(socket, :changeset, changeset)}
-    end
-  end
-
-  # back from :display - on :search when existing users found
-  defp save_user(socket, :insert, user_params) do
-    IO.inspect(socket.assigns, label: "save_user :insert")
-    current_employee = socket.assigns[:current_employee]
-    # user changeset is passed back from :display, should exist in assigns
-    changeset1 = Map.get(socket.assigns, :changeset) || Patients.change_user(user_params)
-    # construct user struct
-    user_struct = apply_changes(changeset1)
-    # IO.inspect(user_struct, label: "user_struct :insert")
-    # build new changeset: this time with a unique constraint on health_card_num; form validation
-    changeset2 = Patients.change_user(user_struct, %{})
-    # IO.inspect(changeset2, label: "save_user :insert2")
-    organization =
-      TurnStile.Company.get_organization(current_employee.current_organization_login_id)
-
-    case Patients.build_user_changeset_w_assocs(changeset2, current_employee, organization) do
-      %Ecto.Changeset{} = user_changeset ->
-        # IO.inspect(user_changeset, label: "save_user :insert3")
-        # send msg data to parent & redirect
-        case Patients.insert_user_changeset(user_changeset) do
-          {:ok, _user} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "User created successfully")
-             |> push_redirect(to: socket.assigns.return_to)}
-
-          # failures here are due to contraints
-          {:error, %Ecto.Changeset{} = changeset} ->
-            socket =
-              socket
-              |> put_flash(:error, "Unable to create this user. See error messages below.")
-
-            {:noreply, assign(socket, :changeset, changeset)}
-        end
-
-      # error occured in  build_user_changeset_w_assocs
-      _ ->
-        socket =
-          socket
-          |> put_flash(:error, "User not created: An error occured during creation")
-
-        {:noreply, socket}
-    end
-  end
-
-  # add new user from index page
-  # defp save_user(socket, :new, user_params) do
-  defp save_user(socket, :new, user_params) do
-    current_employee = socket.assigns[:current_employee]
-
-    # IO.inspect(current_employee, label: "user_params: save_user")
-
-    # check employee has organization role
-    case TurnStile.Staff.check_employee_matches_organization(current_employee) do
-      {:error, error} ->
-        IO.puts("ERROR: #{error}")
-        {:error, error}
-
-      {:ok, _} ->
-        # IO.puts("Employee matches_organization")
-        # check employee has permissions
-        case EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-          true ->
-            # IO.puts("Employee has correct permissions")
-            organization =
-              TurnStile.Company.get_organization(current_employee.current_organization_login_id)
-
-            changeset = Patients.create_user(user_params)
-
-            case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
-              %Ecto.Changeset{} = user_changeset ->
-                # send msg data to parent & redirect
-                if send_existing_users_update?(user_changeset, socket) do
-                  {:noreply, socket}
-                else
-                  case Patients.insert_user_changeset(user_changeset) do
-                    {:ok, _user} ->
-                      {:noreply,
-                       socket
-                       |> put_flash(:info, "User created successfully")
-                       |> push_redirect(to: socket.assigns.return_to)}
-
-                    {:error, %Ecto.Changeset{} = changeset} ->
-                      socket =
-                        socket
-                        |> put_flash(:error, "User not created")
-
-                      {:noreply, assign(socket, :changeset, changeset)}
-                  end
-                end
-
-              # build_user_changeset_w_assocs not a User
-              _ ->
-                socket =
-                  socket
-                  |> put_flash(:error, "User not created: An error occured during creation")
-
-                {:noreply, socket}
-            end
-
-          # has_user_add_permissions not true
-          false ->
-            IO.puts("Employee does not have correct permissions")
-
-            socket =
-              socket
-              |> put_flash(:error, "Insuffient employee permissions to perform user add")
-
-            {:noreply, socket}
-        end
-    end
-  end
-
-  @doc """
-  Lookup user by field
-  - search users by fields; does direct queries only; is not a search, only queries by exact match ILIKE
-  ; returns list of users or []
-  - loop from end of list user_search_fields checking each; if none, call func with next
-  - if index is 0 end loop
-  """
-  def lookup_user_direct(_user_struct, nil, _organization_id), do: {nil, nil, []}
-  def lookup_user_direct(_user_struct, 0, _organization_id), do: {nil, nil, []}
-
-  def lookup_user_direct(user_struct, list_index, organization_id) do
-    # search_fields are keys on user struct
-    search_field_name = Enum.at(@user_search_fields, list_index)
-    # IO.inspect(list_index, label: "list_index")
-    # IO.inspect(search_field, label: "search_field")
-    cond do
-      # check if user has the key
-      Map.get(user_struct, search_field_name) ->
-        users =
-          handle_get_users_by_field(
-            search_field_name,
-            Map.get(user_struct, search_field_name),
-            organization_id
-          )
-
-        # IO.inspect(users, label: "USERS")
-        if users === [] do
-          # call recursively
-          lookup_user_direct(user_struct, list_index - 1,organization_id )
-        else
-          # TODO: send field found by to display
-          IO.puts("User(s) exist. Found by #{search_field_name}")
-          search_field_value = Map.get(user_struct, search_field_name)
-          {search_field_name, search_field_value, users}
-        end
-
-      true ->
-        {:error, "Invalid search_field_name"}
-    end
-  end
-
-  defp handle_get_users_by_field(field, field_value, organization_id) do
-    case Patients.get_users_by_field(field, field_value, organization_id) do
-      [] = _users ->
-        # IO.puts("empty")
-        []
-
-      users ->
-        # users
-        # IO.inspect(users)
-        users
-    end
-  end
-
-  defp send_existing_users_update?(user_changeset, socket) do
-    case handle_existing_users_send_data(user_changeset, socket) do
-      {:ok} ->
-        true
-
-      _ ->
-        false
-    end
-  end
-
-  defp handle_existing_users_send_data(user_changeset, socket) do
-    current_employee = socket.assigns[:current_employee]
-    user_struct = apply_changes(user_changeset)
-
-    {search_field_name, search_field_value, existing_users} =
-      lookup_user_direct(
-        user_struct,
-        length(@user_search_fields) - 1,
-        (current_employee && current_employee.current_organization_login_id) || 0
-      )
-
-    # IO.inspect(existing_users , label: "existing_users")
-    if length(existing_users) > 0 do
-      send(
-        self(),
-        {:users_found,
-         %{
-           existing_users_found: existing_users,
-           user_changeset: user_changeset,
-           redirect_to:
-             Routes.user_index_path(
-               socket,
-               :display_existing_users,
-               current_employee.current_organization_login_id,
-               current_employee.id,
-               search_field_name: search_field_name,
-               search_field_value: search_field_value
-             )
-         }}
-      )
-
-      {:ok}
-    else
-      nil
-    end
-  end
-  # defp _fake_save_user(socket, :new, _user_params) do
-  #   current_employee = socket.assigns[:current_employee]
-
-  #   user_params = %{
-  #     first_name: "Joe3",
-  #     last_name: "Schmoe",
-  #     email: "joe3@schmoe.com",
-  #     phone: "7771213151",
-  #     alert_format_set: "sms",
-  #     health_card_num: 9999,
-  #     date_of_birth: Date.from_iso8601!("1900-01-03")
-  #   }
-
-  #   organization =
-  #     TurnStile.Company.get_organization(current_employee.current_organization_login_id)
-
-  #   changeset = Patients.create_user(user_params)
-
-  #   case Patients.build_user_changeset_w_assocs(changeset, current_employee, organization) do
-  #     %Ecto.Changeset{} = user_changeset ->
-  #       # send msg data to parent & redirect
-  #       IO.inspect(user_changeset, label: "fake user changeset")
-
-  #       if send_existing_users_update?(user_changeset, socket) do
-  #         {:noreply, socket}
-  #       else
-  #         case Patients.insert_user_changeset(user_changeset) do
-  #           {:ok, _user} ->
-  #             {:noreply,
-  #              socket
-  #              |> put_flash(:info, "User created successfully")
-  #              |> push_redirect(to: socket.assigns.return_to)}
-
-  #           {:error, %Ecto.Changeset{} = changeset} ->
-  #             socket =
-  #               socket
-  #               |> put_flash(:error, "User not created")
-
-  #             {:noreply, assign(socket, :changeset, changeset)}
-  #         end
-  #       end
-
-  #     # build_user_changeset_w_assocs not a User
-  #     _ ->
-  #       socket =
-  #         socket
-  #         |> put_flash(:error, "User not created: An error occured during creation")
-
-  #       {:noreply, socket}
-  #   end
-  # end
   def maybe_assign_code(socket, nil), do: socket
   def maybe_assign_code(socket, %{"code" => code}) do
     socket
