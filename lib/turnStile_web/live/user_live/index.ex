@@ -41,6 +41,9 @@
     {:ok,
      assign(
       socket,
+      toggle_popup: true,
+      popup_content: nil,
+      popup_title: nil,
       code: maybe_assign_code(socket, nil),
       search_field_name: nil,
       search_field_value: nil,
@@ -172,9 +175,13 @@
       socket
       |> push_patch(to: redirect_to)}
     end
-  def handle_info({:user_registration_form, %{user_params: user_params}}, socket) do
+  def handle_info({:user_registation_form, %{user_params: _user_params}}, socket) do
+
     # build new user
-    changeset = Patients.create_user(user_params)
+    # changeset = Patients.create_user(user_params)
+    {:noreply, socket
+    |> assign(:toggle_popup, true)
+    |> assign(:popup_content, "User Registration Form Received")}
 
   end
     @impl true
@@ -423,7 +430,7 @@
   end
   # :new - adding a new user from scratch
   # user is blank map - assign user in upsert update
-  defp apply_action(socket, :new, params) do
+  defp apply_action(socket, :new, _params) do
     # IO.inspect(params, label: "apply_action :new")
     socket
     |> assign(:page_title, "Add New User")
@@ -447,7 +454,7 @@
     |> assign(:user_changeset, user_changeset)
   end
   # :insert - if opened out of sequence with no params; like if route called directly
-  defp apply_action(socket, :insert, params) do
+  defp apply_action(socket, :insert, _params) do
     # IO.inspect(params, label: "apply_action :insert out of sequence")
     socket
     |> assign(:page_title, "Insert Saved User")
@@ -463,14 +470,14 @@
     |> assign(:user, nil)
   end
   # :search - rendering search page
-  defp apply_action(socket, :search, params) do
+  defp apply_action(socket, :search, _params) do
     # IO.inspect(params, label: "apply_action :search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
   end
   # :display_existing_users - render display page
-  defp apply_action(socket, :display_existing_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
+  defp apply_action(socket, :display_existing_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value}) do
     # IO.inspect(params, label: "apply_action :display_existing_users")
     # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket
@@ -685,11 +692,19 @@
       nil
     end
   end
+  @doc """
+  handle_generate_verification_code
+  - generates a 6 digit alphanumeric code to give to user
+  - inserts into DB so user can be verified
+  """
   def handle_generate_verification_code(socket) do
      # generate a code
      code = UserToken.generate_user_verification_code(3)
+    #  hash and insert into DB
      case Patients.build_and_insert_user_verification_code_token(code) do
-      {_user_url, _token, _encoded_token} ->
+      {user_url, _token, encoded_token} ->
+        IO.inspect(user_url)
+        IO.inspect(encoded_token)
         # optional pass user url here, maybe generate QR codes
         {:ok,
         socket
