@@ -165,7 +165,7 @@
                     # IO.inspect(user, label: "user in handle_event")
                     # make a call to Index liveview to update
                     # - WORKS BUT COULD BE FLUKE
-                    TurnStileWeb.UserLive.Index.handle_info(:update, socket)
+                    Index.handle_info(:update, socket)
                     {
                       :noreply,
                       socket

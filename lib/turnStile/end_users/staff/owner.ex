@@ -10,7 +10,7 @@ defmodule TurnStile.Staff.Owner do
     # an employees that is an owner
     belongs_to :employees, TurnStile.Staff.Employee
     # all owners within a company - can be owners of multiple companies
-    many_to_many :organiztions, TurnStile.Staff.Organization, join_through: "organization_owners"
+    many_to_many :organizations, TurnStile.Company.Organization, join_through: "organization_owners"
 
 
 
