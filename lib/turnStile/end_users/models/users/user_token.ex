@@ -8,14 +8,19 @@ defmodule TurnStile.Patients.UserToken do
 
   # TOKEN LIFE SETTINGS for app
   @email_token_validity_hours 6
-  # 6 hours
+  # 6 hours for user session
   @session_token_validity_seconds 60 * 60 * 6
+  # 5 mins for user signup token
+  @verifcation_validity_mins 5
+  # 30 mins before token is deleted
+  @verifcation_expirtation_delete_mins 30
 
   def get_email_token_validity_hours, do: @email_token_validity_hours
 
-  def get_session_token_validity_seconds, do: @session_token_validity_seconds
   #  - contexts  - ["confirm", "reset_password", "verification"]
-  @verifcation_validity_mins 5
+  def get_session_token_validity_seconds, do: @session_token_validity_seconds
+  def verifcation_validity_mins, do: @session_token_validity_seconds
+  def verifcation_expirtation_delete_mins, do: @verifcation_expirtation_delete_mins
 
   schema "user_tokens" do
     field :token, :binary
@@ -133,11 +138,17 @@ defmodule TurnStile.Patients.UserToken do
        user_id: user.id
      }}
   end
-
-  def verify_verification_token_exists_query(encoded_token, context) when is_binary(encoded_token) do
+  @doc """
+  verify_verification_token_exists_query
+  - used to check that the token exists in the DB
+  - returns the
+  - error if input is invalid; decode 64 will not work with single digit
+  """
+  def verify_verification_token_exists_query(encoded_token, context \\ "verification") when is_binary(encoded_token) do
     case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
         query =
           from token in token_and_context_query(hashed_token, context),
             select: token
@@ -149,10 +160,17 @@ defmodule TurnStile.Patients.UserToken do
         :invalid_input_token
     end
   end
-  # takes encoded token, decodes it, and finds if has hash;
-  # is_binary means string too or token input using when
-  def verify_verification_token_valid_query(encoded_token, context)
-      when is_binary(encoded_token) do
+  @doc """
+  verify_verification_token_valid_query/2
+  Two versions:
+  -> V1 with encoded_token param 1
+    - takes encoded token, decodes it, and finds if has matching hash in DB
+    - when is_binary means "is string" in this case, not actual binary
+  -> V2 with query param 1
+  - same result as above but is piped a query- takes result of first query checking for existence
+  - adds time limit via ago
+  """
+  def _verify_verification_token_valid_query(encoded_token, context) when is_binary(encoded_token) do
     case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
@@ -169,31 +187,58 @@ defmodule TurnStile.Patients.UserToken do
         :invalid_input_token
     end
   end
-  # verify_email_token_valid_query
-    # same result as above but is piped a query- takes result of first query adds time limit via ago
-    def verify_verification_token_valid_query(%Ecto.Query{} = query, _context) do
-      query = from token in query,
-      where: token.inserted_at > ago(@verifcation_validity_mins, "minute")
-      {:ok, query}
+  def verify_verification_token_valid_query(%Ecto.Query{} = query, _context) do
+    query =
+      from token in query,
+        where: token.inserted_at > ago(@verifcation_validity_mins, "minute")
+
+    {:ok, query}
+  end
+
+  @doc """
+  verify_verification_token_expiry_peroid_query
+  - takes a query that check for token and context exists
+  - returns tokens past the expiry time
+  """
+  def _verify_verification_token_expiry_peroid_query(%Ecto.Query{} = query, _context) do
+    query =
+      from token in query,
+        where: token.inserted_at < ago(@verifcation_expirtation_delete_mins, "minute")
+
+    {:ok, query}
+  end
+  @doc """
+  list_all_expired_verification_tokens_query
+  - query for all V tokens past set time
+  """
+  def list_all_expired_verification_tokens_query do
+    query =
+      from token in UserToken,
+        where: token.context == "verification" and token.inserted_at < ago(@verifcation_expirtation_delete_mins, "minute")
+    {:ok, query}
+  end
+
+  @doc """
+  encoded_verification_token_and_context_query
+  - given the encoded token - returns the full veriifcation token struct;
+  - used to fetch full token to compare, or delete
+  """
+  def encoded_verification_token_and_context_query(encoded_token, context) do
+    case Base.url_decode64(encoded_token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
+        query =
+          from token in token_and_context_query(hashed_token, context),
+            select: token
+
+        {:ok, query}
+
+      :error ->
+        # invalid input token - no query made
+        :invalid_input_token
     end
-
-    # given the encoded token - returns the full veriifcation token struct
-    def encoded_verification_token_and_context_query(encoded_token, context) do
-      case Base.url_decode64(encoded_token, padding: false) do
-        {:ok, decoded_token} ->
-          hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-
-          query =
-            from token in token_and_context_query(hashed_token, context),
-              select: token
-          {:ok, query}
-
-        :error ->
-          # invalid input token - no query made
-          :invalid_input_token
-      end
-    end
-
+  end
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.

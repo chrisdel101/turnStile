@@ -847,7 +847,11 @@ defmodule TurnStile.Patients do
         :invalid_input_token
     end
   end
-
+  @doc """
+  confirm_user_verification_token
+  - First: takes encoded token and checks DB for match
+  - Second: checks for non-expired token
+  """
   def confirm_user_verification_token(encoded_token, _opts \\ []) do
     # IO.inspect(encoded_token, label: 'encoded_token')
     # check if user exists query
@@ -859,11 +863,10 @@ defmodule TurnStile.Patients do
           nil ->
             IO.puts("confirm_user_verification_token: No token found")
             {nil, :not_found}
-            # so token does exist
+            # means token does exist
           %UserToken{} = user_token ->
             # IO.inspect(user_token.token, label: "confirm_user_verification_token token")
-            case UserToken.verify_verification_token_valid_query(query, "verification") do
-              {:ok, %Ecto.Query{} = query2} ->
+            with {:ok, %Ecto.Query{} = query2} <- UserToken.verify_verification_token_valid_query(query, "verification") do
                 # so token does not expired
                 case Repo.one(query2) do
                   %UserToken{} = user_token2 ->
@@ -872,8 +875,6 @@ defmodule TurnStile.Patients do
                     IO.puts("confirm_user_verification_token: token expired")
                     {:expired, user_token}
                 end
-              :invalid_input_token ->
-                :invalid_input_token
             end
         end
 
@@ -993,9 +994,10 @@ defmodule TurnStile.Patients do
     Repo.delete(token)
   end
 
-  # def delete_verification_token(token) do
-  #   Repo.delete(token)
-  # end
+  def delete_expired_verification_tokens do
+    {:ok, query} = UserToken.list_all_expired_verification_tokens_query
+    Repo.delete_all(query)
+  end
 
   @doc """
   Deletes the signed token with the given context.

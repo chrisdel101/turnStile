@@ -14,8 +14,12 @@ defmodule TurnStileWeb.UserRegistrationController do
   # {ur, token, enc_token} = TurnStile.Patients.build_and_insert_user_verification_code_token(y)
   # {_,query}  = TurnStile.Patients.UserToken.encoded_verification_token_and_context_query(enc_token, "verification")
   # TurnStile.Repo.one(query)
+
   def new(conn, %{"token" => token}) do
     # IO.inspect(Patients.confirm_user_verification_token(token), label: "HERE")
+    # delete any aged-out tokens from previous sessions
+    Patients.delete_expired_verification_tokens
+    # check user verification token exists
     case Patients.confirm_user_verification_token(token) do
       {:ok, _user_token} ->
          changeset = TurnStile.Patients.create_user()
@@ -29,22 +33,19 @@ defmodule TurnStileWeb.UserRegistrationController do
         |> put_flash(:error, "Sorry, your URL link is invalid. Ask staff for another one.")
         |> redirect(to: "/")
 
+      # valid request but expired - will be deleted on this call
       {:expired, user_token} ->
         IO.inspect(user_token, label: "user_token")
-        # valid request but expired - will be deleted on this call
-        # delete expirted token
+        # delete expired token
         Patients.delete_verification_token(user_token)
         IO.puts("user_auth:  token expired and deleted")
-        # update user alert status
-        # push_user_and_interface_updates(conn, user_id)
-
         conn
         |> put_flash(
           :error,
           "Sorry, that verification code is expired. Ask staff for another one."
         )
         |> redirect(to: "/")
-       # token cannot be a single digit, else error
+       # syntax error in the input; token cannot be a single digit, else error; whitepace, etc.
       :invalid_input_token ->
         conn
         |> put_flash(

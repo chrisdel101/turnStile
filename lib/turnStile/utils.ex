@@ -121,7 +121,7 @@ defmodule TurnStile.Utils do
         {:error, error}
     end
   end
-
+  # this is like a prototype declaration
   def convert_to_readable_datetime(datetime, opts \\ [])
 
   def convert_to_readable_datetime(%DateTime{} = d, _opts) do
