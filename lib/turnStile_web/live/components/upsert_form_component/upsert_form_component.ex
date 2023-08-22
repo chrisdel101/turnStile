@@ -1,11 +1,11 @@
 defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # handles the logic for the modals
-  alias TurnStile.Patients.UserToken
   use TurnStileWeb, :live_component
   import Ecto.Changeset
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Patients
   alias TurnStile.Patients.User
+  alias TurnStileWeb.UserLive.Index
 
   @user_search_fields [:email, :phone, :last_name, :health_card_num]
 
@@ -103,13 +103,17 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     end
   end
   def handle_event("generate", _params, socket) do
-    # generate a code
-    code = UserToken.generate_user_verification_code(3)
-    # appear on page; give to to user
-    socket = maybe_assign_code(socket, %{"code" => code})
-    # generate valid URL link in DB from this code
+    # append a code to the socket
+    case Index.handle_generate_verification_code(socket) do
+      {:ok, socket} ->
+        {:noreply, socket}
 
-    {:noreply, socket}
+      {:error, error} ->
+        IO.inspect(error, label: "An error occured in upsert handle_event:generate")
+        {:noreply,
+        socket
+        |> put_flash(:error, "Sorry, a system error has occured in saving verification code.")}
+    end
   end
   # handle save for new and edit
   def handle_event("save", %{"user" => user_params}, socket) do
@@ -123,7 +127,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       case socket.assigns.action do
         action when action in [:edit] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
-            TurnStileWeb.UserLive.Index.save_user(socket, socket.assigns.action, user_params)
+            Index.save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket
@@ -136,7 +140,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         # creating new employee
         :new ->
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            TurnStileWeb.UserLive.Index.save_user(socket, socket.assigns.action, user_params)
+            Index.save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket
@@ -150,7 +154,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         :insert ->
           # IO.inspect(socket.assigns.action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            TurnStileWeb.UserLive.Index.save_user(socket, socket.assigns.action, user_params)
+            Index.save_user(socket, socket.assigns.action, user_params)
           else
             socket =
               socket

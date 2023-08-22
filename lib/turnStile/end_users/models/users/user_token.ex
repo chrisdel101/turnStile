@@ -177,6 +177,24 @@ defmodule TurnStile.Patients.UserToken do
       {:ok, query}
     end
 
+    # given the encoded token - returns the full veriifcation token struct
+    def encoded_verification_token_and_context_query(encoded_token, context) do
+      case Base.url_decode64(encoded_token, padding: false) do
+        {:ok, decoded_token} ->
+          hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
+          query =
+            from token in token_and_context_query(hashed_token, context),
+              select: token
+          {:ok, query}
+
+        :error ->
+          # invalid input token - no query made
+          :invalid_input_token
+      end
+    end
+
+
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
@@ -278,7 +296,7 @@ defmodule TurnStile.Patients.UserToken do
   end
 
   # returns full token from encoded email hash
-  def encoded_token_and_context_query(encoded_token, context) do
+  def encoded_email_token_and_context_query(encoded_token, context) do
     case Base.url_decode64(encoded_token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)

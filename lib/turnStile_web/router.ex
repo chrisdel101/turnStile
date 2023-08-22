@@ -168,20 +168,20 @@ defmodule TurnStileWeb.Router do
 
   end
 
-  scope "/user/register/", TurnStileWeb do
+  scope "/users/register/", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
   #  init call by user; redirects after token confirmation
     get "/:token", UserRegistrationController, :new
     post "/:token", UserRegistrationController, :handle_create
   end
 
-  scope "/user", TurnStileWeb do
+  scope "/users", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
   #  init call by user; redirects after token confirmation
     get "/:user_id/:token", UserAuth, :handle_validate_email_token
   end
 
-  scope "/user", TurnStileWeb do
+  scope "/users", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user
   ]
     # render user session page

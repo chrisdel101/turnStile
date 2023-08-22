@@ -1,3 +1,4 @@
+<h2>Please fill out the the form and hit submit</h2>
 <.form let={f} for={@changeset} action={Routes.user_registration_path(@conn, :handle_create, @token)}id="user-self_registration-form">
     <%= if @changeset.action do %>
         <div class="alert alert-danger">
@@ -49,6 +50,6 @@
     <%= error_tag(f, :health_card_num) %>
 
     <div>
-        <%= submit("Save", phx_disable_with: "Saving...") %>
+        <%= submit("Submit", phx_disable_with: "Saving...") %>
     </div>
 </.form>

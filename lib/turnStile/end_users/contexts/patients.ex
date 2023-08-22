@@ -679,6 +679,8 @@ defmodule TurnStile.Patients do
 
   #  NO preloading - may cause error later
   def update_alert_status(user, new_alert_status) do
+    # IO.inspect(user)
+    # IO.inspect(new_alert_status)
     # {:error, "Error: update_alert_status: invalid alert status type"}
     if Enum.member?(
          UserAlertStatusTypesMap.get_user_statuses_enum(),
@@ -723,7 +725,7 @@ defmodule TurnStile.Patients do
             case UserNotifier.deliver_custom_alert(
                    user,
                    alert,
-                   build_url_func.(alert, user, encoded_token)
+                   build_url_func.(user, encoded_token)
                  ) do
               {:ok, email} ->
                 {:ok, email}
@@ -847,6 +849,7 @@ defmodule TurnStile.Patients do
   end
 
   def confirm_user_verification_token(encoded_token, _opts \\ []) do
+    # IO.inspect(encoded_token, label: 'encoded_token')
     # check if user exists query
     case UserToken.verify_verification_token_exists_query(encoded_token, "verification") do
       {:ok, query} ->
@@ -976,11 +979,23 @@ defmodule TurnStile.Patients do
   end
 
   @doc """
+  delete_email_token
   Deletes the passed in token; when expired token is accessed it is deleted
   """
   def delete_email_token(token) do
     Repo.delete(token)
   end
+  @doc """
+  delete_verification_token
+  Deletes the passed in token; same as above diff naming
+  """
+  def delete_verification_token(token) do
+    Repo.delete(token)
+  end
+
+  # def delete_verification_token(token) do
+  #   Repo.delete(token)
+  # end
 
   @doc """
   Deletes the signed token with the given context.

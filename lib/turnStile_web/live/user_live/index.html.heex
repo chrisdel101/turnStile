@@ -10,6 +10,7 @@
         user={assigns[:user]}
         page_title={@page_title}
         user_changeset={assigns[:user_changeset]}
+        code={assigns[:code]}
         return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
       />
     </.modal>

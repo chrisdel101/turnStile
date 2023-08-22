@@ -152,6 +152,7 @@ end
 defmodule PubSubTopicsMap do
   @topics %{
     "STATUS_UPDATE" => "status_update",
+    "USER_REGISTRATION" => "user_registration",
   }
   def get_topics do
     @topics

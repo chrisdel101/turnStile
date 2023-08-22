@@ -267,7 +267,7 @@ defmodule TurnStileWeb.UserAuth do
         {nil, :expired} ->
           # valid request but expired - will be deleted on this call
           # fetch full user token struct
-          {:ok, query} = UserToken.encoded_token_and_context_query(encoded_token, "confirm")
+          {:ok, query} = UserToken.encoded_email_token_and_context_query(encoded_token, "confirm")
           user_token = TurnStile.Repo.one(query)
           # delete expirted token
           Patients.delete_email_token(user_token)

@@ -3,6 +3,7 @@
   import Ecto.Changeset
 
   alias TurnStile.Patients
+  alias TurnStile.Patients.UserToken
   alias TurnStile.Staff
   alias TurnStileWeb.EmployeeAuth
   alias TurnStileWeb.AlertUtils
@@ -40,6 +41,7 @@
     {:ok,
      assign(
       socket,
+      code: maybe_assign_code(socket, nil),
       search_field_name: nil,
       search_field_value: nil,
       display_message: nil,
@@ -81,11 +83,11 @@
     def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
       if Map.get(socket.assigns, :user_changeset) do
         # back action from from display "Add Original User"
-        IO.inspect(socket.assigns, label: "handle_params main index: w changeset")
-        IO.inspect(socket.assigns.live_action, label: "handle_params main index: w changeset")
+        # IO.inspect(socket.assigns, label: "handle_params main index: w changeset")
+        # IO.inspect(socket.assigns.live_action, label: "handle_params main index: w changeset")
         {:noreply, apply_action(socket, socket.assigns.live_action, %{"user_changeset" => socket.assigns[:user_changeset]})}
       else
-        IO.inspect(params, label: "handle_params main index: no changeset")
+        # IO.inspect(params, label: "handle_params main index: no changeset")
         # all other calls
         {:noreply, apply_action(socket, socket.assigns.live_action, params)}
       end
@@ -109,7 +111,7 @@
       |> assign(:user_changeset, user_changeset)
 
     # IO.inspect(socket.assign., label: "PUBSUB EX: message in handle_info")
-    IO.inspect(socket.assigns.user_changeset, label: "SEND: message in handle_info")
+    # IO.inspect(socket.assigns.user_changeset, label: "SEND: message in handle_info")
 
     {:noreply, socket}
   end
@@ -230,14 +232,14 @@
 
         # IO.inspect(attrs, label: "attrs in handle_event")
         changeset = Alerts.create_new_alert(%Alert{}, attrs)
-        IO.inspect(changeset, label: "changeset in handle_event")
+        # IO.inspect(changeset, label: "changeset in handle_event")
         case AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
           {:ok, alert} ->
 
             if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
               case AlertUtils.send_email_alert(alert) do
-                {:ok, email_msg} ->
-                  IO.inspect(email_msg, label: "email_msgXXX")
+                {:ok, _email_msg} ->
+                  # IO.inspect(email_msg, label: "email_msgXXX")
                   case AlertUtils.handle_updating_user_alert_send_status(
                     socket.assigns.user,
                     AlertCategoryTypesMap.get_alert("INITIAL")) do
@@ -283,8 +285,8 @@
               end
             else
               case AlertUtils.send_SMS_alert(alert) do
-                {:ok, twilio_msg} ->
-                  IO.inspect(twilio_msg, label: "twilio_msg")
+                {:ok, _twilio_msg} ->
+                  # IO.inspect(twilio_msg, label: "twilio_msg")
 
                   case AlertUtils.handle_updating_user_alert_send_status(
                          socket.assigns.user,
@@ -413,7 +415,7 @@
   # -called from when live_patch clicked on index
   defp apply_action(socket, :alert, params) do
     %{"id" => user_id} = params
-    IO.inspect(Patients.get_user(user_id), label: "apply_action :alerts")
+    # IO.inspect(Patients.get_user(user_id), label: "apply_action :alerts")
     socket
     # -applies to index page behind the alert panel
     # - sent as prop through html to panel_component
@@ -422,7 +424,7 @@
   # :new - adding a new user from scratch
   # user is blank map - assign user in upsert update
   defp apply_action(socket, :new, params) do
-    IO.inspect(params, label: "apply_action :new")
+    # IO.inspect(params, label: "apply_action :new")
     socket
     |> assign(:page_title, "Add New User")
     |> assign(:user, %{})
@@ -431,7 +433,7 @@
   # :insert - adding a new user that already exists in DB
   # user is formed struct
   defp apply_action(socket, :insert, %{"user_id" => user_id} = _params) do
-    IO.inspect(user_id, label: "apply_action :insert1")
+    # IO.inspect(user_id, label: "apply_action :insert1")
     socket
     |> assign(:page_title, "Insert Saved User")
     |> assign(:user, Patients.get_user(user_id))
@@ -439,14 +441,14 @@
   # :insert - going back from display form
   # called when clicked on an existing user and redirecting
   defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
-    IO.inspect(user_changeset, label: "apply_action :insert changeset2")
+    # IO.inspect(user_changeset, label: "apply_action :insert changeset2")
     socket
     |> assign(:page_title, "Insert Existing User")
     |> assign(:user_changeset, user_changeset)
   end
   # :insert - if opened out of sequence with no params; like if route called directly
   defp apply_action(socket, :insert, params) do
-    IO.inspect(params, label: "apply_action :insert out of sequence")
+    # IO.inspect(params, label: "apply_action :insert out of sequence")
     socket
     |> assign(:page_title, "Insert Saved User")
   end
@@ -462,14 +464,14 @@
   end
   # :search - rendering search page
   defp apply_action(socket, :search, params) do
-    IO.inspect(params, label: "apply_action :search")
+    # IO.inspect(params, label: "apply_action :search")
     socket
     |> assign(:page_title, "Search for User")
     |> assign(:user, nil)
   end
   # :display_existing_users - render display page
   defp apply_action(socket, :display_existing_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value} = params) do
-    IO.inspect(params, label: "apply_action :display_existing_users")
+    # IO.inspect(params, label: "apply_action :display_existing_users")
     # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
     socket
     |> assign(:search_field_name, search_field_name)
@@ -526,7 +528,7 @@
   # back from :display - on :search when existing users found
   # called in upsert
   def save_user(socket, :insert, user_params) do
-    IO.inspect(socket.assigns, label: "save_user :insert")
+    # IO.inspect(socket.assigns, label: "save_user :insert")
     current_employee = socket.assigns[:current_employee]
     # user changeset is passed back from :display, should exist in assigns
     changeset1 = Map.get(socket.assigns, :changeset) || Patients.change_user(user_params)
@@ -683,6 +685,19 @@
       nil
     end
   end
+  def handle_generate_verification_code(socket) do
+     # generate a code
+     code = UserToken.generate_user_verification_code(3)
+     case Patients.build_and_insert_user_verification_code_token(code) do
+      {_user_url, _token, _encoded_token} ->
+        # optional pass user url here, maybe generate QR codes
+        {:ok,
+        socket
+        |> maybe_assign_code(%{"code" => code})}
+      {:error, error} ->
+        {:error, error}
+     end
+  end
 
   def lookup_user_direct(_user_struct, nil, _organization_id), do: {nil, nil, []}
   def lookup_user_direct(_user_struct, 0, _organization_id), do: {nil, nil, []}
@@ -729,4 +744,10 @@
         users
     end
   end
+  defp maybe_assign_code(_socket, nil), do: nil
+  defp maybe_assign_code(socket, %{"code" => code}) do
+    socket
+    |> assign(:code, code)
+  end
+
 end

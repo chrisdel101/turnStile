@@ -6,7 +6,7 @@
     <button phx-click="generate" phx-target={@myself}>Get Code</button>
     <%= if assigns[:code] do %>
       <div class="verification-code">
-        <p><strong>Code: <%= @code %></strong></p>
+        <p><strong>Code: <%= assigns[:code] %></strong></p>
       </div>
     <% end %>
     
