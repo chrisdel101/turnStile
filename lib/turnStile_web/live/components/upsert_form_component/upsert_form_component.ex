@@ -13,7 +13,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   # empty user struct getting passed as props; see index apply_action(:new)
   # - search insert passes user struct
   # - dispay insert passes a user changeset
-  def update(%{user: user, action: action, user_changeset: user_changeset} = props, socket) do
+  def update(%{user: user, live_action: live_action, user_changeset: user_changeset} = props, socket) do
     # IO.inspect(props, label: "props")
     # IO.inspect(action)
     user =
@@ -37,7 +37,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     changeset = if !is_nil(user_changeset), do: user_changeset, else: Patients.change_user(user)
     # IO.inspect(changeset, label: "changeset upsert")
 
-    disable_input = if action && action === :select, do: true, else: false
+    disable_input = if live_action && live_action === :select, do: true, else: false
 
     disabled_hover_info =
       if disable_input === true, do: "Form is readonly. To edit, go back.", else: nil
@@ -52,7 +52,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
      |> assign(:disabled_hover_info, disabled_hover_info)
      # assign user struct so 'validate' works
      |> assign(:user, apply_changes(changeset))
-     |> assign(:live_action, action)
+     |> assign(:live_action, live_action)
      |> assign(:changeset, changeset)}
   end
 
@@ -119,15 +119,15 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   def handle_event("save", %{"user" => user_params}, socket) do
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(user_params, label: "user_params")
-    IO.inspect(socket.assigns.action, label: "handle_event upsert: action")
+    IO.inspect(socket.assigns.live_action, label: "handle_event upsert: live_action")
     if !socket.assigns.changeset.valid? do
       # no submit if validation errors
       handle_event("validate", %{"user" => user_params}, socket)
     else
-      case socket.assigns.action do
-        action when action in [:edit] ->
+      case socket.assigns.live_action do
+        live_action when live_action in [:edit] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
-            Index.save_user(socket, socket.assigns.action, user_params)
+            Index.save_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
@@ -140,7 +140,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         # creating new employee
         :new ->
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            Index.save_user(socket, socket.assigns.action, user_params)
+            Index.save_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
@@ -152,9 +152,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
 
         # returning to form with changeset; on existing users reject
         :insert ->
-          # IO.inspect(socket.assigns.action, label: "AAAAAA")
+          # IO.inspect(socket.assigns.live_action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            Index.save_user(socket, socket.assigns.action, user_params)
+            Index.save_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
@@ -165,9 +165,9 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
           end
 
         :select ->
-          # IO.inspect(socket.assigns.action, label: "AAAAAA")
+          # IO.inspect(socket.assigns.live_action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            activate_user(socket, socket.assigns.action, user_params)
+            activate_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
@@ -184,7 +184,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
 
   # back from :display - on :new when existing users found
-  defp activate_user(socket, action, _user_params) when action in [:select, :insert] do
+  defp activate_user(socket, live_action, _user_params) when live_action in [:select, :insert] do
     # should have access to use passed from display
     user = socket.assigns[:user]
     # check if user is already active

@@ -16,9 +16,10 @@
       <.live_component
         module={TurnStileWeb.UserLive.UpsertFormComponent}
         id={if assigns[:user] && Map.get(assigns[:user], :id) ,do: assigns[:user].id, else: :new}~
-        action={@live_action}
+        live_action={@live_action}
         current_employee={@current_employee}
         user={assigns[:user]}
+        subtitle={assigns[:subtitle]}
         page_title={@page_title}
         user_changeset={assigns[:user_changeset]}
         code={assigns[:code]}

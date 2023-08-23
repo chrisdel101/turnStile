@@ -12,8 +12,8 @@ defmodule PopUpComponent do
       <%= parse_popup_content(assigns[:popup_content]) %>
       </div>
       <div class="pop-col">
-        <button phx-click="user_registration_accept" value={assigns.id}>Review</button>
-        <button phx-click="user_registration_reject">Reject</button>
+        <button phx-click="user_registration_data_accept" value={assigns.id}>Review</button>
+        <button phx-click="user_registration_data_reject" value={assigns.id}>Reject</button>
       </div>
       <div class="pop-col">
        <a href="#" class="phx-modal-close" phx-click={hide_popup(message_id)}>✖</a>

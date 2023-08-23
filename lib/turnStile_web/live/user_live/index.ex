@@ -1,4 +1,4 @@
-  defmodule TurnStileWeb.UserLive.Index do
+defmodule TurnStileWeb.UserLive.Index do
   use TurnStileWeb, :live_view
   import Ecto.Changeset
 
@@ -40,34 +40,41 @@
     # IO.inspect(socket.assigns, label: "INDEX: socket.assigns")
     {:ok,
      assign(
-      socket,
-      toggle_popup: true,
-      user_registration_messages: [%{"0" => %{
-        first_name: "Joe",
-        last_name: "Schmoe",
-        phone: "3065190138",
-        email: "arssonist@yahoo.com",
-        alert_format_set: "email",
-        health_card_num: 9999,
-        date_of_birth: Date.from_iso8601!("1900-01-01")
-      }}, %{"1" => %{
-        first_name: "Joe",
-        last_name: "Schmoe2",
-        phone: "3065190139",
-        email: "blah@yahoo.com",
-        alert_format_set: "email",
-        health_card_num: 1234,
-        date_of_birth: Date.from_iso8601!("1900-01-01")
-      }}],
-      code: maybe_assign_code(socket, nil),
-      search_field_name: nil,
-      search_field_value: nil,
-      display_message: nil,
-      display_instruction: nil,
-      existing_users_found: [],
-      users: main_index_users_list,
-      current_employee: current_employee,
-      return_to: Routes.user_index_path(socket, :index, organization_id, current_employee.id)
+       socket,
+       toggle_popup: true,
+       user_registration_messages: [
+         %{
+           "0" => %{
+             first_name: "Joe",
+             last_name: "Schmoe",
+             phone: "3065190138",
+             email: "arssonist@yahoo.com",
+             alert_format_set: "email",
+             health_card_num: 9999,
+             date_of_birth: Date.from_iso8601!("1900-01-01")
+           }
+         },
+         %{
+           "1" => %{
+             first_name: "Joe",
+             last_name: "Schmoe2",
+             phone: "3065190139",
+             email: "blah@yahoo.com",
+             alert_format_set: "email",
+             health_card_num: 1234,
+             date_of_birth: Date.from_iso8601!("1900-01-01")
+           }
+         }
+       ],
+       code: maybe_assign_code(socket, nil),
+       search_field_name: nil,
+       search_field_value: nil,
+       display_message: nil,
+       display_instruction: nil,
+       existing_users_found: [],
+       users: main_index_users_list,
+       current_employee: current_employee,
+       return_to: Routes.user_index_path(socket, :index, organization_id, current_employee.id)
      )}
   end
 
@@ -78,51 +85,81 @@
     # IO.inspect(params, label: "action on index")
     # IO.inspect(socket.assigns, label: "action on index")
     socket = assign(socket, :panel, panel)
+    # call apply_action :index
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   # called on :display; users list found during :new;
-    def handle_params(%{"search_field_name" => _search_field_name, "search_field_value" => _search_field_value} = params, _url, socket) do
-      # IO.inspect(params, label: "params on index YYYY")
-      # IO.inspect(socket.assigns, label: "params on index YYYY")
+  def handle_params(
+        %{"search_field_name" => _search_field_name, "search_field_value" => _search_field_value} =
+          params,
+        _url,
+        socket
+      ) do
+    # IO.inspect(params, label: "params on index YYYY")
+    # IO.inspect(socket.assigns, label: "params on index YYYY")
     #  socket =
     #   socket
     #   |> assign(:search_field_name, search_field_name)
-      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-    end
-    # called on :select: back from :display_existing_user
-    def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id, "user_id" => _user_id } = params, _url, socket) do
-      # IO.inspect(user_id, label: "handle_params main index:back from display")
+    # apply_action :search
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  # called on :select: back from :display_existing_user
+  def handle_params(
+        %{
+          "employee_id" => _employee_id,
+          "organization_id" => _organization_id,
+          "user_id" => _user_id
+        } = params,
+        _url,
+        socket
+      ) do
+    # IO.inspect(user_id, label: "handle_params main index:back from display")
+    # apply_action :select
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  # called on :index - main index render
+  # called on :search button click
+  def handle_params(
+        %{"employee_id" => _employee_id, "organization_id" => _organization_id} = params,
+        _url,
+        socket
+      ) do
+    if Map.get(socket.assigns, :user_changeset) do
+      # back action from from display "Add Original User"
+      # IO.inspect(socket.assigns, label: "handle_params main index: w changeset")
+      # IO.inspect(socket.assigns.live_action, label: "handle_params main index: w changeset")
+      {:noreply,
+       apply_action(socket, socket.assigns.live_action, %{
+         "user_changeset" => socket.assigns[:user_changeset]
+       })}
+    else
+      # IO.inspect(params, label: "handle_params main index: no changeset")
       # all other calls
       {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
-    # called on :index - main index render
-    # called on :search button click
-    def handle_params( %{"employee_id" => _employee_id, "organization_id" => _organization_id } = params, _url, socket) do
-      if Map.get(socket.assigns, :user_changeset) do
-        # back action from from display "Add Original User"
-        # IO.inspect(socket.assigns, label: "handle_params main index: w changeset")
-        # IO.inspect(socket.assigns.live_action, label: "handle_params main index: w changeset")
-        {:noreply, apply_action(socket, socket.assigns.live_action, %{"user_changeset" => socket.assigns[:user_changeset]})}
-      else
-        # IO.inspect(params, label: "handle_params main index: no changeset")
-        # all other calls
-        {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-      end
-    end
+  end
 
   @impl true
   def handle_info(%{user_alert_status: user_alert_status}, socket) do
-     IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
+    IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
     users =
-      Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
+      Patients.filter_active_users_x_mins_past_last_update(
+        socket.assigns.current_employee.current_organization_login_id,
+        @filter_active_users_mins
+      )
 
     {:noreply, assign(socket, :users, users)}
   end
-  # comes via send :upsert from :new
-  def handle_info(%{"existing_users" => existing_users, "user_changeset" => user_changeset}, socket) do
 
+  # comes via send :upsert from :new
+  def handle_info(
+        %{"existing_users" => existing_users, "user_changeset" => user_changeset},
+        socket
+      ) do
     socket =
       socket
       |> assign(:existing_users, existing_users)
@@ -133,95 +170,158 @@
 
     {:noreply, socket}
   end
+
   # pubsub comes thru subscribe in mount
   def handle_info(:update, socket) do
     IO.puts("index handle info: :update")
     # update_and_reschedule and call
     if connected?(socket), do: Process.send_after(self(), :update, @interval)
+
     users =
-      Patients.filter_active_users_x_mins_past_last_update(socket.assigns.current_employee.current_organization_login_id, @filter_active_users_mins)
+      Patients.filter_active_users_x_mins_past_last_update(
+        socket.assigns.current_employee.current_organization_login_id,
+        @filter_active_users_mins
+      )
 
     # IO.inspect(users, label: "update info")
     {:noreply, assign(socket, :users, users)}
   end
-  # called from :search; when search results are found
-  def handle_info({:users_found, %{"existing_users_found" => existing_users_found}} , socket) do
 
-    IO.puts("index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}")
+  # called from :search; when search results are found
+  def handle_info({:users_found, %{"existing_users_found" => existing_users_found}}, socket) do
+    IO.puts(
+      "index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}"
+    )
+
     # IO.inspect("UUUUUUUU", label: "message in handle_info")
     # call update to refresh state on :display
     send_update(DisplayListComponent, id: "display")
     {:noreply, assign(socket, :existing_users_found, existing_users_found)}
     # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
   end
+
   # called from :new upsert send(); when existing users are found this sent back
   # redirect to display component
-  def handle_info({:users_found,
-  %{existing_users_found: existing_users_found, user_changeset: user_changeset,
-  redirect_to: redirect_to}
-  }, socket) do
+  def handle_info(
+        {:users_found,
+         %{
+           existing_users_found: existing_users_found,
+           user_changeset: user_changeset,
+           redirect_to: redirect_to
+         }},
+        socket
+      ) do
     socket =
       socket
       |> assign(:existing_users_found, existing_users_found)
       |> assign(:user_changeset, user_changeset)
+
     IO.puts("index handle_info: sent from upsert send(): changeset and ext users")
     # IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-      # redirect to :display component
+    # redirect to :display component
     {:noreply,
-      socket
-      |> push_patch(to: redirect_to)}
+     socket
+     |> push_patch(to: redirect_to)}
+
     # {:noreply, socket}
   end
+
   # called from :display display when going back to original user
   # - redirect back to upsert
-  def handle_info({:reject_existing_users,
-  %{user_changeset: user_changeset,
-  redirect_to: redirect_to}
-  }, socket) do
+  def handle_info(
+        {:reject_existing_users, %{user_changeset: user_changeset, redirect_to: redirect_to}},
+        socket
+      ) do
     socket =
       socket
       |> assign(:user_changeset, user_changeset)
+
     # IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
     IO.inspect(user_changeset, label: "message in handle_info")
     # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-      # redirect to :display component
+    # redirect to :display component
     {:noreply,
-      socket
-      |> push_patch(to: redirect_to)}
-    end
+     socket
+     |> push_patch(to: redirect_to)}
+  end
+
   def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
     index = length(socket.assigns.user_registration_messages)
     currrent_message = %{index => user_params}
     # add incoming message to storage
     messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
-    {:noreply, socket
-    |> assign(:user_registration_messages, messages)}
+
+    {:noreply,
+     socket
+     |> assign(:user_registration_messages, messages)}
   end
+
   @impl true
-  def handle_event("user_registration_accept", params, socket
-  ) do
+  # called - from popup review button on-click
+  # - extract mesage from list and send to apply_action
+  def handle_event("user_registration_data_accept", params, socket) do
     # get id from button value field
     message_id = params["value"]
     # match id to msg key id
-    message = Enum.find(socket.assigns.user_registration_messages, fn msg -> Map.keys(msg) === [message_id] end)
-    #send msg to upsert form
+    message =
+      Enum.find(socket.assigns.user_registration_messages, fn msg ->
+        Map.keys(msg) === [message_id]
+      end)
+
+    # send msg to upsert form
     user_params = Map.values(message)
     {:ok, user_params} = Enum.fetch(user_params, 0)
     IO.inspect(message, label: "user_registration_accept")
     # build new user
     changeset = Patients.create_user(user_params)
-    IO.inspect(changeset, label: "user_registration_accept")
+    # IO.inspect(changeset, label: "user_registration_accept")
     # apply_action(socket, :insert, %{"user_changeset" => changeset})
     {:noreply,
-    socket
-    |> assign(:live_action, :insert)
-    |> apply_action(:insert, %{"user_changeset" => changeset})}
-    end
-    def handle_event(
-      "send_initial_alert",
-      %{"alert-format" => alert_format, "user-id" => user_id,
-        "value" => _value},
+     socket
+     |> assign(:live_action, :insert)
+     # apply_action :insert
+     |> apply_action(:insert, %{"user_changeset" => changeset},
+       subtitle:
+         "Review user registration information. If correct, click 'Save' to add user to system.",
+        page_title: "Add New User Via Incoming User Data")}
+  end
+  # called - from popup reject button on-click
+  # - extract mesage from list and send to apply_action
+  def handle_event("user_registration_data_reject", params, socket) do
+    # get id from button value field
+    message_id = params["value"]
+    IO.inspect("fired")
+    # find msg in list
+    message =
+      Enum.find(socket.assigns.user_registration_messages, fn msg ->
+        Map.keys(msg) === [message_id]
+      end)
+    # remove message from list - cannot rely on index so must locate full message first
+    user_registration_messages =
+      List.delete(socket.assigns.user_registration_messages, message)
+    # get values from map -returns list
+    # user_params = Map.values(message)
+    # extract values from list - returns map of user_params
+    # {:ok, user_params} = Enum.fetch(user_params, 0)
+    # IO.inspect(message, label: "user_registration_accept")
+    # build new user
+    # changeset = Patients.create_user(user_params)
+    # IO.inspect(changeset, label: "user_registration_accept")
+    # apply_action(socket, :insert, %{"user_changeset" => changeset})
+    {:noreply,
+     socket
+     |> assign(:user_registration_messages, user_registration_messages)}
+     # apply_action :insert
+    #  |> apply_action(:insert, %{"user_changeset" => changeset},
+    #    subtitle:
+    #      "Review user registration information. If correct, click 'Save' to add user to system.",
+    #     page_title: "Add New User Via Incoming User Data")}
+  end
+
+  def handle_event(
+        "send_initial_alert",
+        %{"alert-format" => alert_format, "user-id" => user_id, "value" => _value},
         socket
       ) do
     # assign user to socket to pass along
@@ -261,6 +361,7 @@
             "Default alert type is set to email but user email is missing. Add user email to send email alert."
           )
         }
+
       # no validation errors - proceed with sending alert
       true ->
         attrs =
@@ -275,14 +376,14 @@
         # IO.inspect(changeset, label: "changeset in handle_event")
         case AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
           {:ok, alert} ->
-
             if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
               case AlertUtils.send_email_alert(alert) do
                 {:ok, _email_msg} ->
                   # IO.inspect(email_msg, label: "email_msgXXX")
                   case AlertUtils.handle_updating_user_alert_send_status(
-                    socket.assigns.user,
-                    AlertCategoryTypesMap.get_alert("INITIAL")) do
+                         socket.assigns.user,
+                         AlertCategoryTypesMap.get_alert("INITIAL")
+                       ) do
                     {:ok, _user} ->
                       # call :update for DB/page updates
                       if connected?(socket), do: Process.send(self(), :update, [:noconnect])
@@ -294,27 +395,35 @@
                         |> put_flash(:success, "Alert sent successfully")
                       }
 
-                    {:error, error} -> # handle_updating_user_alert_send_status error
+                    # handle_updating_user_alert_send_status error
+                    {:error, error} ->
                       IO.inspect(error, label: "email index alert error in handle_event")
-                        {
-                          :noreply,
-                          socket
-                          |> put_flash(:error, "Failure in alert send. #{error}")
-                        }
+
+                      {
+                        :noreply,
+                        socket
+                        |> put_flash(:error, "Failure in alert send. #{error}")
+                      }
                   end
 
-                {:error, error} -> # system/mailgun SMS error
+                # system/mailgun SMS error
+                {:error, error} ->
                   # delete saved alert due to send error
                   Alerts.delete_alert(alert)
                   # handle mailgun error format
                   IO.inspect(error, label: "SMS index alert error in handle_event")
+
                   case error do
                     {error_code, %{"message" => error_message}} ->
                       {
                         :noreply,
                         socket
-                        |> put_flash(:error, "Failure in alert send. #{error_message}. Code: #{error_code}")
+                        |> put_flash(
+                          :error,
+                          "Failure in alert send. #{error_message}. Code: #{error_code}"
+                        )
                       }
+
                     _ ->
                       {
                         :noreply,
@@ -365,7 +474,8 @@
                     )
                   }
 
-                {:error, error} -> # system SMS error
+                # system SMS error
+                {:error, error} ->
                   # delete saved alert due to send error
                   Alerts.delete_alert(alert)
 
@@ -377,8 +487,8 @@
               end
             end
 
-
-          {:error, error} -> # authenticate_and_save_sent_alert error
+          # authenticate_and_save_sent_alert error
+          {:error, error} ->
             IO.inspect(error, label: "error in handle_event authenticate_and_save_sent_aler")
 
             socket =
@@ -405,7 +515,10 @@
        assign(
          socket,
          :users,
-         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
+         Patients.filter_active_users_x_mins_past_last_update(
+           current_employee.current_organization_login_id,
+           @filter_active_users_mins
+         )
        )}
     else
       socket =
@@ -416,7 +529,10 @@
        assign(
          socket,
          :users,
-         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
+         Patients.filter_active_users_x_mins_past_last_update(
+           current_employee.current_organization_login_id,
+           @filter_active_users_mins
+         )
        )}
     end
   end
@@ -436,7 +552,10 @@
        assign(
          socket,
          :users,
-         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
+         Patients.filter_active_users_x_mins_past_last_update(
+           current_employee.current_organization_login_id,
+           @filter_active_users_mins
+         )
        )}
     else
       socket =
@@ -447,11 +566,15 @@
        assign(
          socket,
          :users,
-         Patients.filter_active_users_x_mins_past_last_update(current_employee.current_organization_login_id, @filter_active_users_mins)
+         Patients.filter_active_users_x_mins_past_last_update(
+           current_employee.current_organization_login_id,
+           @filter_active_users_mins
+         )
        )}
     end
   end
-   # :alert - renders alert panel
+
+  # :alert - renders alert panel
   # -called from when live_patch clicked on index
   defp apply_action(socket, :alert, params) do
     %{"id" => user_id} = params
@@ -461,6 +584,7 @@
     # - sent as prop through html to panel_component
     |> assign(:user, Patients.get_user(user_id))
   end
+
   # :new - adding a new user from scratch
   # user is blank map - assign user in upsert update
   defp apply_action(socket, :new, _params) do
@@ -469,6 +593,62 @@
     |> assign(:page_title, "Add New User")
     |> assign(:user, %{})
   end
+  # :index - rendering index page
+  defp apply_action(socket, :index, _params) do
+    # IO.inspect(socket.assigns, label: "apply_action :index")
+    socket
+    # delete garage data from hanging around
+    |> maybe_delete_key(:user_changeset)
+    |> maybe_delete_key(:existing_users_found)
+    |> assign(:page_title, "Listing Users")
+    |> assign(:user, nil)
+  end
+
+  # :search - rendering search page
+  defp apply_action(socket, :search, _params) do
+    # IO.inspect(params, label: "apply_action :search")
+    socket
+    |> assign(:page_title, "Search for User")
+    |> assign(:user, nil)
+  end
+
+  # :display_existing_users - render display page
+  defp apply_action(socket, :display_existing_users, %{
+         "search_field_name" => search_field_name,
+         "search_field_value" => search_field_value
+       }) do
+    # IO.inspect(params, label: "apply_action :display_existing_users")
+    # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
+    socket
+    |> assign(:search_field_name, search_field_name)
+    |> assign(:search_field_value, search_field_value)
+    |> assign(
+      :return_to,
+      Routes.user_index_path(
+        socket,
+        :insert,
+        socket.assigns.current_employee.current_organization_login_id,
+        socket.assigns.current_employee.id
+      )
+    )
+    |> assign(:page_title, "Matching Users")
+    |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
+    |> assign(:users, socket.assigns.users)
+    |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
+  end
+
+  # :select - back from new when users found
+  # when user is clicked on
+  defp apply_action(socket, :select, %{"user_id" => user_id}) do
+    user = Patients.get_user(user_id)
+    changeset = Patients.change_user(user, %{})
+    IO.inspect(changeset, label: "apply_action :select")
+
+    socket
+    |> assign(:page_title, "Activate Exisiting User?")
+    |> assign(:user_changeset, changeset)
+  end
+
   # MAYBE REMOVE :insert
   # :insert - adding a new user that already exists in DB
   # user is formed struct
@@ -478,68 +658,34 @@
     |> assign(:page_title, "Insert Saved User")
     |> assign(:user, Patients.get_user(user_id))
   end
-  # :insert - going back from display form
-  # called when clicked on an existing user and redirecting
-  defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
-    IO.inspect(user_changeset, label: "apply_action :insert changeset2XXXX")
-    socket
-    |> assign(:page_title, "Insert Existing User")
-    |> assign(:user_changeset, user_changeset)
-  end
+
   # :insert - if opened out of sequence with no params; like if route called directly
   defp apply_action(socket, :insert, _params) do
     # IO.inspect(params, label: "apply_action :insert out of sequence")
     socket
     |> assign(:page_title, "Insert Saved User")
   end
-  # :index - rendering index page
-  defp apply_action(socket, :index, _params) do
-    # IO.inspect(socket.assigns, label: "apply_action :index")
+
+  # :insert
+  # called - going back from display form
+  # - when clicked on an existing user and redirecting
+  # called - from employee popup review
+  # - send user info to form for review before submit
+  defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset},opts) do
+    subtitle = Keyword.get(opts, :subtitle)
+    page_title = Keyword.get(opts, :page_title)
+    IO.inspect(subtitle, label: "apply_action :insert changeset2XXXX")
     socket
-      # delete garage data from hanging around
-    |> maybe_delete_key(:user_changeset)
-    |> maybe_delete_key(:existing_users_found)
-    |> assign(:page_title, "Listing Users")
-    |> assign(:user, nil)
-  end
-  # :search - rendering search page
-  defp apply_action(socket, :search, _params) do
-    # IO.inspect(params, label: "apply_action :search")
-    socket
-    |> assign(:page_title, "Search for User")
-    |> assign(:user, nil)
-  end
-  # :display_existing_users - render display page
-  defp apply_action(socket, :display_existing_users, %{"search_field_name" => search_field_name, "search_field_value" => search_field_value}) do
-    # IO.inspect(params, label: "apply_action :display_existing_users")
-    # IO.inspect(Map.get(socket.assigns, :user_changeset), label: "apply_action on display")
-    socket
-    |> assign(:search_field_name, search_field_name)
-    |> assign(:search_field_value, search_field_value)
-    |> assign(:return_to, Routes.user_index_path(socket, :insert,
-    socket.assigns.current_employee.current_organization_login_id,
-    socket.assigns.current_employee.id))
-    |> assign(:page_title, "Matching Users")
-    |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
-    |> assign(:users, socket.assigns.users)
-    |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
-  end
-  # :select - back from new when users found
-  # when user is clicked on
-  defp apply_action(socket, :select, %{"user_id" => user_id}) do
-    user = Patients.get_user(user_id)
-    changeset = Patients.change_user(user, %{})
-    IO.inspect(changeset, label: "apply_action :select")
-    socket
-    |> assign(:page_title, "Activate Exisiting User?")
-    |> assign(:user_changeset, changeset)
+    |> assign(:page_title, page_title || "Insert Existing User")
+    |> assign(:subtitle, subtitle || nil)
+    |> assign(:user_changeset, user_changeset)
   end
 
   defp maybe_delete_key(socket, key) do
     if socket.assigns[key] != nil do
       %{
-        socket |
-        assigns: Map.delete(socket.assigns, key)
+        socket
+        | assigns: Map.delete(socket.assigns, key)
       }
     else
       socket
@@ -589,7 +735,7 @@
           {:ok, _user} ->
             {:noreply,
              socket
-             |> put_flash(:info, "User created successfully")
+             |> put_flash(:success, "User created successfully")
              |> push_redirect(to: socket.assigns.return_to)}
 
           # failures here are due to contraints
@@ -645,7 +791,7 @@
                     {:ok, _user} ->
                       {:noreply,
                        socket
-                       |> put_flash(:info, "User created successfully")
+                       |> put_flash(:success, "User created successfully")
                        |> push_redirect(to: socket.assigns.return_to)}
 
                     {:error, %Ecto.Changeset{} = changeset} ->
@@ -725,26 +871,28 @@
       nil
     end
   end
+
   @doc """
   handle_generate_verification_code
   - generates a 6 digit alphanumeric code to give to user
   - inserts into DB so user can be verified
   """
   def handle_generate_verification_code(socket) do
-     # generate a code
-     code = UserToken.generate_user_verification_code(3)
+    # generate a code
+    code = UserToken.generate_user_verification_code(3)
     #  hash and insert into DB
-     case Patients.build_and_insert_user_verification_code_token(code) do
+    case Patients.build_and_insert_user_verification_code_token(code) do
       {user_url, _token, encoded_token} ->
         IO.inspect(user_url)
         IO.inspect(encoded_token)
         # optional pass user url here, maybe generate QR codes
         {:ok,
-        socket
-        |> maybe_assign_code(%{"code" => code})}
+         socket
+         |> maybe_assign_code(%{"code" => code})}
+
       {:error, error} ->
         {:error, error}
-     end
+    end
   end
 
   def lookup_user_direct(_user_struct, nil, _organization_id), do: {nil, nil, []}
@@ -768,7 +916,7 @@
         # IO.inspect(users, label: "USERS")
         if users === [] do
           # call recursively
-          lookup_user_direct(user_struct, list_index - 1,organization_id )
+          lookup_user_direct(user_struct, list_index - 1, organization_id)
         else
           # TODO: send field found by to display
           IO.puts("User(s) exist. Found by #{search_field_name}")
@@ -780,6 +928,7 @@
         {:error, "Invalid search_field_name"}
     end
   end
+
   defp handle_get_users_by_field(field, field_value, organization_id) do
     case Patients.get_users_by_field(field, field_value, organization_id) do
       [] = _users ->
@@ -792,11 +941,14 @@
         users
     end
   end
+
   defp maybe_assign_code(_socket, nil), do: nil
+
   defp maybe_assign_code(socket, %{"code" => code}) do
     socket
     |> assign(:code, code)
   end
+
   def extract_message_popup_index(message) do
     if !is_nil(message) do
       # get key from message; is an int
@@ -813,24 +965,29 @@
       end
     end
   end
+
   def extract_message_popup_user_params(nil), do: nil
+
   def extract_message_popup_user_params(message) do
-      # get values side of map - is a list
-      values = Map.values(message)
-      # make sure list is 1 item
-      if length(values) === 1 do
-        # extact single item from list
-        {:ok, value} = Enum.fetch(values, 0)
-        # confirm single item is a map
-        if is_map(value) do
-          value
-        else
-          IO.puts("Error: extract_message_popup_user_params - message is not a single key value pair")
-          "User Name Not Found"
-        end
+    # get values side of map - is a list
+    values = Map.values(message)
+    # make sure list is 1 item
+    if length(values) === 1 do
+      # extact single item from list
+      {:ok, value} = Enum.fetch(values, 0)
+      # confirm single item is a map
+      if is_map(value) do
+        value
       else
-        IO.puts("Error: extract_message_popup_user_params - message is not a single key value pair")
-        nil
+        IO.puts(
+          "Error: extract_message_popup_user_params - message is not a single key value pair"
+        )
+
+        "User Name Not Found"
       end
+    else
+      IO.puts("Error: extract_message_popup_user_params - message is not a single key value pair")
+      nil
+    end
   end
 end

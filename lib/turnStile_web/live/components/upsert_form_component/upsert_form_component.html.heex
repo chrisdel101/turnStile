@@ -1,6 +1,8 @@
 <div>
   <h2><%= @page_title %></h2>
+  <h4><%= @subtitle %></h4>
   <div>
+  <%= if @live_action == :new do %>
     <h4>Quick Add</h4>
     <p>Generate a code and give it to the user. User can use the code to register themselves on website.</p>
     <button phx-click="generate" phx-target={@myself}>Get Code</button>
@@ -9,8 +11,9 @@
         <p><strong>Code: <%= assigns[:code] %></strong></p>
       </div>
     <% end %>
+  <h4>Manual Add</h4>
+  <% end %>
     
-    <h4>Manual Add</h4>
     <.form
       let={f}
       for={@changeset}
