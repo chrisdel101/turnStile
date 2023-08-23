@@ -1,14 +1,17 @@
 <h1>Listing Users</h1>
-  <%= if @toggle_popup do %>
+  <%= for message <- @user_registration_messages do %>
    <PopUpComponent.render
         module={ TurnStileWeb.UserLive.PopUpComponent}
-        id={:popup}
+        id={TurnStileWeb.UserLive.Index.extract_message_popup_index(message)}
         action={@live_action}
         user={assigns[:user]}
         popup_title={@page_title}
-        popup_content={@popup_content}
+        popup_content={TurnStileWeb.UserLive.Index.extract_message_popup_content(message)}
         />
   <% end %>
+
+  <%!-- <%= if @toggle_popup do %>
+  <% end %> --%>
   <%!-- list of possible modals opening from index --%>
   <%= if @live_action in [:new, :insert, :select] do %>
     <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>

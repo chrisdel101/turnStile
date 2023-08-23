@@ -8,3 +8,7 @@
   .verification-code{
     color: green
   }
+  .pop-up {
+    display: flex;
+    justify-content: space-between;
+  }

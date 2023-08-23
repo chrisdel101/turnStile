@@ -44,6 +44,7 @@
       toggle_popup: true,
       popup_content: nil,
       popup_title: nil,
+      user_registration_messages: [%{0 => "test"}, %{1 => "test"}],
       code: maybe_assign_code(socket, nil),
       search_field_name: nil,
       search_field_value: nil,
@@ -175,16 +176,25 @@
       socket
       |> push_patch(to: redirect_to)}
     end
-  def handle_info({:user_registation_form, %{user_params: _user_params}}, socket) do
-
+  def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
+    index = length(socket.assigns.user_registration_messages)
+    currrent_message = %{index => user_params}
+    # add incoming message to storage
+    messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
     # build new user
     # changeset = Patients.create_user(user_params)
     {:noreply, socket
+    |> assign(:user_registration_messages, messages)
+    |> assign(:popup_content, "User Registration Form Received")
     |> assign(:toggle_popup, true)
     |> assign(:popup_content, "User Registration Form Received")}
 
   end
     @impl true
+    def handle_event("user_registration_accept",_params, socket
+      ) do
+      IO.inspect(socket.assigns.user_registration_messages, label: "user_registration_accept")
+      end
   def handle_event(
         "send_initial_alert",
         %{"alert-format" => alert_format, "user-id" => user_id,
@@ -764,5 +774,33 @@
     socket
     |> assign(:code, code)
   end
-
+  def extract_message_popup_index(message) do
+    if !is_nil(message) do
+      # get key from message; is an int
+      key_single_list = Map.keys(message)
+      # saftey check to avoid error
+      if length(key_single_list) === 1 do
+        # returns key as int
+        {:ok, key} = Enum.fetch(key_single_list, 0)
+        key
+      else
+        IO.puts("Error: extract_message_popup_index - message is not a single key value pair")
+        # TODO: think of better soluton
+        9999
+      end
+    end
+  end
+  def extract_message_popup_content(message) do
+    if !is_nil(message) do
+      values = Map.values(message)
+      if length(values) === 1 do
+        # returns key as int
+        {:ok, value} = Enum.fetch(values, 0)
+        value
+      else
+        IO.puts("Error: extract_message_popup_content - message is not a single key value pair")
+        nil
+      end
+    end
+  end
 end
