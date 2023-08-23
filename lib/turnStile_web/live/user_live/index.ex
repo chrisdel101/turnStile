@@ -42,9 +42,23 @@
      assign(
       socket,
       toggle_popup: true,
-      popup_content: nil,
-      popup_title: nil,
-      user_registration_messages: [%{0 => "test"}, %{1 => "test"}],
+      user_registration_messages: [%{"0" => %{
+        first_name: "Joe",
+        last_name: "Schmoe",
+        phone: "3065190138",
+        email: "arssonist@yahoo.com",
+        alert_format_set: "email",
+        health_card_num: 9999,
+        date_of_birth: Date.from_iso8601!("1900-01-01")
+      }}, %{"1" => %{
+        first_name: "Joe",
+        last_name: "Schmoe2",
+        phone: "3065190139",
+        email: "blah@yahoo.com",
+        alert_format_set: "email",
+        health_card_num: 1234,
+        date_of_birth: Date.from_iso8601!("1900-01-01")
+      }}],
       code: maybe_assign_code(socket, nil),
       search_field_name: nil,
       search_field_value: nil,
@@ -181,23 +195,32 @@
     currrent_message = %{index => user_params}
     # add incoming message to storage
     messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
-    # build new user
-    # changeset = Patients.create_user(user_params)
     {:noreply, socket
-    |> assign(:user_registration_messages, messages)
-    |> assign(:popup_content, "User Registration Form Received")
-    |> assign(:toggle_popup, true)
-    |> assign(:popup_content, "User Registration Form Received")}
-
+    |> assign(:user_registration_messages, messages)}
   end
-    @impl true
-    def handle_event("user_registration_accept",_params, socket
-      ) do
-      IO.inspect(socket.assigns.user_registration_messages, label: "user_registration_accept")
-      end
-  def handle_event(
-        "send_initial_alert",
-        %{"alert-format" => alert_format, "user-id" => user_id,
+  @impl true
+  def handle_event("user_registration_accept", params, socket
+  ) do
+    # get id from button value field
+    message_id = params["value"]
+    # match id to msg key id
+    message = Enum.find(socket.assigns.user_registration_messages, fn msg -> Map.keys(msg) === [message_id] end)
+    #send msg to upsert form
+    user_params = Map.values(message)
+    {:ok, user_params} = Enum.fetch(user_params, 0)
+    IO.inspect(message, label: "user_registration_accept")
+    # build new user
+    changeset = Patients.create_user(user_params)
+    IO.inspect(changeset, label: "user_registration_accept")
+    # apply_action(socket, :insert, %{"user_changeset" => changeset})
+    {:noreply,
+    socket
+    |> assign(:live_action, :insert)
+    |> apply_action(:insert, %{"user_changeset" => changeset})}
+    end
+    def handle_event(
+      "send_initial_alert",
+      %{"alert-format" => alert_format, "user-id" => user_id,
         "value" => _value},
         socket
       ) do
@@ -458,7 +481,7 @@
   # :insert - going back from display form
   # called when clicked on an existing user and redirecting
   defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}) do
-    # IO.inspect(user_changeset, label: "apply_action :insert changeset2")
+    IO.inspect(user_changeset, label: "apply_action :insert changeset2XXXX")
     socket
     |> assign(:page_title, "Insert Existing User")
     |> assign(:user_changeset, user_changeset)
@@ -790,17 +813,24 @@
       end
     end
   end
-  def extract_message_popup_content(message) do
-    if !is_nil(message) do
+  def extract_message_popup_user_params(nil), do: nil
+  def extract_message_popup_user_params(message) do
+      # get values side of map - is a list
       values = Map.values(message)
+      # make sure list is 1 item
       if length(values) === 1 do
-        # returns key as int
+        # extact single item from list
         {:ok, value} = Enum.fetch(values, 0)
-        value
+        # confirm single item is a map
+        if is_map(value) do
+          value
+        else
+          IO.puts("Error: extract_message_popup_user_params - message is not a single key value pair")
+          "User Name Not Found"
+        end
       else
-        IO.puts("Error: extract_message_popup_content - message is not a single key value pair")
+        IO.puts("Error: extract_message_popup_user_params - message is not a single key value pair")
         nil
       end
-    end
   end
 end

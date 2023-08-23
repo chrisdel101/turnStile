@@ -4,9 +4,7 @@
         module={ TurnStileWeb.UserLive.PopUpComponent}
         id={TurnStileWeb.UserLive.Index.extract_message_popup_index(message)}
         action={@live_action}
-        user={assigns[:user]}
-        popup_title={@page_title}
-        popup_content={TurnStileWeb.UserLive.Index.extract_message_popup_content(message)}
+        popup_content={TurnStileWeb.UserLive.Index.extract_message_popup_user_params(message)}
         />
   <% end %>
 
