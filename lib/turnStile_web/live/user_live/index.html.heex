@@ -2,9 +2,9 @@
   <%= for message <- @user_registration_messages do %>
    <PopUpComponent.render
         module={ TurnStileWeb.UserLive.PopUpComponent}
-        id={TurnStileWeb.UserLive.Index.extract_message_popup_index(message)}
+        id={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_index(message)}
         action={@live_action}
-        popup_content={TurnStileWeb.UserLive.Index.extract_message_popup_user_params(message)}
+        popup_content={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_user_params(message)}
         />
   <% end %>
 

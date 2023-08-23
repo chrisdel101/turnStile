@@ -6,6 +6,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   alias TurnStile.Patients
   alias TurnStile.Patients.User
   alias TurnStileWeb.UserLive.Index
+  alias TurnStileWeb.UserLive.Index.IndexUtils
 
   @user_search_fields [:email, :phone, :last_name, :health_card_num]
 
@@ -104,7 +105,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   end
   def handle_event("generate", _params, socket) do
     # append a code to the socket
-    case Index.handle_generate_verification_code(socket) do
+    case IndexUtils.handle_generate_verification_code(socket) do
       {:ok, socket} ->
         {:noreply, socket}
 
@@ -127,7 +128,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       case socket.assigns.live_action do
         live_action when live_action in [:edit] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
-            Index.save_user(socket, socket.assigns.live_action, user_params)
+            IndexUtils.save_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
@@ -140,7 +141,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         # creating new employee
         :new ->
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            Index.save_user(socket, socket.assigns.live_action, user_params)
+            IndexUtils.save_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
@@ -154,7 +155,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         :insert ->
           # IO.inspect(socket.assigns.live_action, label: "AAAAAA")
           if EmployeeAuth.has_user_add_permissions?(socket, current_employee) do
-            Index.save_user(socket, socket.assigns.live_action, user_params)
+            IndexUtils.save_user(socket, socket.assigns.live_action, user_params)
           else
             socket =
               socket
