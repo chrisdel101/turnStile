@@ -13,6 +13,183 @@ defmodule TurnStileWeb.UserAuth do
   @expiration_me_options [sign: true, max_age: @session_max_age_seconds, same_site: "Lax"]
 
   @doc """
+  fetch_current_user
+  - pipline plug
+  - Authenticates the user by looking into the session
+  - Checks for existence only; no expiration
+  - expiration check in handle_validate_session_token
+  """
+  def fetch_current_user(conn, _opts) do
+    {user_token, conn} = ensure_user_session_token(conn)
+    # IO.inspect(user_token, label: "fetch_current_user USER TOKEN")
+    # - queries for exists and valid
+    user = user_token && Patients.confirm_user_session_token_exists(user_token)
+    # IO.inspect(user, label: "fetch_current_user USER")
+    assign(conn, :current_user, user)
+  end
+  @doc """
+  require_non_expired_user_session
+  - pipline plug
+  - if expired logs out user and redirects to index
+  """
+  def require_non_expired_user_session(conn, _params) do
+    if conn.assigns[:current_user] do
+      handle_validate_session_token(conn)
+    else
+      conn
+    end
+  end
+
+  @doc """
+  require_authenticated_user
+  - pipeline plug
+  - Used for routes that require the user to be authenticated.
+  - Means user has activated email token and now is in timed session - no login required
+  """
+  def require_authenticated_user(conn, _opts) do
+    # current_user = conn.assigns[:current_user]
+    # IO.inspect(conn.assigns[:current_user], label: "current_user: require_authenticated_user")
+    if conn.assigns[:current_user] do
+      conn
+    else
+      IO.puts("require_authenticated_user: failed")
+      conn
+      |> put_flash(
+        :info,
+        "You're session is expired or you tried to access an authencated route."
+      )
+      |> maybe_store_return_to()
+      |> redirect(to: "/")
+      |> halt()
+    end
+  end
+
+  @doc """
+  ensure_organization_matches_current_user
+  - pipeline plug
+  - used after user email token is confirmed
+  - ensure URL org id matches current_user else redirect request
+  """
+  def ensure_organization_matches_current_user(conn, _opts) do
+    current_user = conn.assigns[:current_user]
+    # IO.inspect(conn.assigns[:current_user], label: "current_user: ensure_organization_matches_current_user")
+    # IO.inspect(conn.params, label: "conn.param: ensure_organization_matches_current_user")
+    if conn.params["organization_id"] && (current_user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
+      conn
+    else
+      IO.puts("ensure_organization_matches_current_user failed. Organization params do not matched current_user.organization_id")
+      conn
+      |> put_flash(
+        :error,
+        "Invalid URL. Make sure all the values are correct in the URL and try again."
+      )
+      |> redirect(to: "/")
+      |> halt()
+    end
+  end
+   @doc """
+   redirect_if_user_is_authenticated
+   - pipeline plug
+  - Used for routes that require the user to not be authenticated.
+  """
+  def redirect_if_user_is_authenticated(conn, _opts) do
+    if conn.assigns[:current_user] do
+      IO.puts("Redirect if user is authenticated: redirecting")
+
+      conn
+      |> redirect(to: signed_in_main_path(conn, conn.assigns[:current_user]))
+      |> halt()
+    else
+      IO.puts("Redirect if user is authenticated: not authenicated")
+      conn
+    end
+  end
+
+   @doc """
+  # handle_validate_email_token
+  # - handles request if user if not logged yet
+  # - if logged in user calls this redirect them to new/1
+  # - else confirm email token + log in and redirect to new/1
+  # - if not confirmed email send err val and redirect
+  # - handles all cases of email token errors
+  # - if email token expired sends status update to UI
+  """
+  def handle_validate_email_token(conn, %{"user_id" => user_id, "token" => encoded_token}) do
+    current_user = conn.assigns[:current_user]
+
+    if current_user do
+      conn
+      |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id, current_user.id))
+    else
+      # check URL encoded_token - match url to hashed-token in DB
+      case Patients.confirm_user_email_token(encoded_token, user_id) do
+        {:ok, user} ->
+          # IO.inspect(user, label: "USER")
+          conn
+          # log in and set session token for future requests
+          |> ensure_organization_matches_user(user)
+          |> log_in_user(user)
+          |> redirect(to: (signed_in_main_path(conn, user) ))
+      # used for testing purposes only when skip: true
+      # don;t use this path in prod
+       {:skip_multi, user} ->
+          # IO.inspect(user, label: "confirm_user_email_token skip flag: true")
+          conn
+          # log in and set session token for future requests
+          |> ensure_organization_matches_user(user)
+          |> send_resp(202, "Status: 202. Run skip mutli: true. User email token confirmed.")
+        {nil, :not_matched} ->
+          # user does match but - url :id is not correct for user token
+          IO.puts("user_auth: user not_matched: User param :id does not match the token user id")
+
+          conn
+          |> put_flash(
+            :error,
+            "Sorry, your URL link has errors. Verify it is correct and try again, or contact your provider for a new link."
+          )
+          |> redirect(to: "/")
+
+        {nil, :not_found} ->
+          # no users matching - b/c user session does not match any users
+          IO.puts("user_auth:  not_found")
+
+          conn
+          |> put_flash(:error, "Sorry, your URL link is invalid.")
+          |> redirect(to: "/")
+
+        :invalid_input_token ->
+          # error on func call - b/c user has a malfromed URL i.e. extra quote at end
+          IO.puts("user_auth:  :invalid_input_token")
+
+          conn
+          |> put_flash(
+            :error,
+            "Sorry, your URL link contains errors and is invalid. Confirm it is correct and try again, or contact your provider for a new link."
+          )
+          |> redirect(to: "/")
+
+        {nil, :expired} ->
+          # valid request but expired - will be deleted on this call
+          # fetch full user token struct
+          {:ok, query} = UserToken.encoded_email_token_and_context_query(encoded_token, "confirm")
+          user_token = TurnStile.Repo.one(query)
+          # delete expirted token
+          Patients.delete_email_token(user_token)
+          IO.puts("user_auth:  token expired and deleted")
+          # update user alert status
+          push_user_and_interface_updates(conn, user_id)
+
+          conn
+          |> put_flash(
+            :error,
+            "Sorry, your link has expired. Contact your provider to resend a new link."
+          )
+          |> redirect(to: "/")
+      end
+    end
+  end
+
+  @doc """
   Logs the user in.
 
   It renews the session ID and clears the whole session
@@ -42,54 +219,26 @@ defmodule TurnStileWeb.UserAuth do
   defp maybe_write_expiration_cookie(conn, _token, _params) do
     conn
   end
-
   @doc """
-  require_authenticated_user
-  Used for routes that require the user to be authenticated.
-
-  Mean user has activated email token and now is in timed session - no login required
+  ensure_organization_matches_user
+  - used during user email token confirmation handle_validate_email_token before login
+  - requires user struct matches from DB matching token
+  - ensure URL org_id matches user struct
   """
-  def require_authenticated_user(conn, _opts) do
-    # current_user = conn.assigns[:current_user]
-    # IO.inspect(conn.assigns[:current_user], label: "current_user: require_authenticated_user")
-    if conn.assigns[:current_user] do
+  def ensure_organization_matches_user(conn, user) do
+    IO.inspect(user, label: "user: ensure_organization_matches_user")
+    IO.inspect(conn.params, label: "conn.param: ensure_organization_matches_current_user")
+    if conn.params["organization_id"] && (user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
       conn
     else
-      IO.puts("require_authenticated_user: failed")
-      conn
-      |> put_flash(
-        :info,
-        "You're session is expired or you tried to access an authencated route."
-      )
-      |> maybe_store_return_to()
-      |> redirect(to: "/")
-      |> halt()
-    end
-  end
-  def ensure_user_matches_organization(conn, _opts) do
-    current_user = conn.assigns[:current_user]
-    # IO.inspect(conn.assigns[:current_user], label: "current_user: ensure_user_matches_organization")
-    # IO.inspect(conn.params, label: "conn.param: ensure_user_matches_organization")
-    if conn.params["organization_id"] && (current_user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
-      conn
-    else
-      IO.puts("ensure_user_matches_organization failed. Organization params do not matched current_user.organization_id")
+      IO.puts("ensure_organization_matches_user failed. Organization params do not matched user.organization_id")
       conn
       |> put_flash(
         :error,
-        "Invalid URL. Make sure all the value are correct in the URL and try again."
+        "Invalid URL. Are you accesing the correct organization? Make sure all the values are correct in the URL and try again."
       )
       |> redirect(to: "/")
       |> halt()
-    end
-  end
-
-  # if expired logs out user and redirects to index
-  def require_non_expired_user_session(conn, _params) do
-    if conn.assigns[:current_user] do
-      handle_validate_session_token(conn)
-    else
-      conn
     end
   end
 
@@ -151,46 +300,6 @@ defmodule TurnStileWeb.UserAuth do
     |> delete_resp_cookie(@expiration_cookie)
   end
 
-  @doc """
-  Authenticates the user by looking into the session
-  - Checks for existence only; no expiration
-  - expiration check in handle_validate_session_token
-  """
-  def fetch_current_user(conn, _opts) do
-    {user_token, conn} = ensure_user_session_token(conn)
-    # IO.inspect(user_token, label: "fetch_current_user USER TOKEN")
-    # - queries for exists and valid
-    user = user_token && Patients.confirm_user_session_token_exists(user_token)
-    # IO.inspect(user, label: "fetch_current_user USER")
-    assign(conn, :current_user, user)
-  end
-
-  # first run: looks up user by email token; should fail b/c no user in seesion yet
-  defp ensure_user_session_token(conn) do
-    # check for user token
-    if user_token = get_session(conn, :user_token) do
-      {user_token, conn}
-    else
-      {nil, conn}
-    end
-  end
-
-  @doc """
-  Used for routes that require the user to not be authenticated.
-  """
-  def redirect_if_user_is_authenticated(conn, _opts) do
-    if conn.assigns[:current_user] do
-      IO.puts("Redirect if user is authenticated: redirecting")
-
-      conn
-      |> redirect(to: signed_in_main_path(conn, conn.assigns[:current_user]))
-      |> halt()
-    else
-      IO.puts("Redirect if user is authenticated: not authenicated")
-      conn
-    end
-  end
-
   def handle_validate_session_token(conn) do
     if conn.assigns[:current_user] do
       # get user_token from session
@@ -228,82 +337,15 @@ defmodule TurnStileWeb.UserAuth do
     end
   end
 
-  @doc """
-  # handle_validate_email_token
-  # - handles request if user if not logged yet
-  # - if logged in user calls this redirect them to new/1
-  # - else confirm email token + log in and redirect to new/1
-  # - if not confirmed email send err val and redirect
-  # - handles all cases of email token errors
-  # - if email token expired sends status update to UI
-  """
-  def handle_validate_email_token(conn, %{"user_id" => user_id, "token" => encoded_token}) do
-    current_user = conn.assigns[:current_user]
-
-    if current_user do
-      conn
-      |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id, current_user.id))
+  # first run: looks up user by email token; should fail b/c no user in seesion yet
+  defp ensure_user_session_token(conn) do
+    # check for user token
+    if user_token = get_session(conn, :user_token) do
+      {user_token, conn}
     else
-      # check URL encoded_token - match url to hashed-token in DB
-      case Patients.confirm_user_email_token(encoded_token, user_id) do
-        {:ok, user} ->
-          # IO.inspect(user, label: "USER")
-          conn
-          # log in and set session token for future requests
-          |> log_in_user(user)
-          |> redirect(to: (signed_in_main_path(conn, user) ))
-
-        {nil, :not_matched} ->
-          # user does match but - url :id is not correct for user token
-          IO.puts("user_auth: user not_matched: User param :id does not match the token user id")
-
-          conn
-          |> put_flash(
-            :error,
-            "Sorry, your URL link has errors. Verify it is correct and try again, or contact your provider for a new link."
-          )
-          |> redirect(to: "/")
-
-        {nil, :not_found} ->
-          # no users matching - b/c user session does not match any users
-          IO.puts("user_auth:  not_found")
-
-          conn
-          |> put_flash(:error, "Sorry, your URL link is invalid.")
-          |> redirect(to: "/")
-
-        :invalid_input_token ->
-          # error on func call - b/c user has a malfromed URL i.e. extra quote at end
-          IO.puts("user_auth:  :invalid_input_token")
-
-          conn
-          |> put_flash(
-            :error,
-            "Sorry, your URL link contains errors and is invalid. Confirm it is correct and try again, or contact your provider for a new link."
-          )
-          |> redirect(to: "/")
-
-        {nil, :expired} ->
-          # valid request but expired - will be deleted on this call
-          # fetch full user token struct
-          {:ok, query} = UserToken.encoded_email_token_and_context_query(encoded_token, "confirm")
-          user_token = TurnStile.Repo.one(query)
-          # delete expirted token
-          Patients.delete_email_token(user_token)
-          IO.puts("user_auth:  token expired and deleted")
-          # update user alert status
-          push_user_and_interface_updates(conn, user_id)
-
-          conn
-          |> put_flash(
-            :error,
-            "Sorry, your link has expired. Contact your provider to resend a new link."
-          )
-          |> redirect(to: "/")
-      end
+      {nil, conn}
     end
   end
-
   # push_user_and_interface_updates
   # - updates user alert status to EXPIRED
   # - calls Phoenix.PubSub.broadcast to send update to UI
