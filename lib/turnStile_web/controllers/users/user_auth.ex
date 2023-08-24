@@ -44,6 +44,7 @@ defmodule TurnStileWeb.UserAuth do
   end
 
   @doc """
+  require_authenticated_user
   Used for routes that require the user to be authenticated.
 
   Mean user has activated email token and now is in timed session - no login required
@@ -61,6 +62,23 @@ defmodule TurnStileWeb.UserAuth do
         "You're session is expired or you tried to access an authencated route."
       )
       |> maybe_store_return_to()
+      |> redirect(to: "/")
+      |> halt()
+    end
+  end
+  def ensure_user_matches_organization(conn, _opts) do
+    current_user = conn.assigns[:current_user]
+    # IO.inspect(conn.assigns[:current_user], label: "current_user: ensure_user_matches_organization")
+    # IO.inspect(conn.params, label: "conn.param: ensure_user_matches_organization")
+    if conn.params["organization_id"] && (current_user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
+      conn
+    else
+      IO.puts("ensure_user_matches_organization failed. Organization params do not matched current_user.organization_id")
+      conn
+      |> put_flash(
+        :error,
+        "Invalid URL. Make sure all the value are correct in the URL and try again."
+      )
       |> redirect(to: "/")
       |> halt()
     end
@@ -135,7 +153,8 @@ defmodule TurnStileWeb.UserAuth do
 
   @doc """
   Authenticates the user by looking into the session
-  - Checks for existence only; no expiration check here - keeping the flow simple
+  - Checks for existence only; no expiration
+  - expiration check in handle_validate_session_token
   """
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_session_token(conn)
@@ -174,8 +193,9 @@ defmodule TurnStileWeb.UserAuth do
 
   def handle_validate_session_token(conn) do
     if conn.assigns[:current_user] do
+      # get user_token from session
       user_token = get_session(conn, :user_token)
-
+      # make sure it's valid
       case user_token && Patients.confirm_user_session_token(user_token) do
         {:ok, _user} ->
           IO.puts("handle_validate_session_token: user session not expired")

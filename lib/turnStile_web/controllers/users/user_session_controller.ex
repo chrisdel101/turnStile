@@ -9,7 +9,8 @@ defmodule TurnStileWeb.UserSessionController do
   alias TurnStileWeb.UserAuth
   @json TurnStile.Utils.read_json("alert_text.json")
 
-  def new(conn, %{"user_id" => _user_id}) do
+
+  def new(conn, %{"organization_id" => _organization_id, "user_id" => _user_id}) do
     user = conn.assigns[:current_user]
     conn
     |> render("new.html", json: @json, user: user)

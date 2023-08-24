@@ -178,14 +178,15 @@ defmodule TurnStileWeb.Router do
     UserRegistrationController, :handle_create
   end
 
-  scope "/organizations/:organizaton_id/users", TurnStileWeb do
+  scope "/organizations/:organization_id/users", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
     # user clicks link in email
     get "/:user_id/:token", UserAuth, :handle_validate_email_token
   end
 
-  scope "organizations/:organizaton_id/users", TurnStileWeb do
-    pipe_through [:browser, :require_authenticated_user
+  scope "organizations/:organization_id/users", TurnStileWeb do
+    pipe_through [:browser, :require_authenticated_user,
+    :ensure_user_matches_organization
   ]
     # redirect here after prev :ok
     get "/:user_id", UserSessionController, :new
