@@ -799,38 +799,27 @@ defmodule TurnStile.Patients do
     end
   end
 
-  def confirm_user_email_token(encoded_token, user_id, opts \\ []) do
+  def confirm_user_email_token(encoded_token, _opts \\ []) do
     # check if user exists
     case UserToken.verify_email_token_exists_query(encoded_token, "confirm") do
       {:ok, query} ->
         case Repo.one(query) do
-          %User{} = user ->
+          %User{} = _user ->
             # IO.puts("confirm_user_email_token: User Found")
-            # check if user is expired
+            # if token is not found here, it is expired
             case UserToken.verify_email_token_valid_query(query, "confirm") do
               {:ok, query} ->
                 case Repo.one(query) do
                   %User{} = user ->
                     {:ok, user}
-                    # run multi based on flag: used in testing
-                    case Keyword.fetch(opts, :skip) do
-                      {:ok, true} ->
-                        # return user; don't run multi
-                        {:skip_multi, user}
-
-                      _ ->
-                        # run multi
-                        with {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
-                          {:ok, user}
-                        end
-                    end
-
-                  nil ->
-                    IO.puts("confirm_user_email_token:User Expired")
-                    {nil, :expired}
-                end
-            end
-
+                      {:ok, user}
+                    nil ->
+                      IO.puts("confirm_user_email_token: User Expired")
+                      {nil, :expired}
+                    {:error, error} ->
+                      {:error, error}
+                  end
+              end
           nil ->
             IO.puts("confirm_user_email_token: No User found")
             {nil, :not_found}
@@ -877,7 +866,7 @@ defmodule TurnStile.Patients do
   end
 
   # skip - don't run multi in testing
-  defp confirm_user_multi(user) do
+  def confirm_user_multi(user) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.confirm_changeset(user))
     |> Ecto.Multi.delete_all(

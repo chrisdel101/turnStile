@@ -155,23 +155,27 @@ defmodule TurnStileWeb.UserAuth do
       |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id, current_user.id))
     else
       # check URL encoded_token - match url to hashed-token in DB
-      case Patients.confirm_user_email_token(encoded_token, user_id) do
+      case Patients.confirm_user_email_token(encoded_token) do
         {:ok, user} ->
-          # IO.inspect(user, label: "USER")
+          IO.inspect(user, label: "USER")
           case authorize_organization_matches_user?(conn, user)
           do
             true ->
               case authorize_user_id_param_matches_user?(conn, user) do
                 true ->
-                  conn
-                  |> log_in_user(conn, user)
-                  |> redirect(to: (signed_in_main_path(conn, user) ))
+                   # run multi - after all succeeds only
+                   with {:ok, %{user: user}} <- TurnStile.Repo.transaction(Patients.confirm_user_multi(user)) do
+                    {:ok, user}
+                      conn
+                      |> log_in_user(user)
+                      |> redirect(to: (signed_in_main_path(conn, user) ))
+                  end
                 false ->
                   IO.puts("Error: handle_validate_email_token: authorize_user_id_param_matches_user? false")
                   conn
                   |> put_flash(
                     :error,
-                    "You is URL contained incorrect values. Request a new link from your provider.")
+                   "Your is URL contained incorrect values. Confirm you are accessing the correct user and retry.")
                   |> redirect(to: "/")
                   |> halt()
               end
@@ -180,62 +184,17 @@ defmodule TurnStileWeb.UserAuth do
               conn
               |> put_flash(
                 :error,
-                "You is URL contained incorrect values. Request a new link from your provider.")
+               "Your is URL contained incorrect values. Confirm you are accessing the correct organization and retry.")
               |> redirect(to: "/")
               |> halt()
           end
-        # used for testing purposes only when skip: true
-        # don;t use this path in prod
-        {:skip_multi, user} ->
-          case authorize_organization_matches_user?(conn, user)
-          do
-            true ->
-              IO.puts("handle_validate_email_token: authorize_organization_matches_user? true")
-              case authorize_user_id_param_matches_user?(conn, user) do
-                true ->
-                  IO.puts("handle_validate_email_token: authorize_user_id_param_matches_user? true")
-                  conn
-                  |> send_resp(202, "Status: 202. Run skip mutli: true. User email token confirmed.")
-                false ->
-                  IO.puts("Error: handle_validate_email_token: authorize_user_id_param_matches_user? false")
-                  conn
-                  |> put_flash(
-                    :error,
-                    "Invalid URL. Make sure all the values are correct in the URL and try again."
-                  )
-                  |> redirect(to: "/")
-                  |> halt()
-              end
-            false ->
-              IO.puts("Error: handle_validate_email_token: authorize_organization_matches_user? false")
-              conn
-              |> put_flash(
-                :error,
-                "Invalid URL. Make sure all the values are correct in the URL and try again."
-              )
-              |> redirect(to: "/")
-              |> halt()
-          end
-
-
         {nil, :not_found} ->
           # no users matching - b/c user session does not match any users
           IO.puts("user_auth:  not_found")
-
           conn
           |> put_flash(:error, "Sorry, your URL link is invalid.")
           |> redirect(to: "/")
 
-        :invalid_input_token ->
-          # error on func call - b/c user has a malfromed URL i.e. extra quote at end
-          IO.puts("user_auth:  :invalid_input_token")
-
-          conn
-          |> put_flash(
-            :error,
-            "Sorry, your URL link contains errors and is invalid. Confirm it is correct and try again, or contact your provider for a new link."
-          )
-          |> redirect(to: "/")
 
         {nil, :expired} ->
           # valid request but expired - will be deleted on this call
@@ -252,6 +211,16 @@ defmodule TurnStileWeb.UserAuth do
           |> put_flash(
             :error,
             "Sorry, your link has expired. Contact your provider to resend a new link."
+          )
+          |> redirect(to: "/")
+        :invalid_input_token ->
+          # error on func call - b/c user has a malfromed URL i.e. extra quote at end
+          IO.puts("user_auth:  :invalid_input_token")
+
+          conn
+          |> put_flash(
+            :error,
+            "Sorry, your URL link contains errors and is invalid. Confirm it is correct and try again, or contact your provider for a new link."
           )
           |> redirect(to: "/")
       end
@@ -271,7 +240,7 @@ defmodule TurnStileWeb.UserAuth do
   if you are not using LiveView.
   """
   def log_in_user(conn, user, params \\ %{}) do
-    IO.puts("LOGIN")
+    # IO.puts("LOGIN")
     {token, _token_struct} = Patients.build_and_insert_user_session_token(user)
 
     conn
