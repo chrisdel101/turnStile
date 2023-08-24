@@ -69,22 +69,55 @@ defmodule TurnStileWeb.UserAuth do
   - pipeline plug
   - used after user email token is confirmed
   - ensure URL org id matches current_user else redirect request
+  - ENV flag is used to toggle this off and use only cookie
   """
   def ensure_organization_matches_current_user(conn, _opts) do
-    current_user = conn.assigns[:current_user]
-    # IO.inspect(conn.assigns[:current_user], label: "current_user: ensure_organization_matches_current_user")
-    # IO.inspect(conn.params, label: "conn.param: ensure_organization_matches_current_user")
-    if conn.params["organization_id"] && (current_user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
-      conn
+    if System.get_env("ENFORCE_USER_URL_VALIDITY_OVER_COOKIE") === "true" do
+      current_user = conn.assigns[:current_user]
+      # IO.inspect(conn.assigns[:current_user], label: "current_user: ensure_organization_matches_current_user")
+      # IO.inspect(conn.params, label: "conn.param: ensure_organization_matches_current_user")
+      if conn.params["organization_id"] && (current_user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
+        conn
+      else
+        IO.puts("Error: ensure_organization_matches_current_user failed. Organization params do not matched current_user.organization_id")
+        conn
+        |> put_flash(
+          :error,
+          "Invalid URL. Make sure all the values are correct in the URL and try again."
+        )
+        |> redirect(to: "/")
+        |> halt()
+      end
     else
-      IO.puts("ensure_organization_matches_current_user failed. Organization params do not matched current_user.organization_id")
       conn
-      |> put_flash(
-        :error,
-        "Invalid URL. Make sure all the values are correct in the URL and try again."
-      )
-      |> redirect(to: "/")
-      |> halt()
+    end
+  end
+  @doc """
+  ensure_organization_matches_current_user
+  - pipeline plug
+  - used after user email token is confirmed
+  - ensure URL org id matches current_user else redirect request
+  - ENV flag is used to toggle this off and use only cookie
+  """
+  def ensure_user_id_param_matches_current_user(conn, _opts) do
+    if System.get_env("ENFORCE_USER_URL_VALIDITY_OVER_COOKIE") === "true" do
+      current_user = conn.assigns[:current_user]
+      # IO.inspect(conn.assigns[:current_user], label: "current_user: ensure_user_id_param_matches_current_user")
+      # IO.inspect(conn.params, label: "conn.param: ensure_user_id_param_matches_current_user")
+      if conn.params["user_id"] && (current_user.id == TurnStile.Utils.convert_to_int(conn.params["user_id"])) do
+        conn
+      else
+        IO.puts("Error: ensure_user_id_param_matches_current_user failed. Organization params do not matched current_user.organization_id")
+        conn
+        |> put_flash(
+          :error,
+          "Invalid URL. Make sure all the values are correct in the URL and try again."
+        )
+        |> redirect(to: "/")
+        |> halt()
+      end
+    else
+      conn
     end
   end
    @doc """
@@ -125,29 +158,65 @@ defmodule TurnStileWeb.UserAuth do
       case Patients.confirm_user_email_token(encoded_token, user_id) do
         {:ok, user} ->
           # IO.inspect(user, label: "USER")
-          conn
-          # log in and set session token for future requests
-          |> ensure_organization_matches_user(user)
-          |> log_in_user(user)
-          |> redirect(to: (signed_in_main_path(conn, user) ))
-      # used for testing purposes only when skip: true
-      # don;t use this path in prod
-       {:skip_multi, user} ->
-          # IO.inspect(user, label: "confirm_user_email_token skip flag: true")
-          conn
-          # log in and set session token for future requests
-          |> ensure_organization_matches_user(user)
-          |> send_resp(202, "Status: 202. Run skip mutli: true. User email token confirmed.")
-        {nil, :not_matched} ->
-          # user does match but - url :id is not correct for user token
-          IO.puts("user_auth: user not_matched: User param :id does not match the token user id")
+          case authorize_organization_matches_user?(conn, user)
+          do
+            true ->
+              case authorize_user_id_param_matches_user?(conn, user) do
+                true ->
+                  conn
+                  |> log_in_user(conn, user)
+                  |> redirect(to: (signed_in_main_path(conn, user) ))
+                false ->
+                  IO.puts("Error: handle_validate_email_token: authorize_user_id_param_matches_user? false")
+                  conn
+                  |> put_flash(
+                    :error,
+                    "You is URL contained incorrect values. Request a new link from your provider.")
+                  |> redirect(to: "/")
+                  |> halt()
+              end
+            false ->
+              IO.puts("Error: handle_validate_email_token: authorize_organization_matches_user? false")
+              conn
+              |> put_flash(
+                :error,
+                "You is URL contained incorrect values. Request a new link from your provider.")
+              |> redirect(to: "/")
+              |> halt()
+          end
+        # used for testing purposes only when skip: true
+        # don;t use this path in prod
+        {:skip_multi, user} ->
+          case authorize_organization_matches_user?(conn, user)
+          do
+            true ->
+              IO.puts("handle_validate_email_token: authorize_organization_matches_user? true")
+              case authorize_user_id_param_matches_user?(conn, user) do
+                true ->
+                  IO.puts("handle_validate_email_token: authorize_user_id_param_matches_user? true")
+                  conn
+                  |> send_resp(202, "Status: 202. Run skip mutli: true. User email token confirmed.")
+                false ->
+                  IO.puts("Error: handle_validate_email_token: authorize_user_id_param_matches_user? false")
+                  conn
+                  |> put_flash(
+                    :error,
+                    "Invalid URL. Make sure all the values are correct in the URL and try again."
+                  )
+                  |> redirect(to: "/")
+                  |> halt()
+              end
+            false ->
+              IO.puts("Error: handle_validate_email_token: authorize_organization_matches_user? false")
+              conn
+              |> put_flash(
+                :error,
+                "Invalid URL. Make sure all the values are correct in the URL and try again."
+              )
+              |> redirect(to: "/")
+              |> halt()
+          end
 
-          conn
-          |> put_flash(
-            :error,
-            "Sorry, your URL link has errors. Verify it is correct and try again, or contact your provider for a new link."
-          )
-          |> redirect(to: "/")
 
         {nil, :not_found} ->
           # no users matching - b/c user session does not match any users
@@ -202,6 +271,7 @@ defmodule TurnStileWeb.UserAuth do
   if you are not using LiveView.
   """
   def log_in_user(conn, user, params \\ %{}) do
+    IO.puts("LOGIN")
     {token, _token_struct} = Patients.build_and_insert_user_session_token(user)
 
     conn
@@ -220,25 +290,33 @@ defmodule TurnStileWeb.UserAuth do
     conn
   end
   @doc """
-  ensure_organization_matches_user
+  authorize_organization_matches_user?
   - used during user email token confirmation handle_validate_email_token before login
   - requires user struct matches from DB matching token
   - ensure URL org_id matches user struct
   """
-  def ensure_organization_matches_user(conn, user) do
-    IO.inspect(user, label: "user: ensure_organization_matches_user")
+  def authorize_organization_matches_user?(conn, user) do
+    IO.inspect(user, label: "user: authorize_organization_matches_user?")
     IO.inspect(conn.params, label: "conn.param: ensure_organization_matches_current_user")
     if conn.params["organization_id"] && (user.organization_id == TurnStile.Utils.convert_to_int(conn.params["organization_id"])) do
-      conn
+      true
     else
-      IO.puts("ensure_organization_matches_user failed. Organization params do not matched user.organization_id")
-      conn
-      |> put_flash(
-        :error,
-        "Invalid URL. Are you accesing the correct organization? Make sure all the values are correct in the URL and try again."
-      )
-      |> redirect(to: "/")
-      |> halt()
+     false
+    end
+  end
+  @doc """
+  authorize_user_id_param_matches_user?
+  - used during user email token confirmation handle_validate_email_token before login
+  - requires user struct matches from DB matching token
+  - ensure URL user_id matches user struct
+  """
+  def authorize_user_id_param_matches_user?(conn, user) do
+    IO.inspect(user, label: "user: authorize_user_id_param_matches_user?")
+    IO.inspect(conn.params, label: "conn.param: authorize_user_id_param_matches_user?")
+    if conn.params["user_id"] && (user.id == TurnStile.Utils.convert_to_int(conn.params["user_id"])) do
+      true
+    else
+      false
     end
   end
 

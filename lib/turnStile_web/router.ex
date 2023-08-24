@@ -181,12 +181,16 @@ defmodule TurnStileWeb.Router do
   scope "/organizations/:organization_id/users", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
     # user clicks link in email
+    # first validate token is linked to user
+    # second check organization matches the URL
+    # third user login and redirect to :new
     get "/:user_id/:token", UserAuth, :handle_validate_email_token
   end
 
   scope "organizations/:organization_id/users", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user,
-    :ensure_user_matches_organization
+    :ensure_organization_matches_current_user,
+    :ensure_user_id_param_matches_current_user
   ]
     # redirect here after prev :ok
     get "/:user_id", UserSessionController, :new
