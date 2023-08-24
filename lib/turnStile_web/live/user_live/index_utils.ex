@@ -206,10 +206,11 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
   - inserts into DB so user can be verified
   """
   def handle_generate_verification_code(socket) do
+    current_employee = socket.assigns[:current_employee]
     # generate a code
     code = UserToken.generate_user_verification_code(3)
     #  hash and insert into DB
-    case Patients.build_and_insert_user_verification_code_token(code) do
+    case Patients.build_and_insert_user_verification_code_token(code, current_employee.organization_id) do
       {user_url, _token, encoded_token} ->
         IO.inspect(user_url)
         IO.inspect(encoded_token)

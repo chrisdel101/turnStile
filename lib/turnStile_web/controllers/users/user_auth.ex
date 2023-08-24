@@ -55,7 +55,6 @@ defmodule TurnStileWeb.UserAuth do
       conn
     else
       IO.puts("require_authenticated_user: failed")
-
       conn
       |> put_flash(
         :info,
@@ -223,7 +222,7 @@ defmodule TurnStileWeb.UserAuth do
 
     if current_user do
       conn
-      |> redirect(to: Routes.user_session_path(conn, :new, current_user.id))
+      |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id, current_user.id))
     else
       # check URL encoded_token - match url to hashed-token in DB
       case Patients.confirm_user_email_token(encoded_token, user_id) do
@@ -232,7 +231,7 @@ defmodule TurnStileWeb.UserAuth do
           conn
           # log in and set session token for future requests
           |> log_in_user(user)
-          |> redirect(to: signed_in_main_path(conn, user) || get_session(conn, :user_return_to))
+          |> redirect(to: (signed_in_main_path(conn, user) ))
 
         {nil, :not_matched} ->
           # user does match but - url :id is not correct for user token
@@ -310,6 +309,7 @@ defmodule TurnStileWeb.UserAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  def signed_in_main_path(conn, current_user),
-    do: Routes.user_session_path(conn, :new, Map.get(current_user, :id))
+  def signed_in_main_path(conn, current_user) do
+    Routes.user_session_path(conn, :new, current_user.organization_id, current_user.id)
+  end
 end

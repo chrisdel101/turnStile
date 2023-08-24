@@ -896,13 +896,13 @@ defmodule TurnStile.Patients do
   @doc """
   Generates a verification code token. used for user to register themsevlves when give a verification code
   """
-  def build_and_insert_user_verification_code_token(user_verification_token) do
+  def build_and_insert_user_verification_code_token(user_verification_token, organization_id) do
     {encoded_token, user_token} = UserToken.build_verification_code_token(user_verification_token)
     # IO.inspect(encoded_token, label: "encoded user_token")
     case Repo.insert(user_token) do
       {:ok, token} ->
         {
-          TurnStile.Utils.build_user_registration_url(encoded_token),
+          TurnStile.Utils.build_user_registration_url(encoded_token, organization_id),
           token, encoded_token
         }
 

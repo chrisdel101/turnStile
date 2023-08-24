@@ -19,6 +19,7 @@ defmodule TurnStileWeb.UserConfirmationController do
 
 
   def update(conn, %{"_action" => "confirm", "user_id" => user_id}) do
+    current_user = conn.assigns.current_user
     a = AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @confirm_value, "response_key" => @confirm_key})
     IO.inspect(a, label: "a")
     # Handle confirm action
@@ -26,19 +27,22 @@ defmodule TurnStileWeb.UserConfirmationController do
       {:ok, alert} ->
         conn
         |> put_flash(:success, alert.system_response.body)
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
+        |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id, user_id))
 
       {:error, error_msg} ->
         conn
         |> put_flash(:error, error_msg)
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
+        |> redirect(to: Routes.user_session_path(conn, :new,
+        current_user.organization_id, user_id))
       nil ->
         conn
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
+        |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id,
+        user_id))
     end
   end
 
   def update(conn, %{"_action" => "cancel", "user_id" => user_id}) do
+    current_user = conn.assigns.current_user
     # Handle cancel action
     case AlertController.receive_email_alert(conn, %{"user_id" => user_id, "response_value" => @cancel_value, "response_key" => @cancel_key}) do
       {:ok, alert} ->
@@ -52,7 +56,8 @@ defmodule TurnStileWeb.UserConfirmationController do
       {:error, error_msg} ->
         conn
         |> put_flash(:error, error_msg)
-        |> redirect(to: Routes.user_session_path(conn, :new, user_id))
+        |> redirect(to: Routes.user_session_path(conn, :new,
+        current_user.organization_id, user_id))
     end
   end
 

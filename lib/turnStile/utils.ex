@@ -192,13 +192,13 @@ defmodule TurnStile.Utils do
 
   def build_user_alert_url(user, encoded_user_token) do
     base_url = TurnStileWeb.Endpoint.url()
-      confirmation_url = "#{base_url}/users/#{user.id}/#{encoded_user_token}"
+      confirmation_url = "#{base_url}/organizations/#{user.organization_id}/users/#{user.id}/#{encoded_user_token}"
       # Further processing
       confirmation_url
   end
-  def build_user_registration_url(encoded_user_token) do
+  def build_user_registration_url(encoded_user_token, organization_id) do
     base_url = TurnStileWeb.Endpoint.url()
-      confirmation_url = "#{base_url}//users/register/#{encoded_user_token}"
+      confirmation_url = "#{base_url}/organiizations/#{organization_id}/users/register/#{encoded_user_token}"
       # Further processing
       confirmation_url
   end

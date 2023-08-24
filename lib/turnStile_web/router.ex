@@ -168,23 +168,26 @@ defmodule TurnStileWeb.Router do
 
   end
 
-  scope "/users/register/", TurnStileWeb do
+  # user filling out registation via self form
+  scope "/organizations/:id/users/register/", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
-  #  init call by user; redirects after token confirmation
+    # check token; render form
     get "/:token", UserRegistrationController, :new
-    post "/:token", UserRegistrationController, :handle_create
+    # user self form submit
+    post "/:token",
+    UserRegistrationController, :handle_create
   end
 
-  scope "/users", TurnStileWeb do
+  scope "/organizations/:organizaton_id/users", TurnStileWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
-  #  init call by user; redirects after token confirmation
+    # user clicks link in email
     get "/:user_id/:token", UserAuth, :handle_validate_email_token
   end
 
-  scope "/users", TurnStileWeb do
+  scope "organizations/:organizaton_id/users", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user
   ]
-    # render user session page
+    # redirect here after prev :ok
     get "/:user_id", UserSessionController, :new
     # when logout button is clicked
     delete "/:user_id/log_out", UserSessionController, :delete

@@ -6,12 +6,12 @@
 <.form
   let={_f}
   for={:user}
-  action={Routes.user_confirmation_path(@conn, :update,  @user.id)}
+  action={Routes.user_confirmation_path(@conn, :update,  @user.organization_id, @user.id)}
 >
   <div>
     <%= submit("Confirm", name: "_action", value: "confirm") %>
     <%= submit("Cancel", name: "_action", value: "cancel", data: [confirm: "Are you sure?. \n\nThis cannot be undone. You will be deleted from the system and lose your spot."]) %>
   </div>
   <%!-- TODO delete later --%>
-   <%= link("Log out", to: Routes.user_session_path(@conn, :delete, @user.id), method: :delete) %>
+   <%= link("Log out", to: Routes.user_session_path(@conn, :delete,  @user.organization_id, @user.id), method: :delete) %>
 </.form>
