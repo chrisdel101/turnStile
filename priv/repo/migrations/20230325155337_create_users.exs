@@ -26,6 +26,7 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
 
     create table(:user_tokens) do
       add :user_id, references(:users, on_delete: :delete_all) # remmove null:false to allow for verication tokens
+      add :organization_id, references(:organizations, on_delete: :delete_all)
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string

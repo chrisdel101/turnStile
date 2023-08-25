@@ -27,6 +27,7 @@ defmodule TurnStile.Patients.UserToken do
     field :context, :string
     field :sent_to, :string
     belongs_to :user, TurnStile.Patients.User
+    belongs_to :organization, TurnStile.Company.Organization
 
     timestamps(updated_at: false)
   end
@@ -66,11 +67,11 @@ defmodule TurnStile.Patients.UserToken do
   end
 
   # generated and saved before user is crearted yet, so cannot contain any user info
-  def build_verification_code_token(user_verification_code) do
-    build_hashed_verification_token(user_verification_code)
+  def build_verification_code_token(user_verification_code, organization_id) do
+    build_hashed_verification_token(user_verification_code, organization_id)
   end
 
-  defp build_hashed_verification_token(user_verification_code) do
+  defp build_hashed_verification_token(user_verification_code, organization_id) do
     # hash the code given to user
     hashed_token = :crypto.hash(@hash_algorithm, user_verification_code)
     # encode the original code and make into URL, store the hash in the DB
@@ -78,6 +79,7 @@ defmodule TurnStile.Patients.UserToken do
      %UserToken{
        token: hashed_token,
        context: "verification",
+       organization_id: organization_id,
        sent_to: nil,
        user_id: nil
      }}
