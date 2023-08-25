@@ -15,7 +15,7 @@ defmodule TurnStileWeb.UserRegistrationController do
   # {_,query}  = TurnStile.Patients.UserToken.encoded_verification_token_and_context_query(enc_token, "verification")
   # TurnStile.Repo.one(query)
 
-  def new(conn, %{"token" => token}) do
+  def new(conn, %{"token" => token, "id" => organization_id}) do
     # IO.inspect(Patients.confirm_user_verification_token(token), label: "HERE")
     # delete any aged-out tokens from previous sessions
     Patients.delete_expired_verification_tokens
@@ -114,5 +114,28 @@ defmodule TurnStileWeb.UserRegistrationController do
     else
       {:error, changeset}
     end
+  end
+  def quick_new(conn, %{"token" => token, "id" => organization_id}) do
+    # changeset = TurnStile.Patients.create_user()
+    conn
+    |> render("new.html", organization_id: organization_id,  changeset: TurnStile.Patients.create_user(), token: token)
+  end
+  def quick_send(conn, %{"id" => organization_id , "token" => token}) do
+    Phoenix.PubSub.broadcast(
+      TurnStile.PubSub,
+      PubSubTopicsMap.get_topic("USER_REGISTRATION"),
+      {:user_registation_form, %{user_params: %{
+             first_name: "Joe",
+             last_name: "Schmoe",
+             phone: "3065190138",
+             email: "arssonist@yahoo.com",
+             alert_format_set: "email",
+             health_card_num: 9999,
+             date_of_birth: Date.from_iso8601!("1900-01-01")
+           }
+      }})
+      conn
+      |> put_flash(:success, "Thank your. Your form was successfully submitted")
+      |> render("new.html", organization_id: organization_id,  changeset: TurnStile.Patients.create_user(), token: token)
   end
 end

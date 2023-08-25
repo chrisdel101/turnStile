@@ -1,55 +1,67 @@
-<h2>Please fill out the the form and hit submit</h2>
-<.form let={f} for={@changeset} action={Routes.user_registration_path(@conn, :handle_create, @token)}id="user-self_registration-form">
-    <%= if @changeset.action do %>
-        <div class="alert alert-danger">
-        <p>Oops, something went wrong! Please check the errors below.</p>
+  <%= if "quick-test" not in @conn.path_info do %>
+    <h2>Please fill out the the form and hit submit</h2>
+    <.form let={f} for={@changeset} action={Routes.user_registration_path(@conn, :handle_create, @organization_id, @token)}id="user-self_registration-form">
+        <%= if @changeset.action do %>
+            <div class="alert alert-danger">
+            <p>Oops, something went wrong! Please check the errors below.</p>
+            </div>
+        <% end %>
+
+        <%= label(f, :first_name) %>
+        <%= text_input(f, :first_name, value: Ecto.Changeset.get_field(@changeset, :first_name)) %>
+        <%= error_tag(f, :first_name) %>
+
+        <%= label(f, :last_name) %>
+        <%= text_input(f, :last_name, value: Ecto.Changeset.get_field(@changeset, :last_name)) %>
+        <%= error_tag(f, :last_name) %>
+
+        <%= label(f, :email) %>
+        <%= text_input(f, :email, value: Ecto.Changeset.get_field(@changeset, :email)) %>
+        <%= error_tag(f, :email) %>
+
+        <%= label(f, :phone) %>
+        <%= text_input(f, :phone, value: Ecto.Changeset.get_field(@changeset, :phone)) %>
+        <%= error_tag(f, :phone) %>
+
+        <%= label(f, "Date of Birth") %>
+        <%= date_input(f, :date_of_birth, value: Ecto.Changeset.get_field(@changeset, :date_of_birth)) %>
+        <%= error_tag(f, :date_of_birth) %>
+
+        <%= label(f, "Choose how you would like to be notified:") %>
+        <%= label(f, :alert_format_set, "SMS") %>
+        <%= radio_button(f, :alert_format_set, :sms,
+            phx_change: "radio_click",
+            checked:
+            Ecto.Changeset.get_field(@changeset, :alert_format_set) ==
+                AlertFormatTypesMap.get_alert("SMS")
+        ) %>
+
+        <%= label(f, :alert_format_set, "Email") %>
+        <%= radio_button(f, :alert_format_set, "email",
+            phx_change: "radio_click",
+            checked:
+            Ecto.Changeset.get_field(@changeset, :alert_format_set) ==
+                AlertFormatTypesMap.get_alert("EMAIL")
+        ) %>
+
+        <%= label(f, :health_card_num) %>
+        <%= number_input(f, :health_card_num,
+            value: Ecto.Changeset.get_field(@changeset, :health_card_num)
+        ) %>
+        <%= error_tag(f, :health_card_num) %>
+
+        <div>
+            <%= submit("Submit", phx_disable_with: "Saving...") %>
         </div>
-    <% end %>
+    </.form>
+ <% else %>
+     <h2>Quick Submit PubSub</h2>
 
-    <%= label(f, :first_name) %>
-    <%= text_input(f, :first_name, value: Ecto.Changeset.get_field(@changeset, :first_name)) %>
-    <%= error_tag(f, :first_name) %>
+    <.form let={_f} for={@changeset} action={"/organizations/#{@organization_id}/users/register/quick-test/#{@token}"} id="user-self_registration-form">
+        
 
-    <%= label(f, :last_name) %>
-    <%= text_input(f, :last_name, value: Ecto.Changeset.get_field(@changeset, :last_name)) %>
-    <%= error_tag(f, :last_name) %>
-
-    <%= label(f, :email) %>
-    <%= text_input(f, :email, value: Ecto.Changeset.get_field(@changeset, :email)) %>
-    <%= error_tag(f, :email) %>
-
-    <%= label(f, :phone) %>
-    <%= text_input(f, :phone, value: Ecto.Changeset.get_field(@changeset, :phone)) %>
-    <%= error_tag(f, :phone) %>
-
-    <%= label(f, "Date of Birth") %>
-    <%= date_input(f, :date_of_birth, value: Ecto.Changeset.get_field(@changeset, :date_of_birth)) %>
-    <%= error_tag(f, :date_of_birth) %>
-
-    <%= label(f, "Choose how you would like to be notified:") %>
-    <%= label(f, :alert_format_set, "SMS") %>
-    <%= radio_button(f, :alert_format_set, :sms,
-        phx_change: "radio_click",
-        checked:
-        Ecto.Changeset.get_field(@changeset, :alert_format_set) ==
-            AlertFormatTypesMap.get_alert("SMS")
-    ) %>
-
-    <%= label(f, :alert_format_set, "Email") %>
-    <%= radio_button(f, :alert_format_set, "email",
-        phx_change: "radio_click",
-        checked:
-        Ecto.Changeset.get_field(@changeset, :alert_format_set) ==
-            AlertFormatTypesMap.get_alert("EMAIL")
-    ) %>
-
-    <%= label(f, :health_card_num) %>
-    <%= number_input(f, :health_card_num,
-        value: Ecto.Changeset.get_field(@changeset, :health_card_num)
-    ) %>
-    <%= error_tag(f, :health_card_num) %>
-
-    <div>
-        <%= submit("Submit", phx_disable_with: "Saving...") %>
-    </div>
-</.form>
+        <div>
+            <%= submit("Submit", phx_disable_with: "Saving...") %>
+        </div>
+    </.form>
+ <% end %>
