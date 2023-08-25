@@ -7,8 +7,9 @@
     <p>Generate a code and give it to the user. User can use the code to register themselves on website.</p>
     <button phx-click="generate" phx-target={@myself}>Get Code</button>
     <%= if assigns[:code] do %>
-      <div class="verification-code">
-        <p><strong>Code: <%= assigns[:code] %></strong></p>
+      <div>
+        <p class="verification-code"><strong>Code: <%= assigns[:code] %></strong></p>
+        <p><span><strong>Full URL: </strong></span><%= assigns[:user_registration_url] %></p>
       </div>
     <% end %>
   <h4>Manual Add</h4>

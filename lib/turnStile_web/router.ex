@@ -167,7 +167,6 @@ defmodule TurnStileWeb.Router do
 
 
   end
-
   # user only in dev for testing - to quick submit a pubsub to index
   if Mix.env() in [:dev, :test] do
       # user filling out registation via self form
@@ -179,6 +178,11 @@ defmodule TurnStileWeb.Router do
       post "/:token",
       UserRegistrationController, :quick_send
     end
+  end
+  scope "/code", TurnStileWeb do
+    pipe_through [:browser]
+    get "/", UserRegistrationController, :index
+    post "/", UserRegistrationController, :new
   end
   # user filling out registation via self form
   scope "/organizations/:id/users/register/", TurnStileWeb do

@@ -1,0 +1,17 @@
+<section class="phx-hero">
+  <h1>Welcome to <%= gettext "%{name}", name: "TurnStile" %></h1>
+  <h3>Enter Your Verification Code Below</h3>
+  
+  <.form let={f} for={:code} action={Routes.user_registration_path(@conn, :new)}id="user-verification_code-form">
+  
+
+        <%= label(f, :verification_code) %>
+        <%= text_input(f, :verification_code) %>
+        <%= error_tag(f, :verification_code) %>
+
+        <div>
+            <%= submit("Submit", phx_disable_with: "Saving...") %>
+        </div>
+    </.form>
+  
+</section>

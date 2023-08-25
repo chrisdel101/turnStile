@@ -67,7 +67,7 @@ defmodule TurnStile.Patients.UserToken do
   end
 
   # generated and saved before user is crearted yet, so cannot contain any user info
-  def build_verification_code_token(user_verification_code, organization_id) do
+  def build_verification_code_token(user_verification_code, organization_id \\ nil) do
     build_hashed_verification_token(user_verification_code, organization_id)
   end
 

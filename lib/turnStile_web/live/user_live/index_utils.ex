@@ -210,13 +210,16 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     # generate a code
     code = UserToken.generate_user_verification_code(3)
     #  hash and insert into DB
-    case Patients.build_and_insert_user_verification_code_token(code, current_employee.organization_id) do
+    case Patients.build_and_insert_user_verification_code_token(code, current_employee.current_organization_login_id
+    ) do
       {user_url, _token, encoded_token} ->
         IO.inspect(user_url)
+        IO.inspect(code)
         IO.inspect(encoded_token)
         # optional pass user url here, maybe generate QR codes
         {:ok,
          socket
+         |> assign(:user_registration_url, user_url)
          |> maybe_assign_code(%{"code" => code})}
 
       {:error, error} ->
@@ -272,12 +275,14 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
   end
 
 
-  def maybe_assign_code(socket, nil), do: socket
+
 
   def maybe_assign_code(socket, %{"code" => code}) do
-    socket = assign(socket, :code, code)
     socket
+    |> assign(:code, code)
   end
+
+  def maybe_assign_code(socket, nil), do: socket
 
   def extract_message_popup_index(message) do
     if !is_nil(message) do
@@ -299,6 +304,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
   def extract_message_popup_user_params(nil), do: nil
 
   def extract_message_popup_user_params(message) do
+    IO.inspect(message, label: "extract_message_popup_user_params")
     # get values side of map - is a list
     values = Map.values(message)
     # make sure list is 1 item
