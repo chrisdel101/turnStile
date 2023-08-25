@@ -246,7 +246,8 @@ defmodule TurnStileWeb.UserLive.Index do
      socket
      |> push_patch(to: redirect_to)}
   end
-
+  # receives pubsub subscription from user self registation form
+  # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
   def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
     index = length(socket.assigns.user_registration_messages)
     currrent_message = %{index => user_params}
@@ -267,7 +268,7 @@ defmodule TurnStileWeb.UserLive.Index do
     # match id to msg key id
     message =
       Enum.find(socket.assigns.user_registration_messages, fn msg ->
-        Map.keys(msg) === [message_id]
+        (Map.keys(msg) === [message_id]) || (Map.keys(msg) === [String.to_integer(message_id)])
       end)
 
     # send msg to upsert form
@@ -296,7 +297,7 @@ defmodule TurnStileWeb.UserLive.Index do
     # find msg in list
     message =
       Enum.find(socket.assigns.user_registration_messages, fn msg ->
-        Map.keys(msg) === [message_id]
+        (Map.keys(msg) === [message_id]) || (Map.keys(msg) === [String.to_integer(message_id)])
       end)
     # remove message from list - cannot rely on index so must locate full message first
     user_registration_messages =

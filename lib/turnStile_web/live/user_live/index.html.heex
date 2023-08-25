@@ -1,4 +1,6 @@
 <h1>Listing Users</h1>
+<%!-- block re-renders until back to index - else child will reload --%>
+<%= if @live_action in [:index] do %>
   <%= for message <- @user_registration_messages do %>
    <PopUpComponent.render
         module={ TurnStileWeb.UserLive.PopUpComponent}
@@ -6,6 +8,7 @@
         action={@live_action}
         popup_content={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_user_params(message)}
         />
+    <% end %>
   <% end %>
 
   <%!-- <%= if @toggle_popup do %>

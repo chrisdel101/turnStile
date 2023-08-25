@@ -24,7 +24,7 @@ defmodule TurnStileWeb.UserRegistrationController do
       {:ok, _user_token} ->
          changeset = TurnStile.Patients.create_user()
          conn
-         |> render("new.html", changeset: changeset, token: token)
+         |> render("new.html", changeset: changeset, token: token, organization_id: organization_id)
       {nil, :not_found} ->
         {nil, :not_found}
         # # no users matching - b/c user session does not match any users
@@ -56,7 +56,7 @@ defmodule TurnStileWeb.UserRegistrationController do
     end
   end
 
-  def handle_create(conn, %{"user" => user_params, "token" => token}) do
+  def handle_create(conn, %{"user" => user_params, "token" => token, "id" => organization_id}) do
     case Patients.confirm_user_verification_token(token) do
       # if token exists, even exipired, send user form
         {_, %UserToken{} = user_token} ->
@@ -80,7 +80,7 @@ defmodule TurnStileWeb.UserRegistrationController do
             |> Patients.change_user(user_params)
             |> Map.put(:action, :validate)
             conn
-            |> render("new.html", changeset: changeset, token: token)
+            |> render("new.html", changeset: changeset, token: token, organization_id: organization_id)
         end
       {nil, :not_found} ->
         {nil, :not_found}
@@ -98,13 +98,6 @@ defmodule TurnStileWeb.UserRegistrationController do
         )
         |> redirect(to: "/")
     end
-  end
-
-
-  def delete(conn, _params) do
-    conn
-    |> put_flash(:info, "Logged out successfully.")
-    |> UserAuth.log_out_user()
   end
 
   defp handle_form_validation(user_params) do
