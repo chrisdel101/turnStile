@@ -5,11 +5,19 @@ defmodule TurnStile.Operations do
 
   import Ecto.Query, warn: false
   alias TurnStile.Repo
-
+  alias TurnStile.Patients.User
   alias TurnStile.Operations.{Admin, AdminToken, AdminNotifier}
 
-  ## Database getters
 
+   # ADMIN ONLY function- no accessible by employees
+  # TODO- remove this and add to admin
+  def list_all_users do
+    Repo.all(User)
+  end
+  # TODO
+  # def list_active_users_query(organization_id) do
+
+  ## Database getters
   @doc """
   Gets a admin by email.
 

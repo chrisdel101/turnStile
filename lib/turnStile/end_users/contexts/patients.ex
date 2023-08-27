@@ -15,40 +15,40 @@ defmodule TurnStile.Patients do
   @dialyzer {:no_match, get_user_by_session_token: 1}
 
 
+
   @doc """
-  Returns the list of users.
-
-  ## Examples
-
-      iex> list_users()
-      [%User{}, ...]
-
+  user_organization_base_query
+  - return all users with the matching organization_id
+  - should be base query for all other user queries
   """
-  # ADMIN ONLY function- no accessible by employees
-  # TODO- remove this and add to admin
-  def list_all_users do
-    Repo.all(User)
+  def user_organization_base_query(organization_id) do
+    from User, where: [organization_id: ^organization_id]
   end
-
-  # - lists all users w.in an organization
+ @doc """
+  list_users
+  - query for all users within an organization
+  - use base query that keeps within the organization
+ """
   def list_users(organization_id) do
-    q =
-      from(u in User,
-        where: u.organization_id == ^organization_id,
-        preload: [:employee, :organization],
-        order_by: [desc: u.inserted_at]
-      )
-
-    Repo.all(q)
+    if !is_nil(organization_id) do
+      q =
+        from user in user_organization_base_query(organization_id),
+          join: organization in assoc(user, :organization),
+          preload: [:employee, :organization],
+          order_by: [desc: user.inserted_at]
+      Repo.all(q)
+    end
   end
-
-  # query for all active users in an organization
+  @doc """
+  list_active_users_query
+  - query for all active users within an organization
+  - use base query that keeps within the organization
+  """
   def list_active_users_query(organization_id) do
     if !is_nil(organization_id) do
-    from(u in User,
-      where: u.organization_id == ^organization_id,
-      where: u.is_active? == true
-    )
+      from user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
+      where: user.is_active? == true
     end
   end
 
@@ -65,8 +65,8 @@ defmodule TurnStile.Patients do
   @doc """
   filter_active_users_x_mins_past_last_update
   """
-  # use active query to get deactivated w/in a time period - less/eq to x mins ago
-  # handles listing users based on normal operations: keeps deactivated users in the list for info purposes
+  # - use active query to get deactivated w/in a time period - less/eq to x mins ago
+  # -  handles listing users based on normal operations: keeps deactivated users in the list for info purposes
   def filter_active_users_x_mins_past_last_update(organization_id, duration_in_mins) do
     q =
       from(u in list_active_users_query(organization_id),
@@ -113,11 +113,12 @@ defmodule TurnStile.Patients do
       raise RuntimeError, "Error: get_users_by_field: organization_id cannot be nil"
     else
       if is_atom(field) do
-        q = from(u in User,
-          where: ilike(field(u, ^field), ^String.downcase(value)),
-          preload: [:employee, :organization]
-        )
-        Repo.all(q)
+        q =
+          from user in user_organization_base_query(organization_id),
+            join: organization in assoc(user, :organization),
+            where: ilike(field(user, ^field), ^String.downcase(value)),
+            preload: [:employee, :organization]
+          Repo.all(q)
       else
         IO.puts("get_users_by_field: field must be an atom")
       end
@@ -129,22 +130,27 @@ defmodule TurnStile.Patients do
       raise RuntimeError, "Error: get_users_by_field: organization_id cannot be nil"
     else
       if is_atom(field) do
-        q = from(u in User,
-          where: field(u, ^field) == ^value,
-          preload: [:employee, :organization]
-        )
+        q =
+          from user in user_organization_base_query(organization_id),
+            join: organization in assoc(user, :organization),
+            where: field(user, ^field) == ^value,
+            preload: [:employee, :organization]
         Repo.all(q)
       else
         IO.puts("get_users_by_field: field must be an atom")
       end
     end
   end
-
-  # - there could be multiple users w. the same phone so we return a list
+  @doc """
+  get_all_users_by_phone
+  - look up ALL user by phone number - regardless of organization
+  - comes from twilio so we do not know the org yet
+  # - there could be multiple users w. the same phone so returns a list
   # TODO - make more robust search
   # -needs to check if input number matches also for 1, and +1
-  # - need to check if there is match of input w/ a 1 or +1
-  def get_users_by_phone(phone) do
+  # - need to check if t  here is match of input w/ a 1 or +1
+  """
+  def get_all_users_by_phone(phone) do
     if !is_nil(phone) do
       # remove leading 1 and +; ignore otherwise
       phone = String.trim(TurnStile.Utils.remove_first_string_char(phone, "+"))
