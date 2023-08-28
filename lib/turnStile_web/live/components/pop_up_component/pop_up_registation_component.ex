@@ -1,4 +1,4 @@
-defmodule PopUpComponent do
+defmodule PopUpRegistrationComponent do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
@@ -6,7 +6,14 @@ defmodule PopUpComponent do
   def render(assigns) do
     message_id = "message-#{assigns.id}"
     ~H"""
-    <div id={message_id}class="pop-up alert alert-info">
+    <div id={message_id}class="popup  alert alert-info">
+    <div class="popup-header">
+    <h3><%= assigns[:popup_title] %></h3>
+    <p>
+      <%= assigns[:popup_body] %>
+    </p>
+    </div>
+    <div class="popup-body">
       <div class="pop-col">
         <p>Message #<%= assigns.id %></p>
       <%= parse_popup_content(assigns[:popup_content]) %>
@@ -18,6 +25,7 @@ defmodule PopUpComponent do
       <div class="pop-col">
        <a href="#" class="phx-modal-close" phx-click={hide_popup(message_id)} title="Ignore Message">✖</a>
       </div>
+    </div>
     </div>
     """
   end

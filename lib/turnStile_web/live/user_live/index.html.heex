@@ -2,18 +2,23 @@
 <%!-- block re-renders until back to index - else child will reload --%>
 <%= if @live_action in [:index] do %>
   <%= for message <- @user_registration_messages do %>
-   <PopUpComponent.render
-        module={ TurnStileWeb.UserLive.PopUpComponent}
+  <% IO.inspect(assigns) %>
+   <PopUpRegistrationComponent.render
+        module={TurnStileWeb.UserLive.PopUpRegistrationComponent}
         id={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_index(message)}
         action={@live_action}
+        popup_title={assigns[:popup_title]}
+        popup_body={assigns[:popup_body]}
         popup_content={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_user_params(message)}
         />
     <% end %>
   <%= for user_tuple <- @unmatched_SMS_users do %>
-   <PopUpComponent.render
-        module={TurnStileWeb.UserLive.PopUpComponent}
+   <PopUpMatchComponent.render
+        module={TurnStileWeb.UserLive.PopUpMatchComponent}
         id={TurnStileWeb.UserLive.Index.IndexUtils.extract_user_popup_index(user_tuple)}
         action={@live_action}
+        popup_title={assigns[:popup_title]}
+        popup_body={assigns[:popup_body]}
         popup_content={TurnStileWeb.UserLive.Index.IndexUtils.extract_user_popup_content(user_tuple)}
         />
     <% end %>

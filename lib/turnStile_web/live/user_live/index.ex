@@ -47,44 +47,43 @@ defmodule TurnStileWeb.UserLive.Index do
     {:ok,
      assign(
        socket,
-       toggle_popup: true,
        unmatched_SMS_users: [
-        {%TurnStile.Patients.User{
-          id: 13,
-          email: "arssonist@yahoo.com",
-          first_name: "Joe",
-          health_card_num: 99991122,
-          last_name: "Schmoe69",
-          phone: "3065190138",
-          date_of_birth: ~D[1900-01-01],
-          is_active?: true,
-          user_alert_status: "pending",
-          alert_format_set: "email",
-          employee_id: 1,
-          confirmed_at: nil,
-          activated_at: ~N[2023-08-28 00:39:25],
-          deactivated_at: nil,
-          inserted_at: ~N[2023-08-28 19:24:03],
-          updated_at: ~N[2023-08-28 22:05:32]
-        }, 0},
-       {%TurnStile.Patients.User{
-          id: 1,
-          email: "arssonist@yahoo.com",
-          first_name: "Joe",
-          health_card_num: 9999,
-          last_name: "Schmoe",
-          phone: "3065190138",
-          date_of_birth: ~D[1900-01-01],
-          is_active?: true,
-          user_alert_status: "confirmed",
-          alert_format_set: "email",
-          employee_id: 1,
-          confirmed_at: nil,
-          activated_at: ~N[2023-08-25 18:42:02],
-          deactivated_at: nil,
-          inserted_at: ~N[2023-08-25 18:43:45],
-          updated_at: ~N[2023-08-28 17:40:21]
-        }, 1}
+      #   {%TurnStile.Patients.User{
+      #     id: 13,
+      #     email: "arssonist@yahoo.com",
+      #     first_name: "Joe",
+      #     health_card_num: 99991122,
+      #     last_name: "Schmoe69",
+      #     phone: "3065190138",
+      #     date_of_birth: ~D[1900-01-01],
+      #     is_active?: true,
+      #     user_alert_status: "pending",
+      #     alert_format_set: "email",
+      #     employee_id: 1,
+      #     confirmed_at: nil,
+      #     activated_at: ~N[2023-08-28 00:39:25],
+      #     deactivated_at: nil,
+      #     inserted_at: ~N[2023-08-28 19:24:03],
+      #     updated_at: ~N[2023-08-28 22:05:32]
+      #   }, 0},
+      #  {%TurnStile.Patients.User{
+      #     id: 1,
+      #     email: "arssonist@yahoo.com",
+      #     first_name: "Joe",
+      #     health_card_num: 9999,
+      #     last_name: "Schmoe",
+      #     phone: "3065190138",
+      #     date_of_birth: ~D[1900-01-01],
+      #     is_active?: true,
+      #     user_alert_status: "confirmed",
+      #     alert_format_set: "email",
+      #     employee_id: 1,
+      #     confirmed_at: nil,
+      #     activated_at: ~N[2023-08-25 18:42:02],
+      #     deactivated_at: nil,
+      #     inserted_at: ~N[2023-08-25 18:43:45],
+      #     updated_at: ~N[2023-08-28 17:40:21]
+      #   }, 1}
        ],
        user_registration_messages: [
         #  %{
@@ -124,11 +123,34 @@ defmodule TurnStileWeb.UserLive.Index do
   def handle_info(%{matching_users: non_idle_matching_users}, socket) do
     IO.inspect(non_idle_matching_users, label: "PUBSUB: non_idle_matching_users LIST in handle_info")
     indexed_tuples = Enum.with_index(non_idle_matching_users)
-    IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, [indexed_tuples])
+    # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
+    unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, indexed_tuples)
     # users are formed like {%{...}, 0}
 
-    {:noreply, assign(socket, :unmatched_SMS_users, unmtached_users)}
+    {:noreply,
+    socket
+    |> assign(:unmatched_SMS_users, unmtached_users)
+    |> assign(:popup_title, "A user with the the following details replied to an alert: Incoming Unmatched User.")
+    |> assign(:popup_body, "Multiple users with this phone numnber were found in the system. Does this user below to your organization?")
+  }
+  end
+  # receives pubsub subscription from user self registation form
+  # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
+  def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
+    # adding msgs one at a time, starting with empty list
+    index = length(socket.assigns.user_registration_messages)
+    # use list length before add to get index
+    currrent_message = %{index => user_params}
+    # add incoming message to storage
+    messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
+    # msg are formed like %{"0" => %{...}}
+
+    {:noreply,
+     socket
+     |> assign(:user_registration_messages, messages)
+     |> assign(:popup_title, "User Registration Form Recieved")
+     |> assign(:popup_body, "The following user registration form was recieved. Please review and accept the user to register them.")
+    }
   end
   def handle_info(%{send_response_params: %{
     twilio_params: twilio_params,
@@ -242,21 +264,7 @@ defmodule TurnStileWeb.UserLive.Index do
      socket
      |> push_patch(to: redirect_to)}
   end
-  # receives pubsub subscription from user self registation form
-  # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
-  def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
-    # adding msgs one at a time, starting with empty list
-    index = length(socket.assigns.user_registration_messages)
-    # use list length before add to get index
-    currrent_message = %{index => user_params}
-    # add incoming message to storage
-    messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
-    # msg are formed like %{"0" => %{...}}
 
-    {:noreply,
-     socket
-     |> assign(:user_registration_messages, messages)}
-  end
 
   @impl true
   # called via live_patch in index.html; :alert gets assigned as action
@@ -325,6 +333,12 @@ defmodule TurnStileWeb.UserLive.Index do
 
 
   @impl true
+  # called - from popup match review button on-click
+  def handle_event("user_alert_match_review", unsigned_params, socket) do
+  end
+  # called - from popup match review button on-click
+  def handle_event("user_alert_match_reject", unsigned_params, socket) do
+  end
   # called - from popup review button on-click
   # - extract mesage from list and send to apply_action
   def handle_event("user_registration_data_accept", params, socket) do

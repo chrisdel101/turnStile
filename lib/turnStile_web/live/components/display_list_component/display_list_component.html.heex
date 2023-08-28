@@ -1,13 +1,13 @@
 <div>
     <h3><%= @message %> </h3>
-    <%= if @live_action === :display &&  @search_field_name && @search_field_value do %>
+    <%= if @live_action === :display_existing_users &&  @search_field_name && @search_field_value do %>
         <p>The following users match the        <strong><%= @search_field_name %>: </strong> <%= @search_field_value %>
         </p>
      <%= if !is_nil(@user_changeset) &&  @user_changeset !== %{} do %> 
         <div>Entered User Data:
         <ul>
             <li>Last Name: <%= Ecto.Changeset.get_field(@user_changeset, :last_name) %></li>
-            <li>First Name<%= Ecto.Changeset.get_field(@user_changeset, :first_name) %></li>
+            <li>First Name: <%= Ecto.Changeset.get_field(@user_changeset, :first_name) %></li>
             <li>Health Card Number <%= Ecto.Changeset.get_field(@user_changeset, :health_card_num) %></li>
         </ul>
         </div>
@@ -22,7 +22,6 @@
       <h4><strong>Click on a list user to activate</strong>. Showing inactive users.</h4>
       <%!-- send to current component with phx-target --%>
       <%= for user <- @users do %>
-        <%!-- <% IO.inspect(@users) %>  --%>
         <%= if user.is_active? == false do %>
         <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
           <dl>
