@@ -38,3 +38,5 @@ npm-debug.log
 o.ex
 t.exs
 sessions_loader.exs
+twlio.ex
+twilio_msg_example.json

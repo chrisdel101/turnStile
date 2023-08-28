@@ -220,4 +220,9 @@ defmodule TurnStile.Utils do
       end
     end)
   end
+  def is_list_greater_that_1?(list) do
+    if !is_nil(list) do
+      length(list) !== 0 && length(list) > 1
+    end
+  end
 end

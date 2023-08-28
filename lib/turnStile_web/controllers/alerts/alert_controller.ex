@@ -315,34 +315,43 @@ defmodule TurnStileWeb.AlertController do
     # remove starting "+"
     number = Utils.remove_first_string_char(twilio_params["From"], "+")
 
-    IO.inspect(number, label: "number")
-    users_w_number = Patients.get_users_by_phone(number)
-    IO.inspect(users_w_number, label: "users_w_number")
+    # IO.inspect(number, label: "number")
+    users_match_num_list = Patients.get_all_users_by_phone(number)
+    # IO.inspect(users_match_num_list, label: "users_match_num_list")
 
     cond do
       # if more than one use w that number
-      list_is_greater_than_1(users_w_number) ->
+      Utils.is_list_greater_that_1?(users_match_num_list) ->
         # check if active
-        active_pending_users = Utils.filter_maps_list_by_truthy(users_w_number, "is_active?")
-        # TODO - reenage this
-        # check if pending - since this is a response
-        # |> Utils.filter_maps_list_by_value(:user_alert_status, "pending")
+        active_pending_users = Utils.filter_maps_list_by_truthy(users_match_num_list, "is_active?")
 
-        case list_is_greater_than_1(active_pending_users) do
+        case Utils.is_list_greater_that_1?(active_pending_users) do
+          # if more that 1 is_active? user check alert_status state
           true ->
-            # require staff action here
-            {:error, "User lookup failed. Multiple active users found."}
+            # check non-idle state
+            f = &is_user_alert_status_idle?/1
+            # loop over all users - reject user idle states
+            non_idle_state_users = Enum.reject(active_pending_users, f)
+            # IO.inspect(non_idle_state_users, label: "non_idle_state_users")
+            # if more than one non-idle state user
+            if Utils.is_list_greater_that_1?(non_idle_state_users) do
+              # require staff action here
+              {:error, "User lookup failed. Multiple active users found."}
+            else
+            # only single is_active? user with non-idle state
+              {:ok, hd(non_idle_state_users)}
+            end
 
           false ->
             # return only user
             {:ok, hd(active_pending_users)}
         end
-
-      !is_nil(users_w_number) && length(users_w_number) === 1 ->
-        {:ok, hd(users_w_number)}
-
+        # if is just a single user
+      !is_nil(users_match_num_list) && length(users_match_num_list) === 1 ->
+        {:ok, hd(users_match_num_list)}
+    #  if there are zero or nil matches
       true ->
-        error = "Error: a problem occured looking up matching user"
+        error = "Error: a problem occured looking up matching user. No matching user found."
         {:error, error}
     end
   end
@@ -410,10 +419,18 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  defp list_is_greater_than_1(list) do
-    if !is_nil(list) do
-      length(list) !== 0 && length(list) > 1
-    end
+  # is_user_alert_status_idle?
+  # - check if user matches one of the idle/inactive alert statuses
+
+  defp is_user_alert_status_idle?(user) do
+    # check for both syntax types
+    user_alert_status = Map.get(user, "user_alert_status")
+ ||  Map.get(user, :user_alert_status)
+    # check if it matches one of the invalid states
+    user_alert_status in [
+      UserAlertStatusTypesMap.get_user_status("UNALERTED"),
+      UserAlertStatusTypesMap.get_user_status("CANCELLED"),
+      UserAlertStatusTypesMap.get_user_status("EXPIRED")]
   end
 end
 
