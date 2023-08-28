@@ -284,6 +284,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
 
   def maybe_assign_code(socket, nil), do: socket
 
+  # msg is formed like %{"0" => %{...}}
   def extract_message_popup_index(message) do
     if !is_nil(message) do
       # get key from message; is an int
@@ -298,6 +299,19 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
         # TODO: think of better soluton
         9999
       end
+    end
+  end
+  # user is formed like {%{...}, 0}
+  def extract_user_popup_index(user_tuple) do
+    if !is_nil(user_tuple) do
+      {_user, index} = user_tuple
+      index
+    end
+  end
+  def extract_user_popup_content(user_tuple) do
+    if !is_nil(user_tuple) do
+      {user, _index} = user_tuple
+      user
     end
   end
 

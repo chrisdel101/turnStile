@@ -151,8 +151,13 @@ end
 
 defmodule PubSubTopicsMap do
   @topics %{
+    # handle udpate user_alert_update
     "STATUS_UPDATE" => "status_update",
+    # pop-up when user self-fill register
     "USER_REGISTRATION" => "user_registration",
+    # send SMS response from the live view
+    "SEND_SMS_SYSTEM_RESPONSE" => "send_sms_system_response",
+    "HANDLE_MULTI_USER_MATCH" => "handle_multi_user_match",
   }
   def get_topics do
     @topics

@@ -5,10 +5,8 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
   alias TurnStileWeb.EmployeeAuth
   alias TurnStile.Patients
   alias TurnStile.Patients.User
-  alias TurnStileWeb.UserLive.Index
   alias TurnStileWeb.UserLive.Index.IndexUtils
 
-  @user_search_fields [:email, :phone, :last_name, :health_card_num]
 
   @impl true
   # empty user struct getting passed as props; see index apply_action(:new)

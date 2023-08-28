@@ -175,9 +175,15 @@ defmodule TurnStileWeb.AlertController do
                       PubSubTopicsMap.get_topic("STATUS_UPDATE"),
                       %{user_alert_status: updated_user.user_alert_status}
                     )
-
-                    # physically send valid SMS response
-                    send_computed_SMS_system_response(conn, twilio_params)
+                    # send to user liveview - send respnse from here
+                    Phoenix.PubSub.broadcast(
+                      TurnStile.PubSub,
+                      PubSubTopicsMap.get_topic("SEND_SMS_SYSTEM_RESPONSE"),
+                      %{send_response_params: %{
+                        twilio_params: twilio_params,
+                        conn: conn
+                      }}
+                    )
 
                   {:error, error} ->
                     IO.inspect(error, label: "receive_sms_alert error in update_user")
@@ -270,10 +276,16 @@ defmodule TurnStileWeb.AlertController do
                 "An internal system error occured during message save. Sorry, your message was not processesed."
               )
           end
-
+        {:multiple_matches, non_idle_matching_users} ->
+          # send pop to employee to handle
+          Phoenix.PubSub.broadcast(
+            TurnStile.PubSub,
+            PubSubTopicsMap.get_topic("HANDLE_MULTI_USER_MATCH"),
+            %{matching_users: non_idle_matching_users}
+          )
         # match failure
-        {:error, error} ->
-          IO.inspect(error, label: "ERROR")
+        {:not_found, msg} ->
+          IO.inspect(msg, label: "INFO: failed to find match")
           # TODO send popup modal to get employee to resolve
 
           send_manual_system_response(conn, "Error: User account not found.")
@@ -336,7 +348,7 @@ defmodule TurnStileWeb.AlertController do
             # if more than one non-idle state user
             if Utils.is_list_greater_that_1?(non_idle_state_users) do
               # require staff action here
-              {:error, "User lookup failed. Multiple active users found."}
+              {:multiple_matches, non_idle_state_users}
             else
             # only single is_active? user with non-idle state
               {:ok, hd(non_idle_state_users)}
@@ -351,8 +363,8 @@ defmodule TurnStileWeb.AlertController do
         {:ok, hd(users_match_num_list)}
     #  if there are zero or nil matches
       true ->
-        error = "Error: a problem occured looking up matching user. No matching user found."
-        {:error, error}
+        msg = "INFO: No matching user found for SMS response."
+        {:not_found, msg}
     end
   end
 
