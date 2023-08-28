@@ -183,19 +183,19 @@ defmodule TurnStile.Patients do
   - set firt name levenstein 2 to allow 2 typo in name: let first name be flexible
   - first name is optional
   """
-  def search_users_by_last_and_first_name(last_name, first_name, levenstein_val_last_name_query \\ 1, levenstein_val_first_name_query \\ 2) do
+  def search_users_by_last_and_first_name(last_name, first_name,organization_id, levenstein_val_last_name_query \\ 1, levenstein_val_first_name_query \\ 2) do
       # query for both names first before more indepth indepedent searhes
-      case check_both_name_direct = search_last_name_and_first_name_direct(first_name, last_name) do
+      case check_both_name_direct = search_last_name_and_first_name_direct(first_name, last_name, organization_id) do
         users when not is_nil(check_both_name_direct) and length(check_both_name_direct) > 0 ->
           users
       _  ->
-        case check_both_names_ilike = search_last_name_and_first_name_ilike(last_name, first_name) do
+        case check_both_names_ilike = search_last_name_and_first_name_ilike(last_name, first_name, organization_id) do
           users when not is_nil(check_both_names_ilike) and length(check_both_names_ilike) > 0 ->
           users
         _ ->
           # IO.inspect(last_name, label: 'last_name')
           # run direct search with just last name
-          first_search_result = Repo.all(search_last_name_direct_query(last_name))
+          first_search_result = Repo.all(search_last_name_direct_query(last_name, organization_id))
           # IO.inspect("first_search_resul1t: #{inspect(first_search_result)}")
           if !is_nil(first_search_result) && length(first_search_result) > 0 do
             # IO.inspect("first_search_result1: #{inspect(first_search_result)}")
@@ -203,7 +203,7 @@ defmodule TurnStile.Patients do
             if length(first_search_result) > 1 && !is_nil(first_name) do
               IO.inspect("first_search_result refine: #{inspect(first_search_result)}")
               refine_query_by_appending_first_name(
-                search_last_name_direct_query(last_name),
+                search_last_name_direct_query(last_name, organization_id),
                 first_name,
                 levenstein_val_first_name_query
               )
@@ -214,14 +214,14 @@ defmodule TurnStile.Patients do
             end
           else
             # run search with LIKE parameter
-            second_search_result = Repo.all(search_last_name_ilike_query(last_name))
+            second_search_result = Repo.all(search_last_name_ilike_query(last_name, organization_id))
 
             if !is_nil(second_search_result) && length(second_search_result) > 0 do
               IO.inspect("second_search_result: #{inspect(second_search_result)}")
               # if multiple with last name, narrow down last name search by first name
               if length(second_search_result) > 1 && !is_nil(first_name) do
                 refine_query_by_appending_first_name(
-                  search_last_name_ilike_query(last_name),
+                  search_last_name_ilike_query(last_name, organization_id),
                   first_name,
                   levenstein_val_first_name_query
                 )
@@ -231,12 +231,12 @@ defmodule TurnStile.Patients do
               end
             else
               # run seach with levenstein
-              users = Repo.all(search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query))
+              users = Repo.all(search_user_last_name_levenstein_query(last_name, organization_id, levenstein_val_last_name_query))
               # narrow down last name search by first name
                IO.inspect("third search result: #{inspect(users)}")
               if length(users) > 1 && !is_nil(first_name) do
                 refine_query_by_appending_first_name(
-                  search_user_last_name_levenstein_query(last_name, levenstein_val_last_name_query),
+                  search_user_last_name_levenstein_query(last_name, organization_id, levenstein_val_last_name_query),
                   first_name,
                   levenstein_val_first_name_query
                 )
@@ -251,16 +251,16 @@ defmodule TurnStile.Patients do
 
   end
   # if search by last name fails run this on single input
-  def search_users_by_first_name(first_name) do
+  def search_users_by_first_name(first_name, organization_id) do
     # run direct search
-    first_search_result = Repo.all(search_first_name_direct_query(first_name))
+    first_search_result = Repo.all(search_first_name_direct_query(first_name, organization_id))
     # if no results run next query
     if length(first_search_result) === 0 do
-      second_search_result = Repo.all(search_first_name_ilike_query(first_name))
+      second_search_result = Repo.all(search_first_name_ilike_query(first_name, organization_id))
           # if no results run next query
       if length(second_search_result) === 0 do
         # run seach with levenstein
-        Repo.all(search_first_name_levenshtein_query(first_name))
+        Repo.all(search_first_name_levenshtein_query(first_name, organization_id))
       else
         second_search_result
       end
@@ -296,43 +296,47 @@ defmodule TurnStile.Patients do
       end
     end
   end
-  def search_last_name_and_first_name_ilike(first_name, last_name) do
+  def search_last_name_and_first_name_ilike(first_name, last_name, organization_id) do
      if !is_nil(first_name) && !is_nil(last_name) do
-      q = from(u in User,
-        where: ilike(u.last_name, ^"%#{last_name}%") and ilike(u.first_name, ^"%#{first_name}%"),
-        select: u
+      q = (from user in user_organization_base_query(organization_id),
+        join: organization in assoc(user, :organization),
+        where: ilike(user.last_name, ^"%#{last_name}%") and ilike(user.first_name, ^"%#{first_name}%"),
+        select: user
       )
       Repo.all(q)
     end
   end
-  def search_last_name_and_first_name_direct(first_name, last_name) do
+  def search_last_name_and_first_name_direct(first_name, last_name, organization_id) do
     if !is_nil(first_name) && !is_nil(last_name) do
-      q = from(u in User,
-        where: u.last_name == ^last_name and u.first_name == ^first_name,
-        select: u
-      )
+      q = from user in user_organization_base_query(organization_id),
+        join: organization in assoc(user, :organization),
+        where: user.last_name == ^last_name and user.first_name == ^first_name,
+        select: user
       Repo.all(q)
     end
   end
 
-  def search_last_name_direct_query(last_name) do
-    from(u in User,
-      where: u.last_name == ^last_name,
-      select: u
+  def search_last_name_direct_query(last_name, organization_id) do
+    from(user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
+      where: user.last_name == ^last_name,
+      select: user
     )
   end
 
-  def search_last_name_ilike_query(last_name) do
-    from(u in User,
-      where: ilike(u.last_name, ^"%#{last_name}%"),
-      select: u
+  def search_last_name_ilike_query(last_name, organization_id) do
+    from(user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
+      where: ilike(user.last_name, ^"%#{last_name}%"),
+      select: user
     )
   end
 
-  def search_user_last_name_levenstein_query(last_name, levenstein_level) do
-    from(u in User,
+  def search_user_last_name_levenstein_query(last_name, organization_id, levenstein_level) do
+    from(user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
       where: fragment("levenshtein(LOWER(last_name), ?) <= ?", ^last_name, ^levenstein_level),
-      select: u
+      select: user
     )
   end
 
@@ -357,24 +361,27 @@ defmodule TurnStile.Patients do
         fragment("levenshtein(LOWER(first_name), LOWER(?)) <= ?", ^first_name, ^levenstein_level)
     )
   end
-  def search_first_name_direct_query(first_name) do
-    from(u in User,
-      where: fragment("lower(?) = lower(?)", u.first_name, ^first_name),
-      select: u
+  def search_first_name_direct_query(first_name, organization_id) do
+    from(user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
+      where: fragment("lower(?) = lower(?)", user.first_name, ^first_name),
+      select: user
     )
   end
 
-  def search_first_name_ilike_query(first_name) do
-    from(u in User,
-      where: ilike(u.first_name, ^"%#{first_name}%"),
-      select: u
+  def search_first_name_ilike_query(first_name, organization_id) do
+    from(user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
+      where: ilike(user.first_name, ^"%#{first_name}%"),
+      select: user
     )
   end
-  def search_first_name_levenshtein_query(first_name, levenstein_level \\ 1) do
-    from(u in User,
+  def search_first_name_levenshtein_query(first_name, organization_id, levenstein_level \\ 1) do
+    from(user in user_organization_base_query(organization_id),
+      join: organization in assoc(user, :organization),
       where:
         fragment("levenshtein(LOWER(first_name), LOWER(?)) <= ?", ^first_name, ^levenstein_level),
-      select: u
+      select: user
     )
   end
 

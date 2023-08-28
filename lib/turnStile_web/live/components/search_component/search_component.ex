@@ -36,7 +36,7 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
         )
       }
     else
-      existing_users_found = handle_user_search(user_name_input)
+      existing_users_found = handle_user_search(socket, user_name_input)
       IO.inspect(existing_users_found, label: "search: existing_users_found")
       #send a message with new state to parent
       send(self(), {:users_found,
@@ -47,7 +47,9 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
 
   # only handles 2 part names for now
   # TODO: rotate thru 2-by-2 checking all names
-  def handle_user_search(input_value) do
+  def handle_user_search(socket, input_value) do
+    current_employee = socket.assigns[:current_employee]
+    organization_id = current_employee.current_organization_id
     # slugigy param
     lower_user_name = String.downcase(input_value)
     split_names_list = String.split(lower_user_name)
@@ -55,7 +57,7 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
     name1 = hd split_names_list
     name2 = Enum.at(split_names_list, 1)
     # search by last/first name
-    users = Patients.search_users_by_last_and_first_name(name1, name2)
+    users = Patients.search_users_by_last_and_first_name(name1, name2, organization_id)
     # IO.inspect(users, label: "users UP")
     # if no results using first/last name
     if Enum.empty?(users) do
@@ -63,10 +65,10 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
         # if name2 is not empty
         !is_nil(name2) && name2 !== "" ->
         # try flipping the names to last/first name and run again
-          Patients.search_users_by_last_and_first_name(name1, name2)
+          Patients.search_users_by_last_and_first_name(name1, name2, organization_id)
         is_nil(name2) || name2 == "" ->
           # if name2 is empty, search name1 for first name
-          Patients.search_users_by_first_name(name1)
+          Patients.search_users_by_first_name(name1, organization_id)
         true ->
           []
       end
