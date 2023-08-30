@@ -1,4 +1,19 @@
 <div>
+<main class="container">
+  <p class="alert alert-info" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+  <p class="alert alert-success" role="alert"
+      phx-click="lv:clear-flash"
+      phx-value-key="success"><%= live_flash(@flash, :success) %></p>
+  <p class="alert alert-danger" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+  <p class="alert alert-warning" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
+</main>
+
     <h3><%= @message %> </h3>
     <%= if @live_action === :display_existing_users &&  @search_field_name && @search_field_value do %>
         <p>The following users match the        <strong><%= @search_field_name %>: </strong> <%= @search_field_value %>
@@ -13,17 +28,18 @@
         </div>
      <% end %>
     <% end %>
-  <div class="users-list">
-  <%!-- <div id={"search-user-1"}  class="search-user" phx-click="select_user" phx-value-user_id={"1"} phx-target={@myself} >HERE </div>   <% IO.inspect(@users) %> --%>
+  <div class="display-list-users">
+  <%!-- <div id={"search-user-1"}  class="search-user" phx-click="select_user" phx-value-user_id={"1"} phx-target={@myself} >HERE </div>    --%>
     <%= if length(@users) > 0 do %>
      <p phx-click="custom-back" phx-target={@myself}>
       <%= link "Add Original User", to: "#"%>
      </p>
-      <h4><strong>Click on a list user to activate</strong>. Showing inactive users.</h4>
-      <%!-- send to current component with phx-target --%>
+      <h2><strong>Organiation name: </strong><%= @organization.name %></h2>
+      <h4><strong>Click on an inactive user to activate</strong></h4>
+      <p>The following user matches were found. Click to activate the account.</p>
       <%= for user <- @users do %>
-        <%= if user.is_active? == false do %>
-        <div id={"search-user-#{user.id}"}  class="search-user" phx-click="select_user" phx-value-user_id={user.id} phx-target={@myself} >
+        <div id={"search-user-#{user.id}"}  class={"display-list-user #{if user.is_active?, do: "display-user-active", else: "display-user-inactive"}"}  phx-click={if user.is_active?, do: "select-active-user",  else: "select-inactive-user"} phx-value-user_id={user.id} 
+        lf} phx-target={@myself} >
           <dl>
             <dt><%= "#{user.first_name} #{user.last_name}" %></dt>
             <dd><%= user.health_card_num %></dd>
@@ -31,7 +47,6 @@
             <dd><%= user.email %></dd>
           </dl>
       </div>
-        <% end %>
     <% end %>
   <%= else %>
     <p>No users found</p>    
