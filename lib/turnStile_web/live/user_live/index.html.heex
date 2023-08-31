@@ -1,28 +1,31 @@
-<h1>Listing Users</h1>
-<%!-- block re-renders until back to index - else child will reload --%>
 <%= if @live_action in [:index] do %>
+<h2>Notification</h2>
   <%= for message <- @user_registration_messages do %>
   <% IO.inspect(assigns) %>
-   <PopUpRegistrationComponent.render
-        module={TurnStileWeb.UserLive.PopUpRegistrationComponent}
+   <PopUpMessageComponent.render
+        module={TurnStileWeb.UserLive.PopUpMessageComponent}
         id={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_index(message)}
         action={@live_action}
-        popup_title={assigns[:popup_title]}
-        popup_body={assigns[:popup_body]}
-        popup_content={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_user_params(message)}
+        popup_title={assigns[:popup_message_title]}
+        popup_body={assigns[:popup_message_body]}
+        popup_data={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_user_params(message)}
         />
     <% end %>
-  <%= for user_tuple <- @unmatched_SMS_users do %>
-   <PopUpMatchComponent.render
-        module={TurnStileWeb.UserLive.PopUpMatchComponent}
-        id={TurnStileWeb.UserLive.Index.IndexUtils.extract_user_popup_index(user_tuple)}
+  <%= if TurnStile.Utils.is_list_greater_that_1?( @unmatched_SMS_users) do %>
+  <%!-- <% IO.inspect(user_tuple, label: 'XXX') %> --%>
+      <PopUpHeroComponent.render
+        module={TurnStileWeb.UserLive.PopUpMessageComponent}
+        id={"unmatched_SMS_users_popup"}
         action={@live_action}
-        popup_title={assigns[:popup_title]}
-        popup_body={assigns[:popup_body]}
-        popup_content={TurnStileWeb.UserLive.Index.IndexUtils.extract_user_popup_content(user_tuple)}
+        popup_title={assigns[:popup_hero_title]}
+        popup_body={assigns[:popup_hero_body]}
+        popup_data={nil}
         />
     <% end %>
   <% end %>
+<h1>Listing Users</h1>
+<%!-- block re-renders until back to index - else child will reload --%>
+  <%!-- <% IO.inspect(@unmatched_SMS_users, label: 'XXX') %> --%>
 
   <%!-- <%= if @toggle_popup do %>
   <% end %> --%>

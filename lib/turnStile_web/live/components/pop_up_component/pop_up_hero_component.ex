@@ -1,4 +1,4 @@
-defmodule PopUpMatchComponent do
+defmodule PopUpHeroComponent do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
@@ -6,7 +6,7 @@ defmodule PopUpMatchComponent do
   def render(assigns) do
     message_id = "message-#{assigns.id}"
     ~H"""
-    <div id={message_id}class="popup  alert alert-info">
+    <div id={message_id}class="popup  alert alert-danger">
     <div class="popup-header">
      <h3><%= assigns[:popup_title] %></h3>
       <p>
@@ -15,10 +15,6 @@ defmodule PopUpMatchComponent do
     </div>
       <div class="popup-body">
         <div class="pop-col">
-          <p>
-           Name: <%= parse_popup_content(assigns[:popup_content]) %>
-          </p>
-          <p>Phone: <%= assigns[:popup_content].phone %></p>
         </div>
         <div class="pop-col">
           <button phx-click="user_alert_match_review" value={assigns.id} title="Review user before accept">Review</button>
@@ -30,16 +26,15 @@ defmodule PopUpMatchComponent do
       </div>
     </div>
     """
-  end
+    end
+  # @impl
+  # def handle_event("send_data_to_parent", %{value: _value}, socket) do
+  #   # IO.inspect(socket.assigns, label: "send_data_to_parent")
+  #   send_data_to_parent(socket)
+  #   {:noreply, socket}
+  # end
   def hide_popup(popup_id) do
     %JS{}
     |> JS.hide(transition: "fade-out", to: "##{popup_id}")
-  end
-  defp parse_popup_content(nil), do: nil
-  defp parse_popup_content(popup_conent) when is_map(popup_conent) do
-    "#{popup_conent.last_name}, #{popup_conent.first_name}"
-  end
-  defp parse_popup_content(popup_conent) when is_binary(popup_conent) do
-    popup_conent
   end
 end

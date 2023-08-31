@@ -1,4 +1,4 @@
-defmodule PopUpRegistrationComponent do
+defmodule PopUpMessageComponent do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
@@ -16,7 +16,7 @@ defmodule PopUpRegistrationComponent do
     <div class="popup-body">
       <div class="pop-col">
         <p>Message #<%= assigns.id %></p>
-      <%= parse_popup_content(assigns[:popup_content]) %>
+      <%= parse_popup_data(assigns[:popup_data]) %>
       </div>
       <div class="pop-col">
         <button phx-click="user_registration_data_accept" value={assigns.id} title="Review message before submit">Review</button>
@@ -33,11 +33,11 @@ defmodule PopUpRegistrationComponent do
     %JS{}
     |> JS.hide(transition: "fade-out", to: "##{popup_id}")
   end
-  defp parse_popup_content(nil), do: nil
-  defp parse_popup_content(popup_conent) when is_map(popup_conent) do
+  defp parse_popup_data(nil), do: nil
+  defp parse_popup_data(popup_conent) when is_map(popup_conent) do
     "#{popup_conent.last_name}, #{popup_conent.first_name}"
   end
-  defp parse_popup_content(popup_conent) when is_binary(popup_conent) do
+  defp parse_popup_data(popup_conent) when is_binary(popup_conent) do
     popup_conent
   end
 end

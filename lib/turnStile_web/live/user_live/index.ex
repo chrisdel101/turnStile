@@ -20,8 +20,64 @@ defmodule TurnStileWeb.UserLive.Index do
   @wait_time_mins 60
   # @dialyzer {:nowarn_function, handle_event: 3}
   @dialyzer {:no_match, handle_event: 3}
-
-
+  @non_idle_matching_users [
+    %TurnStile.Patients.User{
+      id: 13,
+      email: "arssonist@yahoo.com",
+      first_name: "Joe",
+      health_card_num: 99_991_122,
+      last_name: "Schmoe69",
+      phone: "3065190138",
+      date_of_birth: ~D[1900-01-01],
+      is_active?: true,
+      user_alert_status: "pending",
+      alert_format_set: "email",
+      employee_id: 1,
+      confirmed_at: nil,
+      activated_at: ~N[2023-08-28 00:39:25],
+      deactivated_at: nil,
+      inserted_at: ~N[2023-08-28 19:24:03],
+      updated_at: ~N[2023-08-28 22:05:32]
+    },
+    %TurnStile.Patients.User{
+      id: 1,
+      email: "arssonist@yahoo.com",
+      first_name: "Joe",
+      health_card_num: 9999,
+      last_name: "Schmoe",
+      phone: "3065190138",
+      date_of_birth: ~D[1900-01-01],
+      is_active?: true,
+      user_alert_status: "confirmed",
+      alert_format_set: "email",
+      employee_id: 1,
+      confirmed_at: nil,
+      activated_at: ~N[2023-08-25 18:42:02],
+      deactivated_at: nil,
+      inserted_at: ~N[2023-08-25 18:43:45],
+      updated_at: ~N[2023-08-28 17:40:21]
+    }
+  ]
+  @user_registatrion_messages [
+    %{
+      first_name: "Joe",
+      last_name: "Schmoe",
+      phone: "3065190138",
+      email: "arssonist@yahoo.com",
+      alert_format_set: "email",
+      health_card_num: 9999,
+      date_of_birth: Date.from_iso8601!("1900-01-01")
+    },
+    %{
+      first_name: "Joe",
+      last_name: "Schmoe2",
+      phone: "3065190139",
+      email: "blah@yahoo.com",
+      alert_format_set: "email",
+      health_card_num: 1234,
+      date_of_birth: Date.from_iso8601!("1900-01-01")
+    }
+  ]
   @impl true
   def mount(_params, session, socket) do
     # TODO - cannot be null
@@ -47,68 +103,8 @@ defmodule TurnStileWeb.UserLive.Index do
     {:ok,
      assign(
        socket,
-       unmatched_SMS_users: [
-      #   {%TurnStile.Patients.User{
-      #     id: 13,
-      #     email: "arssonist@yahoo.com",
-      #     first_name: "Joe",
-      #     health_card_num: 99991122,
-      #     last_name: "Schmoe69",
-      #     phone: "3065190138",
-      #     date_of_birth: ~D[1900-01-01],
-      #     is_active?: true,
-      #     user_alert_status: "pending",
-      #     alert_format_set: "email",
-      #     employee_id: 1,
-      #     confirmed_at: nil,
-      #     activated_at: ~N[2023-08-28 00:39:25],
-      #     deactivated_at: nil,
-      #     inserted_at: ~N[2023-08-28 19:24:03],
-      #     updated_at: ~N[2023-08-28 22:05:32]
-      #   }, 0},
-      #  {%TurnStile.Patients.User{
-      #     id: 1,
-      #     email: "arssonist@yahoo.com",
-      #     first_name: "Joe",
-      #     health_card_num: 9999,
-      #     last_name: "Schmoe",
-      #     phone: "3065190138",
-      #     date_of_birth: ~D[1900-01-01],
-      #     is_active?: true,
-      #     user_alert_status: "confirmed",
-      #     alert_format_set: "email",
-      #     employee_id: 1,
-      #     confirmed_at: nil,
-      #     activated_at: ~N[2023-08-25 18:42:02],
-      #     deactivated_at: nil,
-      #     inserted_at: ~N[2023-08-25 18:43:45],
-      #     updated_at: ~N[2023-08-28 17:40:21]
-      #   }, 1}
-       ],
-       user_registration_messages: [
-        #  %{
-        #    "0" => %{
-        #      first_name: "Joe",
-        #      last_name: "Schmoe",
-        #      phone: "3065190138",
-        #      email: "arssonist@yahoo.com",
-        #      alert_format_set: "email",
-        #      health_card_num: 9999,
-        #      date_of_birth: Date.from_iso8601!("1900-01-01")
-        #    }
-        #  },
-        #  %{
-        #    "1" => %{
-        #      first_name: "Joe",
-        #      last_name: "Schmoe2",
-        #      phone: "3065190139",
-        #      email: "blah@yahoo.com",
-        #      alert_format_set: "email",
-        #      health_card_num: 1234,
-        #      date_of_birth: Date.from_iso8601!("1900-01-01")
-        #    }
-        #  }
-       ],
+       unmatched_SMS_users: [],
+       user_registration_messages: [],
        search_field_name: nil,
        search_field_value: nil,
        display_message: nil,
@@ -119,9 +115,15 @@ defmodule TurnStileWeb.UserLive.Index do
        return_to: Routes.user_index_path(socket, :index, organization_id, current_employee.id)
      )}
   end
+
   @impl true
+  # mutli user match recieived from twilio
+  # comes from alert controller
   def handle_info(%{matching_users: non_idle_matching_users}, socket) do
-    IO.inspect(non_idle_matching_users, label: "PUBSUB: non_idle_matching_users LIST in handle_info")
+    IO.inspect(non_idle_matching_users,
+      label: "PUBSUB: non_idle_matching_users LIST in handle_info"
+    )
+
     indexed_tuples = Enum.with_index(non_idle_matching_users)
     # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
     unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, indexed_tuples)
@@ -130,10 +132,16 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply,
     socket
     |> assign(:unmatched_SMS_users, unmtached_users)
-    |> assign(:popup_title, "A user with the the following details replied to an alert: Incoming Unmatched User.")
-    |> assign(:popup_body, "Multiple users with this phone numnber were found in the system. Does this user below to your organization?")
-  }
+     |> assign(
+       :popup_hero_title,
+       "Multi-User Match - Employee Attention Required ."
+     )
+     |> assign(
+       :popup_hero_body,
+       "Incoming user response matches  multiple users accounts in your organizaion. Review to reconcile the issue."
+     )}
   end
+
   # receives pubsub subscription from user self registation form
   # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
   def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
@@ -148,9 +156,11 @@ defmodule TurnStileWeb.UserLive.Index do
     {:noreply,
      socket
      |> assign(:user_registration_messages, messages)
-     |> assign(:popup_title, "User Registration Form Recieved")
-     |> assign(:popup_body, "The following user registration form was recieved. Please review and accept the user to register them.")
-    }
+     |> assign(:popup_message_title, "User Registration Form Recieved")
+     |> assign(
+       :popup_message_body,
+       "The following user registration form was recieved. Please review and accept the user to register them."
+     )}
   end
   def handle_info(%{send_response_params: %{
     twilio_params: twilio_params,
@@ -219,8 +229,8 @@ defmodule TurnStileWeb.UserLive.Index do
     # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
   end
 
-  # called from :new upsert send(); when existing users are found this sent back
-  # redirect to display component
+  # called from :new match is found
+  # sending found users list to :display
   def handle_info(
         {:users_found,
          %{
