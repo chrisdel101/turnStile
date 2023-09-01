@@ -1,5 +1,4 @@
 defmodule TurnStileWeb.UserLive.Index do
-  alias TurnStileWeb.AlertController
   use TurnStileWeb, :live_view
 
   alias TurnStile.Patients
@@ -11,7 +10,7 @@ defmodule TurnStileWeb.UserLive.Index do
   alias TurnStileWeb.AlertUtils
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
-  alias TurnStileWeb.UserLive.DisplayListComponent
+  alias TurnStileWeb.UserLive.Index.HandleInfo
 
   # live_actions [:new, :index, :alert, :edit]
   @interval 100000
@@ -118,160 +117,188 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  # mutli user match recieived from twilio
-  # comes from alert controller via PUBSUB
-  # non_idle_matching_users is a list of active user with active state
-  def handle_info(%{mutli_match_twilio_users: users_match_phone_list}, socket) do
-    # users match org_id, is_active?, and active state
-    matched_users_tuples = match_users_to_organization(users_match_phone_list, socket)
-    # combine w default empty list
-    unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users_tuples)
-    # IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    {:noreply,
-    socket
-    |> assign(:unmatched_SMS_users, unmtached_users)
-     |> assign(
-       :popup_hero_title,
-       "Multi-User Match - Employee Attention Required ."
-     )
-     |> assign(
-       :popup_hero_body,
-       "Incoming user response matches  multiple users accounts in your organizaion. Review to reconcile the issue."
-     )}
+  def handle_info(params, socket) do
+    case params do
+      %{mutli_match_twilio_users: users_match_phone_list} ->
+        HandleInfo.handle_mutli_match_twilio_users(params, socket)
+      {:user_registation_form, %{user_params: user_params}} ->
+        HandleInfo.handle_user_registation_form(params, socket)
+      %{send_response_params: %{
+        twilio_params: twilio_params,
+        conn: conn}} ->
+          HandleInfo.handle_send_response_params(params, socket)
+      %{user_alert_status: _user_alert_status} ->
+        HandleInfo.handle_user_alert_status(params, socket, filter_active_users_mins: @filter_active_users_mins)
+      %{"existing_users" => existing_users, "user_changeset" => user_changeset} ->
+        HandleInfo.handle_existing_users_from_upsert(params, socket)
+      :update -> HandleInfo.handle_update(params, socket, filter_active_users_mins: @filter_active_users_mins,
+      interval: @interval)
+      {:users_found, %{"existing_users_found" => existing_users_found}} ->
+        HandleInfo.handle_users_found_from_search(params, socket)
+      {:users_found, %{
+        existing_users_found: existing_users_found,
+        user_changeset: user_changeset,
+        redirect_to: redirect_to
+      }} ->
+        HandleInfo.handle_users_found_from_new(params, socket)
+      {:reject_existing_users, %{user_changeset: user_changeset, redirect_to: redirect_to}} ->
+        HandleInfo.handle_reject_existing_users(params, socket)
+    end
   end
+  # # mutli user match recieived from twilio
+  # # comes from alert controller via PUBSUB
+  # # non_idle_matching_users is a list of active user with active state
+  # def handle_info(%{mutli_match_twilio_users: users_match_phone_list}, socket) do
+  #   # users match org_id, is_active?, and active state
+  #   matched_users_tuples = match_users_to_organization(users_match_phone_list, socket)
+  #   # combine w default empty list
+  #   unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users_tuples)
+  #   # IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
+  #   {:noreply,
+  #   socket
+  #   |> assign(:unmatched_SMS_users, unmtached_users)
+  #    |> assign(
+  #      :popup_hero_title,
+  #      "Multi-User Match - Employee Attention Required ."
+  #    )
+  #    |> assign(
+  #      :popup_hero_body,
+  #      "Incoming user response matches  multiple users accounts in your organizaion. Review to reconcile the issue."
+  #    )}
+  # end
 
-  # receives pubsub subscription from user self registation form
-  # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
-  def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
-    # adding msgs one at a time, starting with empty list
-    index = length(socket.assigns.user_registration_messages)
-    # use list length before add to get index
-    currrent_message = %{index => user_params}
-    # add incoming message to storage
-    messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
-    # msg are formed like %{"0" => %{...}}
+  # # receives pubsub subscription from user self registation form
+  # # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
+  # def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
+  #   # adding msgs one at a time, starting with empty list
+  #   index = length(socket.assigns.user_registration_messages)
+  #   # use list length before add to get index
+  #   currrent_message = %{index => user_params}
+  #   # add incoming message to storage
+  #   messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
+  #   # msg are formed like %{"0" => %{...}}
 
-    {:noreply,
-     socket
-     |> assign(:user_registration_messages, messages)
-     |> assign(:popup_message_title, "User Registration Form Recieved")
-     |> assign(
-       :popup_message_body,
-       "The following user registration form was recieved. Please review and accept the user to register them."
-     )}
-  end
-  def handle_info(%{send_response_params: %{
-    twilio_params: twilio_params,
-    conn: conn
-  }}, socket) do
-    IO.inspect(twilio_params, label: "PUBSUB: message in handle_info")
-    AlertController.send_computed_SMS_system_response(conn, twilio_params)
+  #   {:noreply,
+  #    socket
+  #    |> assign(:user_registration_messages, messages)
+  #    |> assign(:popup_message_title, "User Registration Form Recieved")
+  #    |> assign(
+  #      :popup_message_body,
+  #      "The following user registration form was recieved. Please review and accept the user to register them."
+  #    )}
+  # end
+  # def handle_info(%{send_response_params: %{
+  #   twilio_params: twilio_params,
+  #   conn: conn
+  # }}, socket) do
+  #   IO.inspect(twilio_params, label: "PUBSUB: message in handle_info")
+  #   AlertController.send_computed_SMS_system_response(conn, twilio_params)
 
 
-    {:noreply, socket}
-  end
-  def handle_info(%{user_alert_status: _user_alert_status}, socket) do
-    # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
+  #   {:noreply, socket}
+  # end
+  # def handle_info(%{user_alert_status: _user_alert_status}, socket) do
+  #   # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
 
-    users =
-      Patients.filter_active_users_x_mins_past_last_update(
-        socket.assigns.current_employee.current_organization_login_id,
-        @filter_active_users_mins
-      )
+  #   users =
+  #     Patients.filter_active_users_x_mins_past_last_update(
+  #       socket.assigns.current_employee.current_organization_login_id,
+  #       @filter_active_users_mins
+  #     )
 
-    {:noreply, assign(socket, :users, users)}
-  end
+  #   {:noreply, assign(socket, :users, users)}
+  # end
 
-  # comes via send :upsert from :new
-  def handle_info(
-        %{"existing_users" => existing_users, "user_changeset" => user_changeset},
-        socket
-      ) do
-    socket =
-      socket
-      |> assign(:existing_users, existing_users)
-      |> assign(:user_changeset, user_changeset)
+  # # comes via send :upsert from :new
+  # def handle_info(
+  #       %{"existing_users" => existing_users, "user_changeset" => user_changeset},
+  #       socket
+  #     ) do
+  #   socket =
+  #     socket
+  #     |> assign(:existing_users, existing_users)
+  #     |> assign(:user_changeset, user_changeset)
 
-    # IO.inspect(socket.assign., label: "PUBSUB EX: message in handle_info")
-    # IO.inspect(socket.assigns.user_changeset, label: "SEND: message in handle_info")
+  #   # IO.inspect(socket.assign., label: "PUBSUB EX: message in handle_info")
+  #   # IO.inspect(socket.assigns.user_changeset, label: "SEND: message in handle_info")
 
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 
-  # pubsub comes thru subscribe in mount
-  def handle_info(:update, socket) do
-    IO.puts("index handle info: :update")
-    # update_and_reschedule and call
-    if connected?(socket), do: Process.send_after(self(), :update, @interval)
+  # # pubsub comes thru subscribe in mount
+  # def handle_info(:update, socket) do
+  #   IO.puts("index handle info: :update")
+  #   # update_and_reschedule and call
+  #   if connected?(socket), do: Process.send_after(self(), :update, @interval)
 
-    users =
-      Patients.filter_active_users_x_mins_past_last_update(
-        socket.assigns.current_employee.current_organization_login_id,
-        @filter_active_users_mins
-      )
+  #   users =
+  #     Patients.filter_active_users_x_mins_past_last_update(
+  #       socket.assigns.current_employee.current_organization_login_id,
+  #       @filter_active_users_mins
+  #     )
 
-    # IO.inspect(users, label: "update info")
-    {:noreply, assign(socket, :users, users)}
-  end
+  #   # IO.inspect(users, label: "update info")
+  #   {:noreply, assign(socket, :users, users)}
+  # end
 
-  # called from :search; when search results are found
-  def handle_info({:users_found, %{"existing_users_found" => existing_users_found}}, socket) do
-    IO.puts(
-      "index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}"
-    )
+  # # called from :search; when search results are found
+  # def handle_info({:users_found, %{"existing_users_found" => existing_users_found}}, socket) do
+  #   IO.puts(
+  #     "index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}"
+  #   )
 
-    # IO.inspect("UUUUUUUU", label: "message in handle_info")
-    # call update to refresh state on :display
-    send_update(DisplayListComponent, id: "display")
-    {:noreply, assign(socket, :existing_users_found, existing_users_found)}
-    # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
-  end
+  #   # IO.inspect("UUUUUUUU", label: "message in handle_info")
+  #   # call update to refresh state on :display
+  #   send_update(DisplayListComponent, id: "display")
+  #   {:noreply, assign(socket, :existing_users_found, existing_users_found)}
+  #   # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
+  # end
 
-  # called from :new match is found
-  # sending found users list to :display
-  def handle_info(
-        {:users_found,
-         %{
-           existing_users_found: existing_users_found,
-           user_changeset: user_changeset,
-           redirect_to: redirect_to
-         }},
-        socket
-      ) do
-    socket =
-      socket
-      |> assign(:existing_users_found, existing_users_found)
-      |> assign(:user_changeset, user_changeset)
+  # # called from :new match is found
+  # # sending found users list to :display
+  # def handle_info(
+  #       {:users_found,
+  #        %{
+  #          existing_users_found: existing_users_found,
+  #          user_changeset: user_changeset,
+  #          redirect_to: redirect_to
+  #        }},
+  #       socket
+  #     ) do
+  #   socket =
+  #     socket
+  #     |> assign(:existing_users_found, existing_users_found)
+  #     |> assign(:user_changeset, user_changeset)
 
-    IO.puts("index handle_info: sent from upsert send(): changeset and ext users")
-    # IO.inspect(user_changeset, label: "message in handle_info")
-    # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-    # redirect to :display component
-    {:noreply,
-     socket
-     |> push_patch(to: redirect_to)}
+  #   IO.puts("index handle_info: sent from upsert send(): changeset and ext users")
+  #   # IO.inspect(user_changeset, label: "message in handle_info")
+  #   # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
+  #   # redirect to :display component
+  #   {:noreply,
+  #    socket
+  #    |> push_patch(to: redirect_to)}
 
-    # {:noreply, socket}
-  end
+  #   # {:noreply, socket}
+  # end
 
-  # called from :display display when going back to original user
-  # - redirect back to upsert
-  def handle_info(
-        {:reject_existing_users, %{user_changeset: user_changeset, redirect_to: redirect_to}},
-        socket
-      ) do
-    socket =
-      socket
-      |> assign(:user_changeset, user_changeset)
+  # # called from :display display when going back to original user
+  # # - redirect back to upsert
+  # def handle_info(
+  #       {:reject_existing_users, %{user_changeset: user_changeset, redirect_to: redirect_to}},
+  #       socket
+  #     ) do
+  #   socket =
+  #     socket
+  #     |> assign(:user_changeset, user_changeset)
 
-    # IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
-    # IO.inspect(user_changeset, label: "message in handle_info")
-    # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-    # redirect to :display component
-    {:noreply,
-     socket
-     |> push_patch(to: redirect_to)}
-  end
+  #   # IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
+  #   # IO.inspect(user_changeset, label: "message in handle_info")
+  #   # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
+  #   # redirect to :display component
+  #   {:noreply,
+  #    socket
+  #    |> push_patch(to: redirect_to)}
+  # end
 
   @impl true
   # called via live_patch in index.html; :alert gets assigned as action
@@ -362,6 +389,7 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
   # called - from popup match review button on-click
   def handle_event("user_alert_match_review", %{"value" => ""}, socket) do
+
     {:noreply, socket |> push_patch(to: Routes.user_index_path(socket, :display_existing_users, socket.assigns.current_employee.current_organization_login_id, socket.assigns.current_employee.id))}
   end
 
