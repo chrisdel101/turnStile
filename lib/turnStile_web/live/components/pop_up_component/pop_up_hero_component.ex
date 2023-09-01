@@ -17,8 +17,8 @@ defmodule PopUpHeroComponent do
         <div class="pop-col">
         </div>
         <div class="pop-col">
-          <button phx-click="user_alert_match_review" value={assigns.id} title="Review user before accept">Review</button>
-          <button phx-click="user_alert_match_reject" value={assigns.id} title="Reject and delete incoming response" data-confirm="This cannot be undone. Are you sure?">Reject</button>
+          <button phx-click="user_alert_match_review" title="Review user before accept">Review</button>
+          <button phx-click="user_alert_match_reject"  title="Reject and delete incoming response" data-confirm="This cannot be undone. Are you sure?">Reject</button>
         </div>
         <div class="pop-col">
         <a href="#" class="phx-modal-close" phx-click={hide_popup(message_id)} title="Ignore Message">✖</a>

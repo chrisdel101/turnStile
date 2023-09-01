@@ -168,7 +168,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     user_struct = apply_changes(user_changeset)
 
     {search_field_name, search_field_value, existing_users} =
-      lookup_user_direct(
+      lookup_user_direct_inside_org(
         user_struct,
         length(@user_search_fields) - 1,
         (current_employee && current_employee.current_organization_login_id) || 0
@@ -227,16 +227,21 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     end
   end
 
-  def lookup_user_direct(_user_struct, nil, _organization_id), do: {nil, nil, []}
-  def lookup_user_direct(_user_struct, 0, _organization_id), do: {nil, nil, []}
-
-  def lookup_user_direct(user_struct, list_index, organization_id) do
+  def lookup_user_direct_inside_org(_user_struct, nil, _organization_id), do: {nil, nil, []}
+  def lookup_user_direct_inside_org(_user_struct, 0, _organization_id), do: {nil, nil, []}
+  @doc """
+  lookup_user_direct_inside_org
+  - does a direct ilike query for the user
+  - searches only within the current organization
+  - serachs in reverse order or @user_search_fields
+  """
+  def lookup_user_direct_inside_org(user_struct, list_index, organization_id) do
     # search_fields are keys on user struct
     search_field_name = Enum.at(@user_search_fields, list_index)
     # IO.inspect(list_index, label: "list_index")
     # IO.inspect(search_field, label: "search_field")
     cond do
-      # check if user has the key
+      # check if user has the key given to search_field_name
       Map.get(user_struct, search_field_name) ->
         users =
           handle_get_users_by_field(
@@ -248,9 +253,8 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
         # IO.inspect(users, label: "USERS")
         if users === [] do
           # call recursively
-          lookup_user_direct(user_struct, list_index - 1, organization_id)
+          lookup_user_direct_inside_org(user_struct, list_index - 1, organization_id)
         else
-          # TODO: send field found by to display
           IO.puts("User(s) exist. Found by #{search_field_name}")
           search_field_value = Map.get(user_struct, search_field_name)
           {search_field_name, search_field_value, users}
@@ -309,6 +313,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     end
   end
   def extract_user_popup_content(user_tuple) do
+    # IO.inspect(user_tuple, label: "extract_user_popup_content")
     if !is_nil(user_tuple) do
       {user, _index} = user_tuple
       user

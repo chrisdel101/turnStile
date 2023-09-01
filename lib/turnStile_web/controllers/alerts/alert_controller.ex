@@ -276,13 +276,14 @@ defmodule TurnStileWeb.AlertController do
                 "An internal system error occured during message save. Sorry, your message was not processesed."
               )
           end
-        {:multiple_matches, non_idle_matching_users} ->
-          # send pop to employee to handle
+        {:multiple_matches, users_match_phone} ->
+          # send multi user match list back to parent; employee must resolve
           Phoenix.PubSub.broadcast(
             TurnStile.PubSub,
-            PubSubTopicsMap.get_topic("HANDLE_MULTI_USER_MATCH"),
-            %{matching_users: non_idle_matching_users}
+            PubSubTopicsMap.get_topic("MULTI_USER_TWILIO_MATCH"),
+            %{mutli_match_twilio_users: users_match_phone}
           )
+          send_manual_system_response(conn, "Solution in progress")
         # match failure
         {:not_found, msg} ->
           IO.inspect(msg, label: "INFO: failed to find match")
@@ -328,39 +329,39 @@ defmodule TurnStileWeb.AlertController do
     number = Utils.remove_first_string_char(twilio_params["From"], "+")
 
     # IO.inspect(number, label: "number")
-    users_match_num_list = Patients.get_all_users_by_phone(number)
-    # IO.inspect(users_match_num_list, label: "users_match_num_list")
+    users_match_phone = Patients.get_all_users_by_phone(number)
+    # IO.inspect(users_match_phone, label: "users_match_phone")
 
     cond do
       # if more than one use w that number
-      Utils.is_list_greater_that_1?(users_match_num_list) ->
+      Utils.is_list_greater_that_1?(users_match_phone) ->
         # check if active
-        active_pending_users = Utils.filter_maps_list_by_truthy(users_match_num_list, "is_active?")
+        # active_pending_users = Utils.filter_maps_list_by_truthy(users_match_phone, "is_active?")
 
-        case Utils.is_list_greater_that_1?(active_pending_users) do
-          # if more that 1 is_active? user check alert_status state
-          true ->
-            # check non-idle state
-            f = &is_user_alert_status_idle?/1
-            # loop over all users - reject user idle states
-            non_idle_state_users = Enum.reject(active_pending_users, f)
-            # IO.inspect(non_idle_state_users, label: "non_idle_state_users")
-            # if more than one non-idle state user
-            if Utils.is_list_greater_that_1?(non_idle_state_users) do
+        # case Utils.is_list_greater_that_1?(users_match_phone) do
+        #   # if more that 1 is_active? user check alert_status state
+          # true ->
+            # # check non-idle state
+            # f = &is_user_alert_status_idle?/1
+            # # loop over all users - reject user idle states
+            # non_idle_state_users = Enum.reject(active_pending_users, f)
+            # # IO.inspect(non_idle_state_users, label: "non_idle_state_users")
+            # # if more than one non-idle state user
+            # if Utils.is_list_greater_that_1?(non_idle_state_users) do
               # require staff action here
-              {:multiple_matches, non_idle_state_users}
-            else
-            # only single is_active? user with non-idle state
-              {:ok, hd(non_idle_state_users)}
-            end
+            {:multiple_matches, users_match_phone}
+            # else
+            # # only single is_active? user with non-idle state
+            #   {:ok, hd(non_idle_state_users)}
+            # end
 
-          false ->
-            # return only user
-            {:ok, hd(active_pending_users)}
-        end
+        #   false ->
+        #     # return only user
+        #     {:ok, hd(active_pending_users)}
+        # end
         # if is just a single user
-      !is_nil(users_match_num_list) && length(users_match_num_list) === 1 ->
-        {:ok, hd(users_match_num_list)}
+    !is_nil(users_match_phone) && length(users_match_phone) === 1 ->
+        {:ok, hd(users_match_phone)}
     #  if there are zero or nil matches
       true ->
         msg = "INFO: No matching user found for SMS response."

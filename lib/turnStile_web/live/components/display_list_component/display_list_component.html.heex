@@ -14,7 +14,7 @@
     phx-value-key="warning"><%= live_flash(@flash, :warning) %></p>
 </main>
 
-    <h3><%= @message %> </h3>
+    <h3><%= @display_message %> </h3>
     <%= if @live_action === :display_existing_users &&  @search_field_name && @search_field_value do %>
         <p>The following users match the        <strong><%= @search_field_name %>: </strong> <%= @search_field_value %>
         </p>
@@ -35,10 +35,11 @@
       <%= link "Add Original User", to: "#"%>
      </p>
       <h2><strong>Organiation name: </strong><%= @organization.name %></h2>
-      <h4><strong>Click on an inactive user to activate</strong></h4>
-      <p>The following user matches were found. Click to activate the account.</p>
+      <% IO.inspect(assigns, label: "USER") %>
+      <h4><strong>Click on an item below to select</strong></h4>
+      <p><%= @display_instruction || "The following user matches were found. Click to activate the account." %></p>
       <%= for user <- @users do %>
-        <div id={"search-user-#{user.id}"}  class={"display-list-user #{if user.is_active?, do: "display-user-active", else: "display-user-inactive"}"}  phx-click={if user.is_active?, do: "select-active-user",  else: "select-inactive-user"} phx-value-user_id={user.id} 
+        <div id={"search-user-#{Map.get(user, :id)}"}  class={"display-list-user #{if user.is_active?, do: "display-user-active", else: "display-user-inactive"}"}  phx-click={if user.is_active?, do: "select-active-user",  else: "select-inactive-user"} phx-value-user_id={user.id} 
         lf} phx-target={@myself} >
           <dl>
             <dt><%= "#{user.first_name} #{user.last_name}" %></dt>

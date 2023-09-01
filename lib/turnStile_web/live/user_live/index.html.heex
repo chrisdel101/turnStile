@@ -14,7 +14,8 @@
   <%= if TurnStile.Utils.is_list_greater_that_1?( @unmatched_SMS_users) do %>
   <%!-- <% IO.inspect(user_tuple, label: 'XXX') %> --%>
       <PopUpHeroComponent.render
-        module={TurnStileWeb.UserLive.PopUpMessageComponent}
+        module={TurnStileWeb.UserLive.PopUpHeroComponent}
+        current_employee={@current_employee}
         id={"unmatched_SMS_users_popup"}
         action={@live_action}
         popup_title={assigns[:popup_hero_title]}
@@ -64,6 +65,7 @@
     <% end %>
     <%= if @live_action in [:search, :display_existing_users] do %>
       <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
+
         <.live_component
           module={TurnStileWeb.UserLive.SearchComponent}
           id={:search}
@@ -82,8 +84,8 @@
           action={@live_action}
           current_employee={@current_employee}
           page_title={@page_title}
-          message={@display_message}
-          instruction={@display_instruction}
+          display_message={@display_message}
+          display_instruction={@display_instruction}
           return_to={@return_to}
         />
       </.modal>
