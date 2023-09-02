@@ -4,7 +4,7 @@ defmodule TurnStileWeb.UserLive.Show do
   alias TurnStile.Patients
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(%{"employee_id" => employee_id, "organization_id" => organization_id, "id" => user_id}, session, socket) do
     # IO.inspect(params)
 
     # get token from session
@@ -16,7 +16,8 @@ defmodule TurnStileWeb.UserLive.Show do
     {:ok,
      assign(
        socket,
-       current_employee: current_employee
+       current_employee: current_employee,
+       user: Patients.get_user(user_id)
      )}
   end
 
@@ -26,7 +27,6 @@ defmodule TurnStileWeb.UserLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:user, Patients.get_user(user_id))
      |> assign(employee_id: employee_id, organization_id: organization_id)}
   end
 

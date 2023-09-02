@@ -9,7 +9,9 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   # mutli user match recieived from twilio
   # comes from alert controller via PUBSUB
   # non_idle_matching_users is a list of active user with active state
-  def handle_mutli_match_twilio_users(%{mutli_match_twilio_users: users_match_phone_list}, socket) do
+  def handle_mutli_match_twilio_users(%{
+    mutli_match_twilio_users: users_match_phone_list,callback_response: send_response_callback,
+    conn: conn}, socket) do
     # users match org_id, is_active?, and active state
     matched_users_tuples = match_users_to_organization(users_match_phone_list, socket)
     # combine w default empty list
@@ -17,10 +19,10 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
     # IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
     {:noreply,
     socket
+    |> assign(:stored_callback, send_response_callback)
+    |> assign(:stored_conn, conn)
     |> assign(:unmatched_SMS_users, unmtached_users)
-     |> assign(
-       :popup_hero_title,
-       "Multi-User Match - Employee Attention Required ."
+    |> assign(:popup_hero_title,"Multi-User Match - Employee Attention Required ."
      )
      |> assign(
        :popup_hero_body,
@@ -164,6 +166,7 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
     # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
     current_employee = socket.assigns.current_employee
     organization_id = current_employee.current_organization_login_id
+    IO.inspect(users_list)
     # get users match current org
     users_match_org_list = Enum.filter(users_list, fn x -> x.organization_id === organization_id end)
     # get active matching users

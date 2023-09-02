@@ -48,9 +48,7 @@ defmodule TurnStileWeb.UserLive.DisplayListComponent do
      socket
      |> assign(props)
      |> assign(:organization, organization)
-     |> assign(:user_changeset, props.user_changeset)
-     |> assign(:live_action, props.action)
-     |> assign(:users, props.users)}
+    }
   end
 
 

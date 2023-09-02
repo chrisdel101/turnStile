@@ -20,25 +20,6 @@ defmodule TurnStileWeb.UserLive.Index do
   @dialyzer {:no_match, handle_event: 3}
   @non_idle_matching_users [
     %TurnStile.Patients.User{
-      id: 13,
-      email: "arssonist@yahoo.com",
-      first_name: "Joe",
-      health_card_num: 99_991_122,
-      last_name: "Schmoe69",
-      phone: "3065190138",
-      date_of_birth: ~D[1900-01-01],
-      is_active?: true,
-      user_alert_status: "pending",
-      alert_format_set: "email",
-      employee_id: 1,
-      organization_id: 1,
-      confirmed_at: nil,
-      activated_at: ~N[2023-08-28 00:39:25],
-      deactivated_at: nil,
-      inserted_at: ~N[2023-08-28 19:24:03],
-      updated_at: ~N[2023-08-28 22:05:32]
-    },
-    %TurnStile.Patients.User{
       id: 1,
       email: "arssonist@yahoo.com",
       first_name: "Joe",
@@ -47,7 +28,7 @@ defmodule TurnStileWeb.UserLive.Index do
       phone: "3065190138",
       date_of_birth: ~D[1900-01-01],
       is_active?: true,
-      user_alert_status: "pending",
+      user_alert_status: "confirmed",
       alert_format_set: "email",
       employee_id: 1,
       organization_id: 1,
@@ -56,6 +37,47 @@ defmodule TurnStileWeb.UserLive.Index do
       deactivated_at: nil,
       inserted_at: ~N[2023-08-25 18:43:45],
       updated_at: ~N[2023-08-28 17:40:21]
+
+    },
+    %TurnStile.Patients.User{
+      id: 15,
+      email: nil,
+      first_name: "Sue ",
+      health_card_num: 113423,
+      last_name: "Jones",
+      phone: "3065190138",
+      date_of_birth: nil,
+      is_active?: true,
+      user_alert_status: "pending",
+      alert_format_set: "sms",
+      employee_id: 1,
+      organization_id: 1,
+      confirmed_at: nil,
+      activated_at: ~N[2023-08-30 03:24:58],
+      deactivated_at: nil,
+      inserted_at: ~N[2023-08-31 21:48:54],
+      updated_at: ~N[2023-08-31 21:48:56]
+    },
+    %TurnStile.Patients.User{
+      id: 16,
+      email: nil,
+      first_name: "Sue ",
+      health_card_num: 324324,
+      last_name: "Thompson",
+      phone: "3065190138",
+      date_of_birth: nil,
+      is_active?: true,
+      user_alert_status: "unalerted",
+      alert_format_set: "sms",
+      employee_id: 1,
+      organization_id: 1,
+      confirmed_at: nil,
+      activated_at: ~N[2023-08-30 03:24:58],
+      deactivated_at: nil,
+      inserted_at: ~N[2023-08-31 21:49:23],
+      updated_at: ~N[2023-08-31 21:49:23]
+
+
     }
   ]
   @user_registatrion_messages [
@@ -112,14 +134,19 @@ defmodule TurnStileWeb.UserLive.Index do
        existing_users_found: [],
        users: main_index_users_list,
        current_employee: current_employee,
-       return_to: Routes.user_index_path(socket, :index, organization_id, current_employee.id)
+       return_to: Routes.user_index_path(socket, :index, organization_id, current_employee.id),
+       stored_callback: nil,
+       stored_conn: nil
      )}
   end
 
   @impl true
   def handle_info(params, socket) do
     case params do
-      %{mutli_match_twilio_users: users_match_phone_list} ->
+      %{
+        mutli_match_twilio_users: users_match_phone,        callback_response: send_response_callback,
+        conn: conn
+       } ->
         HandleInfo.handle_mutli_match_twilio_users(params, socket)
       {:user_registation_form, %{user_params: user_params}} ->
         HandleInfo.handle_user_registation_form(params, socket)
@@ -145,160 +172,7 @@ defmodule TurnStileWeb.UserLive.Index do
         HandleInfo.handle_reject_existing_users(params, socket)
     end
   end
-  # # mutli user match recieived from twilio
-  # # comes from alert controller via PUBSUB
-  # # non_idle_matching_users is a list of active user with active state
-  # def handle_info(%{mutli_match_twilio_users: users_match_phone_list}, socket) do
-  #   # users match org_id, is_active?, and active state
-  #   matched_users_tuples = match_users_to_organization(users_match_phone_list, socket)
-  #   # combine w default empty list
-  #   unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users_tuples)
-  #   # IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
-  #   {:noreply,
-  #   socket
-  #   |> assign(:unmatched_SMS_users, unmtached_users)
-  #    |> assign(
-  #      :popup_hero_title,
-  #      "Multi-User Match - Employee Attention Required ."
-  #    )
-  #    |> assign(
-  #      :popup_hero_body,
-  #      "Incoming user response matches  multiple users accounts in your organizaion. Review to reconcile the issue."
-  #    )}
-  # end
 
-  # # receives pubsub subscription from user self registation form
-  # # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
-  # def handle_info({:user_registation_form, %{user_params: user_params}}, socket) do
-  #   # adding msgs one at a time, starting with empty list
-  #   index = length(socket.assigns.user_registration_messages)
-  #   # use list length before add to get index
-  #   currrent_message = %{index => user_params}
-  #   # add incoming message to storage
-  #   messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
-  #   # msg are formed like %{"0" => %{...}}
-
-  #   {:noreply,
-  #    socket
-  #    |> assign(:user_registration_messages, messages)
-  #    |> assign(:popup_message_title, "User Registration Form Recieved")
-  #    |> assign(
-  #      :popup_message_body,
-  #      "The following user registration form was recieved. Please review and accept the user to register them."
-  #    )}
-  # end
-  # def handle_info(%{send_response_params: %{
-  #   twilio_params: twilio_params,
-  #   conn: conn
-  # }}, socket) do
-  #   IO.inspect(twilio_params, label: "PUBSUB: message in handle_info")
-  #   AlertController.send_computed_SMS_system_response(conn, twilio_params)
-
-
-  #   {:noreply, socket}
-  # end
-  # def handle_info(%{user_alert_status: _user_alert_status}, socket) do
-  #   # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
-
-  #   users =
-  #     Patients.filter_active_users_x_mins_past_last_update(
-  #       socket.assigns.current_employee.current_organization_login_id,
-  #       @filter_active_users_mins
-  #     )
-
-  #   {:noreply, assign(socket, :users, users)}
-  # end
-
-  # # comes via send :upsert from :new
-  # def handle_info(
-  #       %{"existing_users" => existing_users, "user_changeset" => user_changeset},
-  #       socket
-  #     ) do
-  #   socket =
-  #     socket
-  #     |> assign(:existing_users, existing_users)
-  #     |> assign(:user_changeset, user_changeset)
-
-  #   # IO.inspect(socket.assign., label: "PUBSUB EX: message in handle_info")
-  #   # IO.inspect(socket.assigns.user_changeset, label: "SEND: message in handle_info")
-
-  #   {:noreply, socket}
-  # end
-
-  # # pubsub comes thru subscribe in mount
-  # def handle_info(:update, socket) do
-  #   IO.puts("index handle info: :update")
-  #   # update_and_reschedule and call
-  #   if connected?(socket), do: Process.send_after(self(), :update, @interval)
-
-  #   users =
-  #     Patients.filter_active_users_x_mins_past_last_update(
-  #       socket.assigns.current_employee.current_organization_login_id,
-  #       @filter_active_users_mins
-  #     )
-
-  #   # IO.inspect(users, label: "update info")
-  #   {:noreply, assign(socket, :users, users)}
-  # end
-
-  # # called from :search; when search results are found
-  # def handle_info({:users_found, %{"existing_users_found" => existing_users_found}}, socket) do
-  #   IO.puts(
-  #     "index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}"
-  #   )
-
-  #   # IO.inspect("UUUUUUUU", label: "message in handle_info")
-  #   # call update to refresh state on :display
-  #   send_update(DisplayListComponent, id: "display")
-  #   {:noreply, assign(socket, :existing_users_found, existing_users_found)}
-  #   # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
-  # end
-
-  # # called from :new match is found
-  # # sending found users list to :display
-  # def handle_info(
-  #       {:users_found,
-  #        %{
-  #          existing_users_found: existing_users_found,
-  #          user_changeset: user_changeset,
-  #          redirect_to: redirect_to
-  #        }},
-  #       socket
-  #     ) do
-  #   socket =
-  #     socket
-  #     |> assign(:existing_users_found, existing_users_found)
-  #     |> assign(:user_changeset, user_changeset)
-
-  #   IO.puts("index handle_info: sent from upsert send(): changeset and ext users")
-  #   # IO.inspect(user_changeset, label: "message in handle_info")
-  #   # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-  #   # redirect to :display component
-  #   {:noreply,
-  #    socket
-  #    |> push_patch(to: redirect_to)}
-
-  #   # {:noreply, socket}
-  # end
-
-  # # called from :display display when going back to original user
-  # # - redirect back to upsert
-  # def handle_info(
-  #       {:reject_existing_users, %{user_changeset: user_changeset, redirect_to: redirect_to}},
-  #       socket
-  #     ) do
-  #   socket =
-  #     socket
-  #     |> assign(:user_changeset, user_changeset)
-
-  #   # IO.inspect(socket.assigns.user_changeset.data, label: "message in handle_info")
-  #   # IO.inspect(user_changeset, label: "message in handle_info")
-  #   # IO.inspect("VVVVVVVVVV4", label: "message in handle_info")
-  #   # redirect to :display component
-  #   {:noreply,
-  #    socket
-  #    |> push_patch(to: redirect_to)}
-  # end
 
   @impl true
   # called via live_patch in index.html; :alert gets assigned as action
@@ -360,16 +234,19 @@ defmodule TurnStileWeb.UserLive.Index do
        })}
     else
       # call on load
-      if length(socket.assigns.unmatched_SMS_users) === 0 do
-        IO.puts("CALL1")
-        {_noreply, socket} =
-          handle_info(%{mutli_match_twilio_users: @non_idle_matching_users}, socket)
-        {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-        else
-           IO.puts("CALL2")
+      # if length(socket.assigns.unmatched_SMS_users) === 0 do
+      #   IO.puts("CALL1")
+      #   # IO.inspect(@non_idle_matching_user)
+      #   {_noreply, socket} =
+      #     handle_info(%{mutli_match_twilio_users: @non_idle_matching_users,
+      #     callback_response: &IO.puts/1,
+      #     conn: %{}}, socket)
+      #     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      #   else
+      #      IO.puts("CALL2")
 
-          {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-      end
+      #     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      # end
 
 
 
@@ -382,7 +259,7 @@ defmodule TurnStileWeb.UserLive.Index do
       # IO.inspect(params, label: "handle_params main index: no changeset")
       # all other calls
       # :display_existing_users on event user_alert_match_review
-      # {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
   end
 
@@ -714,6 +591,28 @@ defmodule TurnStileWeb.UserLive.Index do
        )}
     end
   end
+  def handle_event("handle_display_click",  %{"type" => type, "user_id" => user_id, "active?" => active?}, socket) do
+    # IO.inspect(params, label: "handle_display_click")
+    cond do
+      type === DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST") ->
+        if active? do
+          {:noreply,
+          socket
+          |> put_flash(:warning, "ERROR: This user is aleady active. You cannot select an already activated user. This user should alredy be in the main list. Look through your list of users again.")}
+        else
+          current_employee = socket.assigns.current_employee
+          # redirect to :new form
+          {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :select, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
+        end
+      type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
+          user = Patients.get_user(user_id)
+          socket.assigns.stored_callback.(socket.assigns.stored_conn, "SOME RESPONSE")
+          {:noreply,socket}
+    end
+  end
+
+
+
 
   # :alert - renders alert panel
   # -called from when live_patch clicked on index
@@ -775,17 +674,20 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
     |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
+    |> assign(:type, DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST"))
   end
     # :display_existing_users - from event user_alert_match_review
     defp apply_action(socket, :display_existing_users, _params) do
       # IO.inspect(params, label: "apply_action :display_existing_users2")
       # IO.inspect(socket.assigns.unmatched_SMS_users, label: "apply_action on display")
       socket
-      |> assign(:display_instruction, "Review the users below and identify which user account this incoming alert belongs to.")
+      |> assign(:display_instruction, "Click on a user below to accept.")
       |> assign(:display_message, "A single user replied to an alert but multiple accounts match this phone number.")
       |> assign(:page_title, "Confirm User Match")
       |> assign(:users, socket.assigns.users)
       |> assign(:existing_users_found, Map.get(socket.assigns, :unmatched_SMS_users))
+      |> assign(:type, DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST"))
+
      # IO.inspect(socket.assigns.unmatched_SMS_users, label: "apply_action on display")
     end
 
@@ -832,34 +734,5 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:subtitle, subtitle || nil)
     |> assign(:user_changeset, user_changeset)
   end
-  defp match_users_to_organization(users_list, socket) do
-    # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    current_employee = socket.assigns.current_employee
-    organization_id = current_employee.current_organization_login_id
-    # get users match current org
-    users_match_org_list = Enum.filter(users_list, fn x -> x.organization_id === organization_id end)
-    # get active matching users
-    active_pending_users = Utils.filter_maps_list_by_truthy(users_match_org_list, "is_active?")
-    # IO.inspect(users_match_org_list, label: "match_users_to_organization users_match_org_list")
-     # check non-idle state
-    f = &is_user_alert_status_idle?/1
-    # loop over all users - reject user idle w states
-    non_idle_users = Enum.reject(active_pending_users, f)
-    # IO.inspect(non_idle_users, label: "non_idle_users")
-    # make into list w index
-    # indexed_tuples = Enum.with_index(non_idle_users)
-    # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    # users are formed like {%{...}, 0}
-    non_idle_users
-  end
-  defp is_user_alert_status_idle?(user) do
-    # check for both syntax types
-    user_alert_status = Map.get(user, "user_alert_status")
- ||  Map.get(user, :user_alert_status)
-    # check if it matches one of the invalid states
-    user_alert_status in [
-      UserAlertStatusTypesMap.get_user_status("UNALERTED"),
-      UserAlertStatusTypesMap.get_user_status("CANCELLED"),
-      UserAlertStatusTypesMap.get_user_status("EXPIRED")]
-  end
+
 end

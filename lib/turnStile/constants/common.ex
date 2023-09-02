@@ -157,7 +157,7 @@ defmodule PubSubTopicsMap do
     "USER_REGISTRATION" => "user_registration",
     # send SMS response from the live view
     "SEND_SMS_SYSTEM_RESPONSE" => "send_sms_system_response",
-    "HANDLE_MULTI_USER_MATCH" => "handle_multi_user_match",
+    "MULTI_USER_TWILIO_MATCH" => "multi_user_twilio_match",
   }
   def get_topics do
     @topics
@@ -170,4 +170,24 @@ defmodule PubSubTopicsMap do
   def get_topics_enum do
     @topics |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
   end
+end
+defmodule DisplayListComponentTypesMap do
+  @types %{
+    # from search to display
+    "FOUND_USERS_LIST" => "found_users_list",
+    # from alert controller multi matcht to display
+    "MATCHED_USERS_LIST" => "matched_users_list",
+  }
+  def get_types do
+    @types
+  end
+
+  def get_type(key) do
+    Map.get(@types, key)
+  end
+
+  def get_type_enum do
+    @types |> Map.values() |> Enum.map(fn value -> String.to_atom(value) end)
+  end
+
 end
