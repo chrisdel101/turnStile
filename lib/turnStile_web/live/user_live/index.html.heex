@@ -2,8 +2,8 @@
 <h2>Notification</h2>
   <%= for message <- @user_registration_messages do %>
   <% IO.inspect(assigns) %>
-   <PopUpMessageComponent.render
-        module={TurnStileWeb.UserLive.PopUpMessageComponent}
+   <TurnStileWeb.PopUpItem.render
+        module={TurnStileWeb.UserLive.TurnStileWeb.PopUpItem}
         id={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_index(message)}
         action={@live_action}
         popup_title={assigns[:popup_message_title]}
@@ -13,8 +13,8 @@
     <% end %>
   <%= if TurnStile.Utils.is_list_greater_that_1?( @unmatched_SMS_users) do %>
   <%!-- <% IO.inspect(user_tuple, label: 'XXX') %> --%>
-      <PopUpHeroComponent.render
-        module={TurnStileWeb.UserLive.PopUpHeroComponent}
+      <TurnStileWeb.PopUpBlock.render
+        module={TurnStileWeb.UserLive.TurnStileWeb.UserLive.PopUpBlock}
         current_employee={@current_employee}
         id={"unmatched_SMS_users_popup"}
         action={@live_action}
@@ -50,7 +50,7 @@
     <%= if @live_action in [:alert] do %>
       <.modal return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}>
         <.live_component
-          module={TurnStileWeb.AlertPanelLive.AlertComponent}
+          module={TurnStileWeb.AlertPanel}
           id={@user.id || :new}~
           action={@live_action}
           current_employee={@current_employee}
@@ -75,7 +75,7 @@
           return_to={Routes.user_index_path(@socket, :index, @current_employee.current_organization_login_id, @current_employee.id)}
         />
         <.live_component
-          module={TurnStileWeb.UserLive.DisplayListComponent}
+          module={TurnStileWeb.UserLive.DisplayUsersList}
           users={assigns[:existing_users_found] || []}
           user_changeset={assigns[:user_changeset]}
           search_field_name={@search_field_name}

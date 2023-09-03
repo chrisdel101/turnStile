@@ -1,8 +1,12 @@
-defmodule PopUpHeroComponent do
+defmodule TurnStileWeb.PopUpBlock do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-
+  @defmodule """
+  PopUpBlock Live Component
+  - single item not in a list
+  - for use when only a sinlge block is required
+  """
   def render(assigns) do
     message_id = "message-#{assigns.id}"
     ~H"""

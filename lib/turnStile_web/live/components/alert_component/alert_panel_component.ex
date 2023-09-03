@@ -1,4 +1,4 @@
-  defmodule TurnStileWeb.AlertPanelLive.AlertComponent do
+  defmodule TurnStileWeb.AlertPanel do
   @doc"""
   Alert Live Component
   - there is no solo view for this page, it is only a modal
@@ -204,8 +204,8 @@
           alert.alert_format === AlertFormatTypesMap.get_alert("SMS") ->
             IO.inspect(alert, label: "SMS")
             case AlertUtils.send_SMS_alert(alert) do
-              {:ok, twilio_msg} ->
-                IO.inspect(twilio_msg)
+              {:ok, _twilio_msg} ->
+                # IO.inspect(twilio_msg)
                 {
                   :noreply,
                   socket

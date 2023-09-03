@@ -1,7 +1,12 @@
-defmodule PopUpMessageComponent do
+defmodule TurnStileWeb.PopUpItem do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
+  @defmodule """
+  PopUpItem Live Component
+  - single item within a list
+  - can be mutltiple at at time on page
+  """
 
   def render(assigns) do
     message_id = "message-#{assigns.id}"

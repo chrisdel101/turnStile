@@ -1,4 +1,4 @@
-defmodule TurnStileWeb.UserLive.DisplayListComponent do
+defmodule TurnStileWeb.UserLive.DisplayUsersList do
   use TurnStileWeb, :live_component
   @test_users  [%TurnStile.Patients.User{
     id: 13,
