@@ -11,6 +11,10 @@
             "title": "Custom Dev Fill In Title",
             "body": "Custom Dev Fill In Body. This is some text to test things. If you've recieved this, it's just a test."
           }
+        },
+        "RE-INITIAL": {
+          "title": "This is a Turnstile Alert",
+          "body": "There may have been a problem with your previous alert. To reconfirm, Reply with 1 to confirmm, 2 to cancel. You will recieve a response confirming your action."
         }
       },
       "email": {

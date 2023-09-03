@@ -309,7 +309,15 @@ defmodule TurnStile.Alerts do
           alert_format: alert_format,
           alert_category: alert_category
         }
-
+      alert_category === AlertCategoryTypesMap.get_alert("RE-INITIAL") ->
+        %{
+          title: @json["alerts"]["request"]["sms"]["initial"]["title"],
+          body: @json["alerts"]["request"]["sms"]["initial"]["body"],
+          from: (if alert_format === AlertFormatTypesMap.get_alert("EMAIL"), do: System.get_env("SYSTEM_ALERT_FROM_EMAIL"), else: System.get_env("SYSTEM_ALERT_FROM_SMS")),
+          to: (if alert_format === AlertFormatTypesMap.get_alert("EMAIL"), do: user.email, else: user.phone),
+          alert_format: alert_format,
+          alert_category: alert_category
+        }
       #  INITIAL is only SMS type
       alert_category === AlertCategoryTypesMap.get_alert("INITIAL") ->
         %{
@@ -334,6 +342,7 @@ defmodule TurnStile.Alerts do
 
       # test map
       true ->
+        # in prod there would be no fill-ins here
         %{
           title: @json["alerts"]["request"]["sms"]["custom"]["dev_test"]["title"],
           body: @json["alerts"]["request"]["sms"]["custom"]["dev_test"]["body"],

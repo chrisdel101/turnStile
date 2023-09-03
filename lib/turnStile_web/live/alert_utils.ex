@@ -1,9 +1,12 @@
 defmodule TurnStileWeb.AlertUtils do
+  use Phoenix.Component
   alias TurnStile.Alerts.Alert
   alias TurnStile.Alerts
   alias TurnStile.Staff
   @json TurnStile.Utils.read_json("alert_text.json")
   alias TurnStileWeb.EmployeeAuth
+  @dialyzer {:no_match, handle_sending_alert: 3}
+
 
   @doc """
   authenticate_and_save_sent_alert
@@ -16,7 +19,7 @@ defmodule TurnStileWeb.AlertUtils do
   def authenticate_and_save_sent_alert(socket, changeset, params \\ %{}) do
     current_employee = Kernel.get_in(socket.assigns, [:current_employee])
     user = Kernel.get_in(socket.assigns, [:user])
-    # IO.inspect(changeset, label: "changeset in authenticate_and_save_sent_alert")
+    # IO.inspect(user, label: "changeset in authenticate_and_save_sent_alert")
 
     if !current_employee || !user do
       {:error, "Error: Data loss occured on form submission. Please try again."}
@@ -330,6 +333,163 @@ defmodule TurnStileWeb.AlertUtils do
 
       true ->
         {:error, "Error: invalid alert_category in handle_updating_user_alert_send_status"}
+    end
+  end
+
+  #  def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
+  def handle_sending_alert(event, changeset, socket) do
+    # attrs = map_event_to_changeset_attributes(event, alert_format, socket)
+      # Alerts.build_alert_attrs(
+      #   socket.assigns.user,
+      #   AlertCategoryTypesMap.get_alert("INITIAL"),
+      #   alert_format
+      # )
+
+    # IO.inspect(attrs, label: "attrs in handle_event")
+    # changeset = Alerts.create_new_alert(%Alert{}, attrs)
+    # IO.inspect(changeset, label: "changeset in handle_event")
+    case authenticate_and_save_sent_alert(socket, changeset) do
+      {:ok, alert} ->
+        if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
+          case send_email_alert(alert) do
+            {:ok, _email_msg} ->
+              # IO.inspect(email_msg, label: "email_msgXXX")
+              case handle_updating_user_alert_send_status(
+                     socket.assigns.user,
+                     map_event_to_category(event)
+                   ) do
+                {:ok, _user} ->
+                  # call :update for DB/page updates
+                  if connected?(socket), do: Process.send(self(), :update, [:noconnect])
+
+                  # IO.inspect(List.last(socket.assigns.users), label: "users in fetchBBBBBBBBBBBBB")
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:success, "Alert sent successfully")
+                  }
+
+                # handle_updating_user_alert_send_status error
+                {:error, error} ->
+                  IO.inspect(error, label: "email index alert error in handle_event")
+
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:error, "Failure in alert send. #{error}")
+                  }
+              end
+
+            # system/mailgun SMS error
+            {:error, error} ->
+              # delete saved alert due to send error
+              Alerts.delete_alert(alert)
+              # handle mailgun error format
+              IO.inspect(error, label: "SMS index alert error in handle_event")
+
+              case error do
+                {error_code, %{"message" => error_message}} ->
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(
+                      :error,
+                      "Failure in alert send. #{error_message}. Code: #{error_code}"
+                    )
+                  }
+
+                _ ->
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:error, "Failure in email alert send.")
+                  }
+              end
+          end
+        else
+          case send_SMS_alert(alert) do
+            {:ok, twilio_msg} ->
+              IO.inspect(twilio_msg, label: "twilio_msg")
+
+              case handle_updating_user_alert_send_status(
+                     socket.assigns.user,
+                     map_event_to_category(event)
+                   ) do
+                {:ok, _user} ->
+                  # call :update for DB/page updates
+                  if connected?(socket), do: Process.send(self(), :update, [:noconnect])
+
+                  # IO.inspect(List.last(socket.assigns.users), label: "users in fetchBBBBBBBBBBBBB")
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:success, "Alert sent successfully")
+                  }
+
+                {:error, error} ->
+                  {
+                    :noreply,
+                    socket
+                    |> put_flash(:error, "Failure in alert send. #{error}")
+                  }
+              end
+
+            # handle twilio errors
+            {:error, error_map, error_code} ->
+              # delete saved alert due to send error
+              Alerts.delete_alert(alert)
+
+              {
+                :noreply,
+                socket
+                |> put_flash(
+                  :error,
+                  "Failure in alert send. #{error_map["message"]}. Code: #{error_code}"
+                )
+              }
+
+            # system SMS error
+            {:error, error} ->
+              # delete saved alert due to send error
+              Alerts.delete_alert(alert)
+
+              {
+                :noreply,
+                socket
+                |> put_flash(:error, "Failure in alert send. #{error}")
+              }
+          end
+        end
+
+      # authenticate_and_save_sent_alert error
+      {:error, changeset} when is_map(changeset) ->
+        IO.inspect(changeset, label: "error handle_sending_alert")
+        {:noreply,
+         socket
+         |> assign(:changeset, changeset)
+         |> put_flash(:error, "Alert Not created successfully")}
+
+      {:error, error} when is_binary(error) ->
+        IO.inspect(error, label: "error handle_sending_alert")
+
+        socket =
+          socket
+          |> put_flash(:error, "Initial SMS alert failed to send: #{error}")
+
+        {:noreply, socket}
+    end
+  end
+
+  defp map_event_to_category(event) do
+    case event do
+      "send_initial_alert" ->
+        AlertCategoryTypesMap.get_alert("INITIAL")
+
+      "send_custom_alert" ->
+        AlertCategoryTypesMap.get_alert("CUSTOM")
+
+      "send_re_initial_alert" ->
+        AlertCategoryTypesMap.get_alert("RE-INITIAL")
     end
   end
 

@@ -282,17 +282,11 @@ defmodule TurnStileWeb.AlertController do
             TurnStile.PubSub,
             PubSubTopicsMap.get_topic("MULTI_USER_TWILIO_MATCH"),
             %{
-              mutli_match_twilio_users: users_match_phone, callback_response: &send_manual_system_response/2,
-              conn: conn
+              mutli_match_twilio_users: users_match_phone, callback: &AlertUtils.send_SMS_alert/1
             }
           )
-          # IO.puts("FIRED")
-          # conn
-          # |> put_resp_content_type("text/xml")
-          # |> put_status(102)
-          # # |> maybe_write_alert_cookie(token)
-          # |> text(IsolatedTwinML.render_response("Resonse Pending"))
-          # send_manual_system_response(conn, "Solution in progress")
+          # send 102 processing to response to twilio
+          send_manual_system_response(conn, "Solution in progress", 102)
         # match failure
         {:not_found, msg} ->
           IO.inspect(msg, label: "INFO: failed to find match")
@@ -322,6 +316,14 @@ defmodule TurnStileWeb.AlertController do
 
     conn
     |> put_resp_content_type("text/xml")
+    # |> maybe_write_alert_cookie(token)
+    |> text(IsolatedTwinML.render_response(response_body))
+  end
+  def send_manual_system_response(conn, response_body, status_code) do
+
+    conn
+    |> put_resp_content_type("text/xml")
+    |> put_status(status_code)
     # |> maybe_write_alert_cookie(token)
     |> text(IsolatedTwinML.render_response(response_body))
   end

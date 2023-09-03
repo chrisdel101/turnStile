@@ -144,8 +144,7 @@ defmodule TurnStileWeb.UserLive.Index do
   def handle_info(params, socket) do
     case params do
       %{
-        mutli_match_twilio_users: users_match_phone,        callback_response: send_response_callback,
-        conn: conn
+        mutli_match_twilio_users: users_match_phone,        callback: send_SMS_alert_callback,
        } ->
         HandleInfo.handle_mutli_match_twilio_users(params, socket)
       {:user_registation_form, %{user_params: user_params}} ->
@@ -382,139 +381,14 @@ defmodule TurnStileWeb.UserLive.Index do
 
       # no validation errors - proceed with sending alert
       true ->
-        attrs =
-          Alerts.build_alert_attrs(
-            socket.assigns.user,
-            AlertCategoryTypesMap.get_alert("INITIAL"),
-            alert_format
-          )
-
-        # IO.inspect(attrs, label: "attrs in handle_event")
+        attrs = Alerts.build_alert_attrs(
+          socket.assigns.user,
+          AlertCategoryTypesMap.get_alert("INITIAL"),
+          alert_format
+        )
         changeset = Alerts.create_new_alert(%Alert{}, attrs)
-        # IO.inspect(changeset, label: "changeset in handle_event")
-        case AlertUtils.authenticate_and_save_sent_alert(socket, changeset, %{}) do
-          {:ok, alert} ->
-            if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
-              case AlertUtils.send_email_alert(alert) do
-                {:ok, _email_msg} ->
-                  # IO.inspect(email_msg, label: "email_msgXXX")
-                  case AlertUtils.handle_updating_user_alert_send_status(
-                         socket.assigns.user,
-                         AlertCategoryTypesMap.get_alert("INITIAL")
-                       ) do
-                    {:ok, _user} ->
-                      # call :update for DB/page updates
-                      if connected?(socket), do: Process.send(self(), :update, [:noconnect])
-
-                      # IO.inspect(List.last(socket.assigns.users), label: "users in fetchBBBBBBBBBBBBB")
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(:success, "Alert sent successfully")
-                      }
-
-                    # handle_updating_user_alert_send_status error
-                    {:error, error} ->
-                      IO.inspect(error, label: "email index alert error in handle_event")
-
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(:error, "Failure in alert send. #{error}")
-                      }
-                  end
-
-                # system/mailgun SMS error
-                {:error, error} ->
-                  # delete saved alert due to send error
-                  Alerts.delete_alert(alert)
-                  # handle mailgun error format
-                  IO.inspect(error, label: "SMS index alert error in handle_event")
-
-                  case error do
-                    {error_code, %{"message" => error_message}} ->
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(
-                          :error,
-                          "Failure in alert send. #{error_message}. Code: #{error_code}"
-                        )
-                      }
-
-                    _ ->
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(:error, "Failure in email alert send.")
-                      }
-                  end
-              end
-            else
-              case AlertUtils.send_SMS_alert(alert) do
-                {:ok, twilio_msg} ->
-                  IO.inspect(twilio_msg, label: "twilio_msg")
-
-                  case AlertUtils.handle_updating_user_alert_send_status(
-                         socket.assigns.user,
-                         AlertCategoryTypesMap.get_alert("INITIAL")
-                       ) do
-                    {:ok, _user} ->
-                      # call :update for DB/page updates
-                      if connected?(socket), do: Process.send(self(), :update, [:noconnect])
-
-                      # IO.inspect(List.last(socket.assigns.users), label: "users in fetchBBBBBBBBBBBBB")
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(:success, "Alert sent successfully")
-                      }
-
-                    {:error, error} ->
-                      {
-                        :noreply,
-                        socket
-                        |> put_flash(:error, "Failure in alert send. #{error}")
-                      }
-                  end
-
-                # handle twilio errors
-                {:error, error_map, error_code} ->
-                  # delete saved alert due to send error
-                  Alerts.delete_alert(alert)
-
-                  {
-                    :noreply,
-                    socket
-                    |> put_flash(
-                      :error,
-                      "Failure in alert send. #{error_map["message"]}. Code: #{error_code}"
-                    )
-                  }
-
-                # system SMS error
-                {:error, error} ->
-                  # delete saved alert due to send error
-                  Alerts.delete_alert(alert)
-
-                  {
-                    :noreply,
-                    socket
-                    |> put_flash(:error, "Failure in alert send. #{error}")
-                  }
-              end
-            end
-
-          # authenticate_and_save_sent_alert error
-          {:error, error} ->
-            IO.inspect(error, label: "error in handle_event authenticate_and_save_sent_aler")
-
-            socket =
-              socket
-              |> put_flash(:error, "Initial SMS alert failed to send: #{error}")
-
-            {:noreply, socket}
-        end
+        AlertUtils.handle_sending_alert("send_initial_alert",
+       changeset, socket)
     end
   end
 
@@ -605,9 +479,20 @@ defmodule TurnStileWeb.UserLive.Index do
           {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :select, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
         end
       type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
-          user = Patients.get_user(user_id)
-          socket.assigns.stored_callback.(socket.assigns.stored_conn, "SOME RESPONSE")
-          {:noreply,socket}
+        user = Patients.get_user(user_id)
+        attrs = Alerts.build_alert_attrs(
+          user,
+          AlertCategoryTypesMap.get_alert("RE-INITIAL"),
+          AlertFormatTypesMap.get_alert("SMS")
+        )
+        changeset = Alerts.create_new_alert(%Alert{}, attrs)
+        #pass along user in socket
+        socket = assign(socket, :user, Patients.get_user(user_id))
+        AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
+        # handle_event("send_initial_alert", %{"alert-format" => AlertFormatTypesMap.get_alert("SMS"), "user-id" => user_id, "value" => nil} )
+          # user = Patients.get_user(user_id)
+          # socket.assigns.stored_callback.()
+          # {:noreply,socket}
     end
   end
 

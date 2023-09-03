@@ -88,7 +88,8 @@ defmodule AlertCategoryTypesMap do
     "CUSTOM" => "custom", # initial by email, or other SMS
     "CONFIRMATION" => "confirmation",
     "CANCELLATION" => "cancellation",
-    "SYSTEM_RESPONSE" => "system_response"
+    "SYSTEM_RESPONSE" => "system_response",
+    "RE-INITIAL" => "re-initial" # response from when employee handles mutli-user response conflict
   }
   def get_alerts do
     @alerts
@@ -131,6 +132,7 @@ defmodule UserAlertStatusTypesMap do
   @statuses %{
     "UNALERTED" => "unalerted",
     "PENDING" => "pending",
+    "MULTI-USER-REVIEW" => "multi-user-review", # when multi user reply is recieved
     "CONFIRMED" => "confirmed",
     "CANCELLED" => "cancelled",
     "EXPIRED" => "expired",

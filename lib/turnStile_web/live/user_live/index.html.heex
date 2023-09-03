@@ -1,5 +1,4 @@
 <%= if @live_action in [:index] do %>
-<h2>Notification</h2>
   <%= for message <- @user_registration_messages do %>
   <% IO.inspect(assigns) %>
    <TurnStileWeb.PopUpItem.render
@@ -12,6 +11,7 @@
         />
     <% end %>
   <%= if TurnStile.Utils.is_list_greater_that_1?( @unmatched_SMS_users) do %>
+    <h2>Notification</h2>
   <%!-- <% IO.inspect(user_tuple, label: 'XXX') %> --%>
       <TurnStileWeb.PopUpBlock.render
         module={TurnStileWeb.UserLive.TurnStileWeb.UserLive.PopUpBlock}

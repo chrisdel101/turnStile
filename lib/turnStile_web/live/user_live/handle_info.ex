@@ -2,7 +2,7 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   use Phoenix.Component
   # use TurnStileWeb, :live_component
   alias TurnStile.Utils
-  alias TurnStileWeb.UserLive.DisplayListComponent
+  alias TurnStileWeb.UserLive.DisplayUsersList
   alias TurnStileWeb.AlertController
   alias TurnStile.Patients
 
@@ -10,17 +10,22 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   # comes from alert controller via PUBSUB
   # non_idle_matching_users is a list of active user with active state
   def handle_mutli_match_twilio_users(%{
-    mutli_match_twilio_users: users_match_phone_list,callback_response: send_response_callback,
-    conn: conn}, socket) do
+    mutli_match_twilio_users: users_match_phone_list,
+    callback: send_sms_alert_callback}, socket) do
     # users match org_id, is_active?, and active state
     matched_users_tuples = match_users_to_organization(users_match_phone_list, socket)
     # combine w default empty list
     unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users_tuples)
-    # IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
+    IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
+    send(self(), :update)
+    # update these users states
+    Enum.each(unmtached_users, fn user ->
+      # update user state
+      Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("MULTI-USER-REVIEW"))
+    end)
     {:noreply,
     socket
-    |> assign(:stored_callback, send_response_callback)
-    |> assign(:stored_conn, conn)
+    |> assign(:stored_callback, send_sms_alert_callback)
     |> assign(:unmatched_SMS_users, unmtached_users)
     |> assign(:popup_hero_title,"Multi-User Match - Employee Attention Required ."
      )
@@ -180,7 +185,6 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
     # make into list w index
     # indexed_tuples = Enum.with_index(non_idle_users)
     # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    # users are formed like {%{...}, 0}
     non_idle_users
   end
   defp is_user_alert_status_idle?(user) do

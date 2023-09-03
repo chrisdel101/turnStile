@@ -18,7 +18,7 @@
     %{id: user_id, current_employee: _current_employee, user: user} = props
 
     alerts = Alerts.get_alerts_for_user(user_id)
-    IO.inspect(props, label: "props")
+    # IO.inspect(props, label: "props")
     # build default alert attrs to start, just a starting setting
     sms_attrs =
       Alerts.build_alert_attrs(
@@ -145,101 +145,11 @@
 
   # send alert from custom dispatch form
   def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
-    # IO.inspect(Index, label: "alert_params")
-    # IO.inspect(socket.assigns.changeset, label: "socket")
-    # save alert to DB
-    case  AlertUtils.authenticate_and_save_sent_alert(socket, socket.assigns.changeset, alert_params) do
-      {:ok, alert} ->
-        # check alert type to send
-        # IO.inspect(alert, label: "alert")
-        cond do
-          alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") ->
-            # IO.inspect(alert, label: "alert handle_event EmAIl")
-
-            case AlertUtils.send_email_alert(alert) do
-              {:ok, _email} ->
-                # TODO - ADD radios to choose alert type - status us broken ATM
-                case AlertUtils.handle_updating_user_alert_send_status(socket.assigns.user, AlertCategoryTypesMap.get_alert("CUSTOM"), update_status: AlertCategoryTypesMap.get_alert("CUSTOM")) do
-                  {:ok, _user} ->
-                    # TODO: make this a send() like in upsert
-                    # IO.inspect(user, label: "user in handle_event")
-                    # make a call to Index liveview to update
-                    # - WORKS BUT COULD BE FLUKE
-                    Index.handle_info(:update, socket)
-                    {
-                      :noreply,
-                      socket
-                      |> put_flash(:success, "Alert sent successfully")
-                    }
-                  {:error, error} ->
-                    {
-                      :noreply,
-                      socket
-                      |> put_flash(:error, "Failure in alert send. #{error}")
-                    }
-                end
-                {
-                  :noreply,
-                  socket
-                  |> put_flash(:success, "Email Alert sent successfully")
-                }
-              {:error, error} ->
-                # handle mailgun error format
-                IO.inspect(error, label: "OUTER: in handle_event")
-                case error do
-                  {error_code, %{"message" => error_message}} ->
-                    {
-                      :noreply,
-                      socket
-                      |> put_flash(:error, "Failure in alert send. #{error_message}. Code: #{error_code}")
-                    }
-                  _ ->
-                    {
-                      :noreply,
-                      socket
-                      |> put_flash(:error, "Failure in email alert send.")
-                    }
-                end
-            end
-          alert.alert_format === AlertFormatTypesMap.get_alert("SMS") ->
-            IO.inspect(alert, label: "SMS")
-            case AlertUtils.send_SMS_alert(alert) do
-              {:ok, _twilio_msg} ->
-                # IO.inspect(twilio_msg)
-                {
-                  :noreply,
-                  socket
-                  |> put_flash(:success, "Alert sent successfully")
-                }
-              # handle twilio errors
-              {:error, error_map, error_code} ->
-                {
-                  :noreply,
-                  socket
-                  |> put_flash(:error, "Failure in alert send. #{error_map["message"]}. Code: #{error_code}")
-                }
-              end
-          true ->
-            {
-              :noreply,
-              socket
-              # |> assign(:action, "insert")
-              |> put_flash(:error, "Unknown alert format type. Only email or SMS are alllowed. Try again or contact support.")
-              # |> push_redirect(to: socket.assigns.return_to)
-            }
-        end
-
-      {:error, changeset} when is_map(changeset) ->
-        {:noreply,
-         socket
-         |> assign(:changeset, changeset)
-         |> put_flash(:error, "Alert Not created successfully")}
-
-      {:error, error} when is_binary(error) ->
-        {:noreply,
-         socket
-         |> put_flash(:error, error)}
-    end
+     # manually add category
+      alert_params = Map.put(alert_params, "alert_category", AlertCategoryTypesMap.get_alert("CUSTOM"))
+      changeset = Alerts.create_new_alert(%Alert{}, alert_params, true)
+      AlertUtils.handle_sending_alert("send_custom_alert",
+       changeset, socket)
   end
 
   defp set_title(panel_prop) do
