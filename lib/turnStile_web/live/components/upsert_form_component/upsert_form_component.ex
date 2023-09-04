@@ -119,10 +119,10 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
     current_employee = socket.assigns[:current_employee]
     # IO.inspect(user_params, label: "user_params")
     IO.inspect(socket.assigns.live_action, label: "handle_event upsert: live_action")
-    if !socket.assigns.changeset.valid? do
-      # no submit if validation errors
-      handle_event("validate", %{"user" => user_params}, socket)
-    else
+    # if !socket.assigns.changeset.valid? do
+    #   # no submit if validation errors
+    #   handle_event("validate", %{"user" => user_params}, socket)
+    # else
       case socket.assigns.live_action do
         live_action when live_action in [:edit] ->
           if EmployeeAuth.has_user_edit_permissions?(socket, current_employee) do
@@ -179,7 +179,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
         _ ->
           {:noreply, socket}
       end
-    end
+    # end
   end
 
   # back from :display - on :new when existing users found

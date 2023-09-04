@@ -1,5 +1,6 @@
 <div>
 <main class="container">
+  <%!-- <% IO.inspect(@flash) %> --%>
   <p class="alert alert-info" role="alert"
     phx-click="lv:clear-flash"
     phx-value-key="info"><%= live_flash(@flash, :info) %></p>
@@ -44,7 +45,8 @@
       <%= for user <- @users do %>
         <div id={"search-user-#{Map.get(user, :id)}"}  
         class={"display-list-user #{if user.is_active?, do: "display-user-active", else: "display-user-inactive"}"}  phx-click={"handle_display_click"}
-        phx-value-active?={if user.is_active?, do: true,  else: false} 
+        phx-target={@myself}
+        phx-value-is_active?={if user.is_active?, do: "true",  else: "false"} 
         phx-value-type={@type} 
         phx-value-user_id={user.id}
         >

@@ -425,19 +425,6 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  # is_user_alert_status_idle?
-  # - check if user matches one of the idle/inactive alert statuses
-
-  defp is_user_alert_status_idle?(user) do
-    # check for both syntax types
-    user_alert_status = Map.get(user, "user_alert_status")
- ||  Map.get(user, :user_alert_status)
-    # check if it matches one of the invalid states
-    user_alert_status in [
-      UserAlertStatusTypesMap.get_user_status("UNALERTED"),
-      UserAlertStatusTypesMap.get_user_status("CANCELLED"),
-      UserAlertStatusTypesMap.get_user_status("EXPIRED")]
-  end
 end
 
 # isolate in separate module - duplicate render function in both causes ambiguity error

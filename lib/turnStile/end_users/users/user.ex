@@ -31,6 +31,7 @@ defmodule TurnStile.Patients.User do
     |> cast(attrs, [:first_name, :last_name, :email, :phone, :health_card_num, :employee_id, :is_active?, :user_alert_status, :alert_format_set, :date_of_birth])
     |> validate_required([:first_name, :last_name, :health_card_num, :is_active?, :user_alert_status])
     |> validate_alert_format_matches_alert_format_set()
+
   end
   # same as create but w/ not default - since overwrites changes
   def update_changeset(user, attrs) do
@@ -40,6 +41,8 @@ defmodule TurnStile.Patients.User do
     |>
     validate_alert_format_matches_alert_format_set()
     |> unique_constraint(:health_card_num, message: "A member with this number already exists. Duplicates cannot exist for this field.")
+    # to make this an error on the form use the name: field; stops server exception
+    |> unique_constraint([:phone, :organization_id, :is_active?], message: "A user with this phone number is already active. Mutiple users with the same number cannot be active.", name: :users_phone_organization_id_is_active_index)
   end
 
 

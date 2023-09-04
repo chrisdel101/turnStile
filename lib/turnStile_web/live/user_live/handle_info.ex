@@ -4,9 +4,9 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   alias TurnStile.Utils
   alias TurnStileWeb.AlertController
   alias TurnStile.Patients
-  alias TurnStile.Alerts
-  alias TurnStile.Alerts.Alert
-  alias TurnStileWeb.AlertUtils
+  # alias TurnStile.Alerts
+  # alias TurnStile.Alerts.Alert
+  # alias TurnStileWeb.AlertUtils
 
   # mutli user match recieived from twilio
   # comes from alert controller via PUBSUB
@@ -122,11 +122,8 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
 
   # called from :search; when search results are found
   def handle_users_found_from_search({:users_found, %{"existing_users_found" => existing_users_found}}, socket) do
-    IO.puts(
-      "index handle info: {:users_found, %{'existing_users_found' => existing_users_found}}"
-    )
 
-    # IO.inspect("UUUUUUUU", label: "message in handle_info")
+    # IO.inspect(existing_users_found, label: "message in handle_info")
     # call update to refresh state on :display
     send_update(DisplayListComponent, id: "display")
     {:noreply, assign(socket, :existing_users_found, existing_users_found)}

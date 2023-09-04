@@ -70,7 +70,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
           {:error, %Ecto.Changeset{} = changeset} ->
             socket =
               socket
-              |> put_flash(:error, "Unable to create this user. See error messages below.")
+              |> put_flash(:error, "Error on create. See validation errors below.")
 
             {:noreply, assign(socket, :changeset, changeset)}
         end

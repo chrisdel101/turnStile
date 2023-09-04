@@ -127,9 +127,9 @@
           <td><%= user.first_name %></td>
           <td><%= user.last_name %></td>
           <%= if user.alert_format_set === AlertFormatTypesMap.get_alert("EMAIL") do %>
-            <td><%= user.phone %></td>
-          <% else %>
             <td><%= user.email %></td>
+          <% else %>
+            <td><%= user.phone %></td>
           <% end %>
           
           <td><%= user.health_card_num %></td>

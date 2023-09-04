@@ -3,7 +3,6 @@ defmodule TurnStileWeb.UserLive.Index do
 
   alias TurnStile.Patients
   alias TurnStile.Staff
-  alias TurnStile.Utils
   alias TurnStileWeb.EmployeeAuth
   alias TurnStileWeb.AlertUtils
   alias TurnStileWeb.UserLive.Index.IndexUtils
@@ -15,7 +14,6 @@ defmodule TurnStileWeb.UserLive.Index do
   # live_actions [:new, :index, :alert, :edit]
   @interval 100000
   @filter_active_users_mins 30
-  @wait_time_mins 60
   # @dialyzer {:nowarn_function, handle_event: 3}
   @dialyzer {:no_match, handle_event: 3}
   @non_idle_matching_users [
@@ -144,29 +142,29 @@ defmodule TurnStileWeb.UserLive.Index do
   def handle_info(params, socket) do
     case params do
       %{
-        mutli_match_twilio_users: users_match_phone} ->
+        mutli_match_twilio_users: _users_match_phone} ->
         HandleInfo.handle_mutli_match_twilio_users(params, socket)
-      {:user_registation_form, %{user_params: user_params}} ->
+      {:user_registation_form, %{user_params: _user_params}} ->
         HandleInfo.handle_user_registation_form(params, socket)
       %{send_response_params: %{
-        twilio_params: twilio_params,
-        conn: conn}} ->
+        twilio_params: _twilio_params,
+        conn: _conn}} ->
           HandleInfo.handle_send_response_params(params, socket)
       %{user_alert_status: _user_alert_status} ->
         HandleInfo.handle_user_alert_status(params, socket, filter_active_users_mins: @filter_active_users_mins)
-      %{"existing_users" => existing_users, "user_changeset" => user_changeset} ->
+      %{"existing_users" => _existing_users, "user_changeset" => _user_changeset} ->
         HandleInfo.handle_existing_users_from_upsert(params, socket)
       :update -> HandleInfo.handle_update(params, socket, filter_active_users_mins: @filter_active_users_mins,
       interval: @interval)
-      {:users_found, %{"existing_users_found" => existing_users_found}} ->
+      {:users_found, %{"existing_users_found" => _existing_users_found}} ->
         HandleInfo.handle_users_found_from_search(params, socket)
       {:users_found, %{
-        existing_users_found: existing_users_found,
-        user_changeset: user_changeset,
-        redirect_to: redirect_to
+        existing_users_found: _existing_users_found,
+        user_changeset: _user_changeset,
+        redirect_to: _redirect_to
       }} ->
         HandleInfo.handle_users_found_from_new(params, socket)
-      {:reject_existing_users, %{user_changeset: user_changeset, redirect_to: redirect_to}} ->
+      {:reject_existing_users, %{user_changeset: _user_changeset, redirect_to: _redirect_to}} ->
         HandleInfo.handle_reject_existing_users(params, socket)
     end
   end
@@ -464,36 +462,6 @@ defmodule TurnStileWeb.UserLive.Index do
        )}
     end
   end
-  def handle_event("handle_display_click",  %{"type" => type, "user_id" => user_id, "active?" => active?}, socket) do
-    # IO.inspect(params, label: "handle_display_click")
-    cond do
-      type === DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST") ->
-        if active? do
-          {:noreply,
-          socket
-          |> put_flash(:warning, "ERROR: This user is aleady active. You cannot select an already activated user. This user should alredy be in the main list. Look through your list of users again.")}
-        else
-          current_employee = socket.assigns.current_employee
-          # redirect to :new form
-          {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :select, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
-        end
-      type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
-        user = Patients.get_user(user_id)
-        attrs = Alerts.build_alert_specfic_attrs(
-          user,
-          AlertCategoryTypesMap.get_alert("RE-INITIAL"),
-          AlertFormatTypesMap.get_alert("SMS")
-        )
-        changeset = Alerts.create_new_alert(%Alert{}, attrs)
-        #pass along user in socket
-        socket = assign(socket, :user, Patients.get_user(user_id))
-        AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
-
-    end
-  end
-
-
-
 
   # :alert - renders alert panel
   # -called from when live_patch clicked on index

@@ -2,7 +2,7 @@ defmodule TurnStileWeb.PopUpBlock do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  @defmodule """
+  @moduledoc """
   PopUpBlock Live Component
   - single item not in a list
   - for use when only a sinlge block is required

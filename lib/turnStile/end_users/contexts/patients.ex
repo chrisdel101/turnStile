@@ -68,20 +68,22 @@ defmodule TurnStile.Patients do
   # - use active query to get deactivated w/in a time period - less/eq to x mins ago
   # -  handles listing users based on normal operations: keeps deactivated users in the list for info purposes
   def filter_active_users_x_mins_past_last_update(organization_id, duration_in_mins) do
-    q =
-      from(u in list_active_users_query(organization_id),
-        # interval = current time - updated_at
-        # time_ago > or < interval
-        # ago: Subtracts the given interval from the current time in UTC.
-        # - > < are reversed with ago
-        # > means further back than x time ago (before)
-        # < means before x time ago (after)
-        or_where: u.is_active? == false and u.updated_at > ago(^duration_in_mins, "minute"),
-        preload: [:employee, :organization],
-        order_by: [desc: u.id]
-      )
+    if !is_nil(organization_id) do
+      q =
+        from(u in list_active_users_query(organization_id),
+          # interval = current time - updated_at
+          # time_ago > or < interval
+          # ago: Subtracts the given interval from the current time in UTC.
+          # - > < are reversed with ago
+          # > means further back than x time ago (before)
+          # < means before x time ago (after)
+          or_where: u.is_active? == false and u.updated_at > ago(^duration_in_mins, "minute"),
+          preload: [:employee, :organization],
+          order_by: [desc: u.id]
+        )
 
-    Repo.all(q)
+      Repo.all(q)
+    end
   end
 
   @doc """
@@ -565,7 +567,6 @@ defmodule TurnStile.Patients do
     # make sure it exists as a change
     case Ecto.Changeset.get_change(user_changeset, :health_card_num) do
       val when is_binary(val) ->
-        IO.inspect(val, label: "val")
         Ecto.Changeset.put_change(
         user_changeset,
         :health_card_num,

@@ -7,7 +7,8 @@
       id={@user.id}
       user_changeset={assigns[:user_changeset]}
       page_title={@page_title}
-      action={@live_action}
+      live_action={@live_action}
+      subtitle={assigns[:subtitle]  }
       user={@user}
       current_employee={@current_employee}
       return_to={Routes.user_show_path(@socket, :show, @current_employee.current_organization_login_id, @current_employee.id, @user)}

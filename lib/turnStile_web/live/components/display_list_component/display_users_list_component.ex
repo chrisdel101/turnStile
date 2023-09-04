@@ -1,5 +1,8 @@
 defmodule TurnStileWeb.UserLive.DisplayUsersList do
   use TurnStileWeb, :live_component
+  alias TurnStile.Alerts.Alert
+  alias TurnStile.Alerts
+  alias TurnStile.Patients
   @test_users  [%TurnStile.Patients.User{
     id: 13,
     email: "arssonist@yahoo.com",
@@ -48,6 +51,7 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
      socket
      |> assign(props)
      |> assign(:organization, organization)
+    #  |> assign(:users, @test_users)
     }
   end
 
@@ -71,6 +75,35 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
     handle_send_data(unsigned_params, socket)
     {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :display_existing_users, current_employee.current_organization_login_id, current_employee.id))}
     {:noreply, socket}
+  end
+  def handle_event("handle_display_click",  %{"type" => type, "user_id" => user_id, "is_active?" => is_active?} = params, socket) do
+    # IO.inspect(params, label: "handle_display_click")
+    # IO.inspect(is_active?, label: "handle_display_click")
+    cond do
+      type === DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST") ->
+        if is_active? == "true" do
+          IO.inspect(is_active?, label: "handle_display_click")
+          {:noreply,
+          socket
+          |> put_flash(:warning, "ERROR: This user is aleady active. You cannot select an already activated user. This user should alredy be in the main list. Look through your list of users again.")}
+        else
+          current_employee = socket.assigns.current_employee
+          # redirect to :new form
+          {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :select, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
+        end
+      type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
+        user = Patients.get_user(user_id)
+        attrs = Alerts.build_alert_specfic_attrs(
+          user,
+          AlertCategoryTypesMap.get_alert("RE-INITIAL"),
+          AlertFormatTypesMap.get_alert("SMS")
+        )
+        changeset = Alerts.create_new_alert(%Alert{}, attrs)
+        #pass along user in socket
+        socket = assign(socket, :user, Patients.get_user(user_id))
+        TurnStileWeb.AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
+
+    end
   end
   # send msg back to index handle_msg
   defp handle_send_data(_unsigned_params, socket) do

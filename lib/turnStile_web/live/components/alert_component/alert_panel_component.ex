@@ -9,7 +9,6 @@
   alias TurnStile.Alerts
   alias TurnStile.Alerts.Alert
   alias TurnStileWeb.AlertUtils
-  alias TurnStileWeb.UserLive.Index
   @json TurnStile.Utils.read_json("alert_text.json")
 
   @impl true

@@ -60,6 +60,9 @@ __Developement__
       ```
   5. Using TwinML and this [tutorial](https://www.blakedietz.me/blog/2022-03-30/phoenix-twilio/) we immideatlely resonsd to incoming messages.
 
+### Handle Flash Messages
+- For Flash messages to appear in child components, the `put_flash` must be called in the child component.
+
 # Installation
 
 - instal[postgres](https://www.postgresql.org/)

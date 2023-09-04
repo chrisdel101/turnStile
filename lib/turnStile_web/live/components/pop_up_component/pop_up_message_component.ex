@@ -2,7 +2,7 @@ defmodule TurnStileWeb.PopUpItem do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  @defmodule """
+  @moduledoc """
   PopUpItem Live Component
   - single item within a list
   - can be mutltiple at at time on page
