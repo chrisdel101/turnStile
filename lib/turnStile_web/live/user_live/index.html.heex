@@ -1,4 +1,7 @@
 <%= if @live_action in [:index] do %>
+  <%= if TurnStile.Utils.is_list_greater_that_1?( @user_registration_messages) do %>
+      <h2>Notification</h2>
+  <% end %>
   <%= for message <- @user_registration_messages do %>
   <% IO.inspect(assigns) %>
    <TurnStileWeb.PopUpItem.render

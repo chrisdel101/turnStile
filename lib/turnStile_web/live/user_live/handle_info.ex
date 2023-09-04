@@ -2,30 +2,41 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   use Phoenix.Component
   # use TurnStileWeb, :live_component
   alias TurnStile.Utils
-  alias TurnStileWeb.UserLive.DisplayUsersList
   alias TurnStileWeb.AlertController
   alias TurnStile.Patients
+  alias TurnStile.Alerts
+  alias TurnStile.Alerts.Alert
+  alias TurnStileWeb.AlertUtils
 
   # mutli user match recieived from twilio
   # comes from alert controller via PUBSUB
   # non_idle_matching_users is a list of active user with active state
   def handle_mutli_match_twilio_users(%{
-    mutli_match_twilio_users: users_match_phone_list,
-    callback: send_sms_alert_callback}, socket) do
-    # users match org_id, is_active?, and active state
-    matched_users_tuples = match_users_to_organization(users_match_phone_list, socket)
+    mutli_match_twilio_users: users_match_phone_list}, socket) do
+    # users match org_id, is_active?, and active state - discard non-active
+    matched_users = match_users_to_organization(users_match_phone_list, socket)
     # combine w default empty list
-    unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users_tuples)
-    IO.inspect(unmtached_users, label: "PUBSUB: indexed_tuples LIST in handle_info")
+    unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users)
+    # IO.inspect(unmtached_users, label: "handle_mutli_match_twilio_users")
+
+    # # update these users states
+    # Enum.each(unmtached_users, fn user ->
+    #   # update user state
+    #   Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("VERIFY-MATCH"))
+    #   # user = Patients.get_user(user.user_id)
+    #   attrs = Alerts.build_alert_specfic_attrs(
+    #     user,
+    #     AlertCategoryTypesMap.get_alert("RE-INITIAL"),
+    #     AlertFormatTypesMap.get_alert("SMS")
+    #   )
+    #   changeset = Alerts.create_new_alert(%Alert{}, attrs)
+    #   #pass along user in socket
+    #   socket = assign(socket, :user, user)
+    #   AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
+    # end)
     send(self(), :update)
-    # update these users states
-    Enum.each(unmtached_users, fn user ->
-      # update user state
-      Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("MULTI-USER-REVIEW"))
-    end)
     {:noreply,
     socket
-    |> assign(:stored_callback, send_sms_alert_callback)
     |> assign(:unmatched_SMS_users, unmtached_users)
     |> assign(:popup_hero_title,"Multi-User Match - Employee Attention Required ."
      )

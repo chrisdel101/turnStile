@@ -101,7 +101,7 @@ defmodule TurnStileWeb.AlertUtils do
 
           # build attr map
         attrs =
-          Alerts.build_alert_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
+          Alerts.build_alert_specfic_attrs(user, alert_category, AlertFormatTypesMap.get_alert("SMS"))
 
         # merge w twilio params
         twilio_params1 =
@@ -156,7 +156,7 @@ defmodule TurnStileWeb.AlertUtils do
          "Error: A fatal user matching error in the system occured. Please contact support or request a new link"}
 
       true ->
-        attrs = Alerts.build_alert_attrs(
+        attrs = Alerts.build_alert_specfic_attrs(
         user,
         AlertCategoryTypesMap.get_alert(response_key),
         AlertFormatTypesMap.get_alert("EMAIL"),
@@ -339,7 +339,7 @@ defmodule TurnStileWeb.AlertUtils do
   #  def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
   def handle_sending_alert(event, changeset, socket) do
     # attrs = map_event_to_changeset_attributes(event, alert_format, socket)
-      # Alerts.build_alert_attrs(
+      # Alerts.build_alert_specfic_attrs(
       #   socket.assigns.user,
       #   AlertCategoryTypesMap.get_alert("INITIAL"),
       #   alert_format
@@ -487,7 +487,7 @@ defmodule TurnStileWeb.AlertUtils do
 
       "send_custom_alert" ->
         AlertCategoryTypesMap.get_alert("CUSTOM")
-
+        # sent to mutli user match user after first intial
       "send_re_initial_alert" ->
         AlertCategoryTypesMap.get_alert("RE-INITIAL")
     end

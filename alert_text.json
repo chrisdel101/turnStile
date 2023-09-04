@@ -12,9 +12,9 @@
             "body": "Custom Dev Fill In Body. This is some text to test things. If you've recieved this, it's just a test."
           }
         },
-        "RE-INITIAL": {
-          "title": "This is a Turnstile Alert",
-          "body": "There may have been a problem with your previous alert. To reconfirm, Reply with 1 to confirmm, 2 to cancel. You will recieve a response confirming your action."
+        "re-initial": {
+          "title": "This is a Follow-Up Turnstile Alert",
+          "body": "There may have been a problem with your previous alert. Please reply to this alert as follows: \n - first 6 letters of your first name \n  - 1 to confirm \n - 2 to cancel. \n Example: Samuel 1 \n " 
         }
       },
       "email": {

@@ -132,7 +132,7 @@ defmodule UserAlertStatusTypesMap do
   @statuses %{
     "UNALERTED" => "unalerted",
     "PENDING" => "pending",
-    "MULTI-USER-REVIEW" => "multi-user-review", # when multi user reply is recieved
+    "VERIFY-MATCH" => "verify-match", # when multi user reply is recieved
     "CONFIRMED" => "confirmed",
     "CANCELLED" => "cancelled",
     "EXPIRED" => "expired",

@@ -258,7 +258,7 @@ defmodule TurnStile.Alerts do
   -Returns a map of alert attributes
   -to override default fields pass in opts [:body, :title, :from...]
   """
-  def build_alert_attrs(
+  def build_alert_specfic_attrs(
         user,
         alert_category,
         alert_format \\ AlertFormatTypesMap.get_alert("SMS"),
@@ -311,8 +311,8 @@ defmodule TurnStile.Alerts do
         }
       alert_category === AlertCategoryTypesMap.get_alert("RE-INITIAL") ->
         %{
-          title: @json["alerts"]["request"]["sms"]["initial"]["title"],
-          body: @json["alerts"]["request"]["sms"]["initial"]["body"],
+          title: @json["alerts"]["request"]["sms"]["re-initial"]["title"],
+          body: @json["alerts"]["request"]["sms"]["re-initial"]["body"],
           from: (if alert_format === AlertFormatTypesMap.get_alert("EMAIL"), do: System.get_env("SYSTEM_ALERT_FROM_EMAIL"), else: System.get_env("SYSTEM_ALERT_FROM_SMS")),
           to: (if alert_format === AlertFormatTypesMap.get_alert("EMAIL"), do: user.email, else: user.phone),
           alert_format: alert_format,

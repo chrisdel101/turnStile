@@ -282,11 +282,12 @@ defmodule TurnStileWeb.AlertController do
             TurnStile.PubSub,
             PubSubTopicsMap.get_topic("MULTI_USER_TWILIO_MATCH"),
             %{
-              mutli_match_twilio_users: users_match_phone, callback: &AlertUtils.send_SMS_alert/1
+              mutli_match_twilio_users: users_match_phone
             }
           )
-          # send 102 processing to response to twilio
-          send_manual_system_response(conn, "Solution in progress", 102)
+
+          conn
+          |> send_resp(204, "")
         # match failure
         {:not_found, msg} ->
           IO.inspect(msg, label: "INFO: failed to find match")
@@ -347,29 +348,10 @@ defmodule TurnStileWeb.AlertController do
       # if more than one use w that number
       Utils.is_list_greater_that_1?(users_match_phone) ->
         # check if active
-        # active_pending_users = Utils.filter_maps_list_by_truthy(users_match_phone, "is_active?")
-
-        # case Utils.is_list_greater_that_1?(users_match_phone) do
-        #   # if more that 1 is_active? user check alert_status state
-          # true ->
-            # # check non-idle state
-            # f = &is_user_alert_status_idle?/1
-            # # loop over all users - reject user idle states
-            # non_idle_state_users = Enum.reject(active_pending_users, f)
-            # # IO.inspect(non_idle_state_users, label: "non_idle_state_users")
-            # # if more than one non-idle state user
-            # if Utils.is_list_greater_that_1?(non_idle_state_users) do
+        active_users = Utils.filter_maps_list_by_truthy(users_match_phone, "is_active?")
               # require staff action here
-            {:multiple_matches, users_match_phone}
-            # else
-            # # only single is_active? user with non-idle state
-            #   {:ok, hd(non_idle_state_users)}
-            # end
+        {:multiple_matches, active_users}
 
-        #   false ->
-        #     # return only user
-        #     {:ok, hd(active_pending_users)}
-        # end
         # if is just a single user
     !is_nil(users_match_phone) && length(users_match_phone) === 1 ->
         {:ok, hd(users_match_phone)}

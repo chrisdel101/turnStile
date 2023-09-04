@@ -144,8 +144,7 @@ defmodule TurnStileWeb.UserLive.Index do
   def handle_info(params, socket) do
     case params do
       %{
-        mutli_match_twilio_users: users_match_phone,        callback: send_SMS_alert_callback,
-       } ->
+        mutli_match_twilio_users: users_match_phone} ->
         HandleInfo.handle_mutli_match_twilio_users(params, socket)
       {:user_registation_form, %{user_params: user_params}} ->
         HandleInfo.handle_user_registation_form(params, socket)
@@ -381,7 +380,7 @@ defmodule TurnStileWeb.UserLive.Index do
 
       # no validation errors - proceed with sending alert
       true ->
-        attrs = Alerts.build_alert_attrs(
+        attrs = Alerts.build_alert_specfic_attrs(
           socket.assigns.user,
           AlertCategoryTypesMap.get_alert("INITIAL"),
           alert_format
@@ -480,7 +479,7 @@ defmodule TurnStileWeb.UserLive.Index do
         end
       type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
         user = Patients.get_user(user_id)
-        attrs = Alerts.build_alert_attrs(
+        attrs = Alerts.build_alert_specfic_attrs(
           user,
           AlertCategoryTypesMap.get_alert("RE-INITIAL"),
           AlertFormatTypesMap.get_alert("SMS")
@@ -489,10 +488,7 @@ defmodule TurnStileWeb.UserLive.Index do
         #pass along user in socket
         socket = assign(socket, :user, Patients.get_user(user_id))
         AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
-        # handle_event("send_initial_alert", %{"alert-format" => AlertFormatTypesMap.get_alert("SMS"), "user-id" => user_id, "value" => nil} )
-          # user = Patients.get_user(user_id)
-          # socket.assigns.stored_callback.()
-          # {:noreply,socket}
+
     end
   end
 
@@ -566,9 +562,9 @@ defmodule TurnStileWeb.UserLive.Index do
       # IO.inspect(params, label: "apply_action :display_existing_users2")
       # IO.inspect(socket.assigns.unmatched_SMS_users, label: "apply_action on display")
       socket
-      |> assign(:display_instruction, "Click on a user below to accept.")
-      |> assign(:display_message, "A single user replied to an alert but multiple accounts match this phone number.")
-      |> assign(:page_title, "Confirm User Match")
+      |> assign(:display_instruction, "There is no way to auto-reconcile this since issue. Messages cannot be sent or recieved by multiple users with indentical phone numbers. Review the users in the list. Deactivate any users that are not actually in user. Otherwise you will need to change at least one user phone, or revert  to using email alerts.")
+      |> assign(:display_message, "Employee Attention Required: A user reply has matched the phone number on multiple active user. accounts.")
+      |> assign(:page_title, "Mutli User Match Found")
       |> assign(:users, socket.assigns.users)
       |> assign(:existing_users_found, Map.get(socket.assigns, :unmatched_SMS_users))
       |> assign(:type, DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST"))

@@ -21,7 +21,7 @@
     # IO.inspect(props, label: "props")
     # build default alert attrs to start, just a starting setting
     sms_attrs =
-      Alerts.build_alert_attrs(
+      Alerts.build_alert_specfic_attrs(
         user,
         AlertCategoryTypesMap.get_alert("CUSTOM"),
         AlertFormatTypesMap.get_alert("SMS"),
@@ -57,7 +57,7 @@
 
           # IO.inspect(socket.assigns.changeset, label: "click HERE radio")
           email_attrs =
-            Alerts.build_alert_attrs(
+            Alerts.build_alert_specfic_attrs(
               socket.assigns.user,
               AlertCategoryTypesMap.get_alert("CUSTOM"),
               AlertFormatTypesMap.get_alert("EMAIL"),
@@ -81,7 +81,7 @@
           # IO.inspect(alert_params, label: "SMS")
 
           sms_attrs =
-            Alerts.build_alert_attrs(
+            Alerts.build_alert_specfic_attrs(
               socket.assigns.user,
               AlertCategoryTypesMap.get_alert("CUSTOM"),
               AlertFormatTypesMap.get_alert("SMS")
