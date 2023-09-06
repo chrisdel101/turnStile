@@ -146,12 +146,11 @@ defmodule TurnStileWeb.AlertController do
     if is_response_valid?(response_body, AlertFormatTypesMap.get_alert("SMS")) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
-          # on initial sms recieved set confirmde_at
-          val = Patients.confirm_user_acocount_via_valid_sms(user)
-          # IO.inspect(user, label: "USER")
-          case AlertUtils.save_received_SMS_alert(user, twilio_params) do
-            {:ok, alert} ->
-              # IO.inspect(alert, label: "alert")
+          # set user confirmde_a on initial sms recieved
+          with {:ok, _user} <- Patients.confirm_user_account_via_init_valid_sms(user),
+               {:ok, alert} <- AlertUtils.save_received_SMS_alert(user, twilio_params) do
+              # IO.inspect(user, label: "USER")
+
               # exract response text
               system_response_body = compute_return_body(twilio_params["Body"], AlertFormatTypesMap.get_alert("SMS"))
               # build response map
@@ -254,7 +253,8 @@ defmodule TurnStileWeb.AlertController do
               end
 
             # alert save failure
-            {:error, error} ->
+            else
+              {:error, error} ->
               IO.inspect(error, label: "receive_sms_alert error in save_received_SMS_alert")
               # update user account as ERROR status in DB
               case Patients.update_alert_status(

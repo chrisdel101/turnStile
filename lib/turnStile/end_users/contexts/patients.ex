@@ -890,10 +890,10 @@ defmodule TurnStile.Patients do
       UserToken.user_and_contexts_query(user, ["confirm"])
     )
   end
-  # confirm_user_acocount_via_valid_sms
+  # confirm_user_account_via_init_valid_sms
   # - used when user SMS makes valid contact with system
   # - marks as account confirmed in DB
-  def confirm_user_acocount_via_valid_sms(user) do
+  def confirm_user_account_via_init_valid_sms(user) do
     if is_nil(user.confirmed_at) do
       change = User.confirm_account_valid(user)
       Repo.update(change)
