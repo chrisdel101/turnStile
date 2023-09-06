@@ -70,9 +70,8 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
     twilio_params: twilio_params,
     conn: conn
   }}, socket) do
-    IO.inspect(twilio_params, label: "PUBSUB: message in handle_info")
+    IO.inspect(twilio_params, label: "PUBSUB: message in handle_send_response_params")
     AlertController.send_computed_SMS_system_response(conn, twilio_params)
-
 
     {:noreply, socket}
   end

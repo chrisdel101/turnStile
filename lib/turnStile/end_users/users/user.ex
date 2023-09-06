@@ -48,8 +48,9 @@ defmodule TurnStile.Patients.User do
 
   @doc """
   Confirms the account by setting `confirmed_at`.
+  used in confirm_user_email_account_token_multi, confirm_user_acocount_via_valid_sms
   """
-  def confirm_changeset(user) do
+  def confirm_account_valid(user) do
     change(user, confirmed_at: @now)
   end
   # validate field matches alert_format_set on upsert form

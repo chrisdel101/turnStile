@@ -298,7 +298,7 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
 
-  def handle_updating_user_alert_send_status(user, alert_category, opts \\ []) do
+  def handle_update_user_alert_status_based_on_category(user, alert_category, opts \\ []) do
     cond do
       # send intital alert w instructions
       AlertCategoryTypesMap.get_alert("INITIAL") === alert_category ->
@@ -332,29 +332,23 @@ defmodule TurnStileWeb.AlertUtils do
         )
 
       true ->
-        {:error, "Error: invalid alert_category in handle_updating_user_alert_send_status"}
+        {:error, "Error: invalid alert_category in handle_update_user_alert_status_based_on_category"}
     end
   end
-
-  #  def handle_event("send_custom_alert", %{"alert" => alert_params}, socket) do
+  @doc """
+  handle_sending_alert
+  - handles full logic when sending alert buttons are clicked
+  - called in send_initial_alert, send_custom_alert
+  - wraps above funcs in the auth + sends the correct alert type
+  """
   def handle_sending_alert(event, changeset, socket) do
-    # attrs = map_event_to_changeset_attributes(event, alert_format, socket)
-      # Alerts.build_alert_specfic_attrs(
-      #   socket.assigns.user,
-      #   AlertCategoryTypesMap.get_alert("INITIAL"),
-      #   alert_format
-      # )
-
-    # IO.inspect(attrs, label: "attrs in handle_event")
-    # changeset = Alerts.create_new_alert(%Alert{}, attrs)
-    # IO.inspect(changeset, label: "changeset in handle_event")
     case authenticate_and_save_sent_alert(socket, changeset) do
       {:ok, alert} ->
         if alert.alert_format === AlertFormatTypesMap.get_alert("EMAIL") do
           case send_email_alert(alert) do
             {:ok, _email_msg} ->
               # IO.inspect(email_msg, label: "email_msgXXX")
-              case handle_updating_user_alert_send_status(
+              case handle_update_user_alert_status_based_on_category(
                      socket.assigns.user,
                      map_event_to_category(event)
                    ) do
@@ -369,7 +363,7 @@ defmodule TurnStileWeb.AlertUtils do
                     |> put_flash(:success, "Alert sent successfully")
                   }
 
-                # handle_updating_user_alert_send_status error
+                # handle_update_user_alert_status_based_on_category error
                 {:error, error} ->
                   IO.inspect(error, label: "email index alert error in handle_event")
 
@@ -411,7 +405,7 @@ defmodule TurnStileWeb.AlertUtils do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg, label: "twilio_msg")
 
-              case handle_updating_user_alert_send_status(
+              case handle_update_user_alert_status_based_on_category(
                      socket.assigns.user,
                      map_event_to_category(event)
                    ) do

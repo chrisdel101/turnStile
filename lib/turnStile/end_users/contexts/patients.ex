@@ -878,15 +878,26 @@ defmodule TurnStile.Patients do
         :invalid_input_token
     end
   end
-
-  # skip - don't run multi in testing
-  def confirm_user_multi(user) do
+  # confirm_user_email_account_token_multi
+  # - tracks when user acccess valid token and account is valid
+  # - deletes token
+  # - marks as account confirmed in DB
+  def confirm_user_email_account_token_multi(user) do
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, User.confirm_changeset(user))
+    |> Ecto.Multi.update(:user, User.confirm_account_valid(user))
     |> Ecto.Multi.delete_all(
       :tokens,
       UserToken.user_and_contexts_query(user, ["confirm"])
     )
+  end
+  # confirm_user_acocount_via_valid_sms
+  # - used when user SMS makes valid contact with system
+  # - marks as account confirmed in DB
+  def confirm_user_acocount_via_valid_sms(user) do
+    if is_nil(user.confirmed_at) do
+      change = User.confirm_account_valid(user)
+      Repo.update(change)
+    end
   end
 
   @doc """

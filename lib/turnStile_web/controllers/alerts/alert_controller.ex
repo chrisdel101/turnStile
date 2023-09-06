@@ -146,6 +146,8 @@ defmodule TurnStileWeb.AlertController do
     if is_response_valid?(response_body, AlertFormatTypesMap.get_alert("SMS")) do
       case match_recieved_sms_to_user(twilio_params) do
         {:ok, user} ->
+          # on initial sms recieved set confirmde_at
+          val = Patients.confirm_user_acocount_via_valid_sms(user)
           # IO.inspect(user, label: "USER")
           case AlertUtils.save_received_SMS_alert(user, twilio_params) do
             {:ok, alert} ->
@@ -164,7 +166,8 @@ defmodule TurnStileWeb.AlertController do
                   user_alert_status = compute_new_user_alert_status(twilio_params["Body"])
                   changeset = change(user, %{user_alert_status: user_alert_status})
               # only send change updates if valid
-              if changeset.valid? && changeset.changes !== %{} do
+              # if changeset.valid? && changeset.changes !== %{} do
+              if changeset.valid? do
                 # update user account in DB
                 case Patients.update_alert_status(user, user_alert_status) do
                   {:ok, updated_user} ->
@@ -175,7 +178,8 @@ defmodule TurnStileWeb.AlertController do
                       PubSubTopicsMap.get_topic("STATUS_UPDATE"),
                       %{user_alert_status: updated_user.user_alert_status}
                     )
-                    # send to user liveview - send respnse from here
+                    # TODO: figure this out: needs response when liveView not running
+                    # this is hacky: send to user liveview - send respnse from here
                     Phoenix.PubSub.broadcast(
                       TurnStile.PubSub,
                       PubSubTopicsMap.get_topic("SEND_SMS_SYSTEM_RESPONSE"),
@@ -303,8 +307,6 @@ defmodule TurnStileWeb.AlertController do
 
   # twlilio webhook in resonse to user reply
   def send_computed_SMS_system_response(conn, twilio_params) do
-    IO.puts("SENDING REPLY")
-
     conn
     |> put_resp_content_type("text/xml")
     # |> maybe_write_alert_cookie(token)
@@ -312,31 +314,22 @@ defmodule TurnStileWeb.AlertController do
   end
 
   # twlilio webhook in resonse to user reply
-  def send_manual_system_response(conn, response_body) do
-    IO.puts("SENDING REPLY")
+  defp send_manual_system_response(conn, response_body) do
 
     conn
     |> put_resp_content_type("text/xml")
     # |> maybe_write_alert_cookie(token)
     |> text(IsolatedTwinML.render_response(response_body))
   end
-  def send_manual_system_response(conn, response_body, status_code) do
 
-    conn
-    |> put_resp_content_type("text/xml")
-    |> put_status(status_code)
-    # |> maybe_write_alert_cookie(token)
-    |> text(IsolatedTwinML.render_response(response_body))
-  end
 
-  @doc """
-  match_recieved_sms_to_user
-  -handles incoming SMS messages from Twilio-
-  -only available useful param is phone number
-  -checks for user w phone; gets last updated active user if multiple
-  -TODO: if multiple active users active now, and no solution, reqiuire employee action to resolve
-  """
-  def match_recieved_sms_to_user(twilio_params) do
+  # match_recieved_sms_to_user
+  # -handles incoming SMS messages from Twilio-
+  # -only available useful param is phone number
+  # -checks for user w phone; gets last updated active user if multiple
+  # -TODO: if multiple active users active now, and no solution, reqiuire employee action to resolve
+
+  defp match_recieved_sms_to_user(twilio_params) do
     # remove starting "+"
     number = Utils.remove_first_string_char(twilio_params["From"], "+")
 
@@ -363,7 +356,7 @@ defmodule TurnStileWeb.AlertController do
   end
 
   # check user resonse within text message; find appropriate response to send
-  def compute_return_body(response_value, alert_format) do
+  defp compute_return_body(response_value, alert_format) do
     # IO.inspect(response_value, label: "response_value")
     #  key into dict to get a match
     if @json["match_incoming_request"][alert_format][response_value] do
@@ -374,29 +367,7 @@ defmodule TurnStileWeb.AlertController do
       @json["alerts"]["response"][alert_format]["wrong_response"]
     end
   end
-  @doc """
-  manage_user_alert_status_state
-  - handles the state machine for user alert status
-  - if user states is invalid don't allow user to make incoming requests, i.e after cancel or expiration
-  """
-  def _manage_user_alert_status(user, new_alert_status) do
-    cond do
-      # update to new status from pending
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") && (new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") || new_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED")) ->
-      # user.user_alert_status == UserAlertStatusTypesMap.get_user_status("CONFIRMATION")
-        new_alert_status
-      # check for expired user
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("EXPIRED") ->
-        UserAlertStatusTypesMap.get_user_status("EXPIRED")
-         # check for cancelled user
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
-        UserAlertStatusTypesMap.get_user_status("CANCELLED")
-      true ->
-        IO.puts("manage_user_alert_status: invalid state")
-
-    end
-  end
-  def compute_new_user_alert_status(response_value) do
+  defp compute_new_user_alert_status(response_value) do
     # body = twilio_params["Body"]
 
     case response_value do
@@ -415,7 +386,7 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  def is_response_valid?(response_value, alert_format) do
+  defp is_response_valid?(response_value, alert_format) do
     IO.inspect(response_value, label: "response_value")
     if is_nil(response_value) do
       false

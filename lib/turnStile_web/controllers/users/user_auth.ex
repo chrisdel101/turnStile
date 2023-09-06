@@ -164,7 +164,7 @@ defmodule TurnStileWeb.UserAuth do
               case authorize_user_id_param_matches_user?(conn, user) do
                 true ->
                    # run multi - after all succeeds only
-                   with {:ok, %{user: user}} <- TurnStile.Repo.transaction(Patients.confirm_user_multi(user)) do
+                   with {:ok, %{user: user}} <- TurnStile.Repo.transaction(Patients.confirm_user_email_account_token_multi(user)) do
                     {:ok, user}
                       conn
                       |> log_in_user(user)
@@ -205,7 +205,7 @@ defmodule TurnStileWeb.UserAuth do
           Patients.delete_email_token(user_token)
           IO.puts("user_auth:  token expired and deleted")
           # update user alert status
-          push_user_and_interface_updates(conn, user_id)
+          handle_expired_user_alert_status(conn, user_id)
 
           conn
           |> put_flash(
@@ -369,7 +369,7 @@ defmodule TurnStileWeb.UserAuth do
 
         {:expired, user} ->
           IO.puts("handle_validate_session_token: user session expired")
-          push_user_and_interface_updates(conn, user.id)
+          handle_expired_user_alert_status(conn, user.id)
           conn
           |> put_flash(
             :info,
@@ -393,10 +393,10 @@ defmodule TurnStileWeb.UserAuth do
       {nil, conn}
     end
   end
-  # push_user_and_interface_updates
+  # handle_expired_user_alert_status
   # - updates user alert status to EXPIRED
   # - calls Phoenix.PubSub.broadcast to send update to UI
-  defp push_user_and_interface_updates(_conn, user_id) do
+  defp handle_expired_user_alert_status(_conn, user_id) do
     # update user alert status
     user = Patients.get_user(user_id)
 
