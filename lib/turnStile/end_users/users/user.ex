@@ -18,8 +18,10 @@ defmodule TurnStile.Patients.User do
     belongs_to :employee, TurnStile.Staff.Employee
     has_many :alerts, TurnStile.Alerts.Alert , on_delete: :delete_all
     belongs_to :organization, TurnStile.Company.Organization
-
-    field :confirmed_at, :naive_datetime
+    # not sure if this is required
+    field :account_confirmed_at, :naive_datetime
+    # for when alert is received to confirm
+    field :conf_alert_recieved_at, :naive_datetime
     field :activated_at, :naive_datetime
     field :deactivated_at, :naive_datetime
 
@@ -51,7 +53,7 @@ defmodule TurnStile.Patients.User do
   used in confirm_user_email_account_token_multi, confirm_user_account_via_init_valid_sms
   """
   def confirm_account_valid(user) do
-    change(user, confirmed_at: @now)
+    change(user, account_confirmed_at: @now)
   end
   # validate field matches alert_format_set on upsert form
   def validate_alert_format_matches_alert_format_set(changeset) do

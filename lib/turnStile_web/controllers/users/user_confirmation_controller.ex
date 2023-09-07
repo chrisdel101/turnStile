@@ -34,6 +34,9 @@ defmodule TurnStileWeb.UserConfirmationController do
         |> put_flash(:error, error_msg)
         |> redirect(to: Routes.user_session_path(conn, :new,
         current_user.organization_id, user_id))
+      # if indentical actio is sent do nothing
+      {:no_action} ->
+        conn
       nil ->
         conn
         |> redirect(to: Routes.user_session_path(conn, :new, current_user.organization_id,
@@ -58,6 +61,9 @@ defmodule TurnStileWeb.UserConfirmationController do
         |> put_flash(:error, error_msg)
         |> redirect(to: Routes.user_session_path(conn, :new,
         current_user.organization_id, user_id))
+       # if indentical actio is sent do nothing
+       {:no_action} ->
+        conn
     end
   end
 

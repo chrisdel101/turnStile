@@ -3,7 +3,7 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
   alias TurnStile.Alerts.Alert
   alias TurnStile.Alerts
   alias TurnStile.Patients
-  @test_users  [%TurnStile.Patients.User{
+  @test_users [%TurnStile.Patients.User{
     id: 13,
     email: "arssonist@yahoo.com",
     first_name: "Joe",
@@ -15,7 +15,7 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
     user_alert_status: "pending",
     alert_format_set: "email",
     employee_id: 1,
-    confirmed_at: nil,
+    account_confirmed_at: nil,
     activated_at: ~N[2023-08-28 00:39:25],
     deactivated_at: nil,
     inserted_at: ~N[2023-08-28 19:24:03],
@@ -33,7 +33,7 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
     user_alert_status: "confirmed",
     alert_format_set: "email",
     employee_id: 1,
-    confirmed_at: nil,
+    account_confirmed_at: nil,
     activated_at: ~N[2023-08-25 18:42:02],
     deactivated_at: nil,
     inserted_at: ~N[2023-08-25 18:43:45],
@@ -76,7 +76,7 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
     {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :display_existing_users, current_employee.current_organization_login_id, current_employee.id))}
     {:noreply, socket}
   end
-  def handle_event("handle_display_click",  %{"type" => type, "user_id" => user_id, "is_active?" => is_active?} = params, socket) do
+  def handle_event("handle_display_click",  %{"type" => type, "user_id" => user_id, "is_active?" => is_active?}, socket) do
     # IO.inspect(params, label: "handle_display_click")
     # IO.inspect(is_active?, label: "handle_display_click")
     cond do
@@ -92,16 +92,19 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
           {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :select, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
         end
       type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
-        user = Patients.get_user(user_id)
-        attrs = Alerts.build_alert_specfic_attrs(
-          user,
-          AlertCategoryTypesMap.get_alert("RE-INITIAL"),
-          AlertFormatTypesMap.get_alert("SMS")
-        )
-        changeset = Alerts.create_new_alert(%Alert{}, attrs)
-        #pass along user in socket
-        socket = assign(socket, :user, Patients.get_user(user_id))
-        TurnStileWeb.AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
+        IO.puts("AREA TO REMOVE")
+        # SHOULD NEVER OCCUR
+        # TODO: remove logic assoc with multi match incloming alert
+        # user = Patients.get_user(user_id)
+        # attrs = Alerts.build_alert_specfic_attrs(
+        #   user,
+        #   AlertCategoryTypesMap.get_alert("RE-INITIAL"),
+        #   AlertFormatTypesMap.get_alert("SMS")
+        # )
+        # changeset = Alerts.create_new_alert(%Alert{}, attrs)
+        # #pass along user in socket
+        # socket = assign(socket, :user, Patients.get_user(user_id))
+        # TurnStileWeb.AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
 
     end
   end

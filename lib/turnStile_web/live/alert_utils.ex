@@ -157,13 +157,13 @@ defmodule TurnStileWeb.AlertUtils do
 
       true ->
         attrs = Alerts.build_alert_specfic_attrs(
-        user,
-        AlertCategoryTypesMap.get_alert(response_key),
-        AlertFormatTypesMap.get_alert("EMAIL"),
-        title: "Recieving TurnStile Alert",
-        body: response_value,
-        to: System.get_env("SYSTEM_ALERT_FROM_EMAIL"),
-        from: user.email
+          user,
+          AlertCategoryTypesMap.get_alert(response_key),
+          AlertFormatTypesMap.get_alert("EMAIL"),
+          title: "Recieving TurnStile Alert",
+          body: response_value,
+          to: System.get_env("SYSTEM_ALERT_FROM_EMAIL"),
+          from: user.email
         )
         IO.inspect(attrs, label: "save_received_email_alert alert_attrs")
         # build attr map

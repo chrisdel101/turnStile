@@ -14,7 +14,8 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :is_active?, :boolean
       add :user_alert_status, :user_alert_status
       add :alert_format_set, :alert_format
-      add :confirmed_at, :naive_datetime
+      add :account_confirmed_at, :naive_datetime
+      add :conf_alert_recieved_at, :naive_datetime
       add :activated_at, :naive_datetime
       add :deactivated_at, :naive_datetime
       add :employee_id, references("employees"), null: false
