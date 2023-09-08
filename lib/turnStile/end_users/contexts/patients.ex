@@ -693,16 +693,19 @@ defmodule TurnStile.Patients do
 
   #  NO preloading - may cause error later
   def update_alert_status(user, new_alert_status) do
-    # IO.inspect(user)
-    # IO.inspect(new_alert_status)
-    # {:error, "Error: update_alert_status: invalid alert status type"}
-    if Enum.member?(
-         UserAlertStatusTypesMap.get_user_statuses_enum(),
-         String.to_atom(new_alert_status)
-       ) do
-      update_user(user, %{user_alert_status: new_alert_status})
-    else
-      {:error, "Error: update_alert_status: invalid alert status type"}
+    if !is_nil(user) do
+      # IO.inspect(user)
+      # IO.inspect(new_alert_status)
+      # {:error, "Error: update_alert_status: invalid alert status type"}
+      if Enum.member?(
+           UserAlertStatusTypesMap.get_user_statuses_enum(),
+           String.to_atom(new_alert_status)
+         ) do
+        update_user(user, %{user_alert_status: new_alert_status})
+      else
+        {:error, "Error: update_alert_status: invalid alert status type"}
+      end
+
     end
   end
 
@@ -894,7 +897,7 @@ defmodule TurnStile.Patients do
   # - used when user SMS makes valid contact with system
   # - marks as account confirmed in DB
   def confirm_user_account_via_init_valid_sms(user) do
-    if is_nil(user.confirmed_at) do
+    if is_nil(user.account_confirmed_at) do
       change = User.confirm_account_valid(user)
       Repo.update(change)
     end

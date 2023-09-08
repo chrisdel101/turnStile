@@ -89,7 +89,8 @@ defmodule AlertCategoryTypesMap do
     "CONFIRMATION" => "confirmation",
     "CANCELLATION" => "cancellation",
     "SYSTEM_RESPONSE" => "system_response",
-    "RE-INITIAL" => "re-initial" # response from when employee handles mutli-user response conflict
+    "RE-INITIAL" => "re-initial", # response from when employee handles mutli-user response conflict
+    "ACTION" => "action"  # for the main alert that tells the user it's time of action
   }
   def get_alerts do
     @alerts
