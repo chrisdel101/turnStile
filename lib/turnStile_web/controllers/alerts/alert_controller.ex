@@ -2,6 +2,7 @@ defmodule TurnStileWeb.AlertController do
   use TurnStileWeb, :controller
   alias TurnStile.Utils
   alias TurnStile.Patients
+  alias TurnStile.Patients.User
   alias TurnStileWeb.AlertUtils
   alias TurnStile.Alerts
   @json Utils.read_json("alert_text.json")
@@ -159,10 +160,10 @@ defmodule TurnStileWeb.AlertController do
     user_alert_status = compute_new_user_alert_status(twilio_params["Body"])
     # invalid incoming user sms
     if is_response_valid?(response_body, AlertFormatTypesMap.get_alert("SMS")) do
-      case match_recieved_sms_to_user(twilio_params) do
-        {:ok, user} ->
-          # block incoming alerts that are indential to prev
-          if !alert_has_changes?(user, user_alert_status) do
+      case match_recieved_sms_to_single_user(twilio_params) do
+        %User{} = user ->
+          # only allow if alert has changse - block repeating same action
+          if alert_has_changes?(user, user_alert_status) do
             # set account_counconfirmed on init sms
             Patients.confirm_user_account_via_init_valid_sms(user)
             # alerts making here are ["CONFIRMED", "CANCELLED"]
@@ -191,26 +192,12 @@ defmodule TurnStileWeb.AlertController do
                     case Patients.update_alert_status(user, user_alert_status) do
                       {:ok, updated_user} ->
                         # IO.inspect(updated_user, label: "updated_user")
-                        # send valid respnse to update UI - changes status on the page to match
+                        # tell LV to user status
                         Phoenix.PubSub.broadcast(
                           TurnStile.PubSub,
                           PubSubTopicsMap.get_topic("STATUS_UPDATE"),
                           %{user_alert_status: updated_user.user_alert_status}
                         )
-
-                        # TODO: figure this out: needs response when liveView not running
-                        # this is hacky: send to user liveview - send respnse from here
-                        Phoenix.PubSub.broadcast(
-                          TurnStile.PubSub,
-                          PubSubTopicsMap.get_topic("SEND_SMS_SYSTEM_RESPONSE"),
-                          %{
-                            send_response_params: %{
-                              twilio_params: twilio_params,
-                              conn: conn
-                            }
-                          }
-                        )
-
                       # update_alert_status error; but update alert was :ok
                       {:error, error} ->
                         # TODO: set an new error type to reload and update only the user status - only error on emplpyee side here
@@ -223,19 +210,9 @@ defmodule TurnStileWeb.AlertController do
                           PubSubTopicsMap.get_topic("STATUS_UPDATE"),
                           %{user_alert_status: user.user_alert_status}
                         )
-
-                        Phoenix.PubSub.broadcast(
-                          TurnStile.PubSub,
-                          PubSubTopicsMap.get_topic("SEND_SMS_SYSTEM_RESPONSE"),
-                          %{
-                            send_response_params: %{
-                              twilio_params: twilio_params,
-                              conn: conn
-                            }
-                          }
-                        )
                     end
-
+                    # send response no matter status update error
+                    send_computed_SMS_system_response(conn, twilio_params)
                     # if changeset.valid? fails; send blank response
                   else
                     conn
@@ -303,7 +280,8 @@ defmodule TurnStileWeb.AlertController do
                   "An internal system error occured during message save. Sorry, your message was not processesed."
                 )
             end
-          # alert_has_changes? is false
+
+            # alert_has_changes? is false
           else
             IO.puts("INFO: user send alert mathing there current state. No action taken")
 
@@ -311,22 +289,10 @@ defmodule TurnStileWeb.AlertController do
             |> send_resp(202, "Accepted: no action")
           end
 
-        {:multiple_matches, users_match_phone} ->
-          # send multi user match list back to parent; employee must resolve
-          Phoenix.PubSub.broadcast(
-            TurnStile.PubSub,
-            PubSubTopicsMap.get_topic("MULTI_USER_TWILIO_MATCH"),
-            %{
-              mutli_match_twilio_users: users_match_phone
-            }
-          )
 
-          conn
-          |> send_resp(204, "")
-
-        # match failure
-        {:not_found, msg} ->
-          IO.inspect(msg, label: "INFO: failed to find match")
+        # no matches found
+        nil ->
+          IO.puts("Alert info: phone failed to find match")
           # TODO send popup modal to get employee to resolve
 
           send_manual_system_response(conn, "Error: User account not found.")
@@ -381,7 +347,7 @@ defmodule TurnStileWeb.AlertController do
 
   # if user state is diff that current is true
   def alert_has_changes?(user, new_alert_status) do
-    IO.inspect(user.user_alert_status, label: "user.user_alert_status")
+    IO.inspect(user, label: "user.user_alert_status")
     IO.inspect(new_alert_status, label: "new_alert_status")
     user.user_alert_status !== new_alert_status
   end
@@ -449,7 +415,6 @@ defmodule TurnStileWeb.AlertController do
   # -returns user struct or nil
 
   def match_recieved_sms_to_single_user(nil), do: nil
-  def match_recieved_sms_to_single_user(%{}), do: nil
   def match_recieved_sms_to_single_user(twilio_params) do
     # remove starting "+"
     number = Utils.remove_first_string_char(twilio_params["From"], "+")
