@@ -33,7 +33,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
       {:error, %Ecto.Changeset{} = changeset} ->
         socket =
           socket
-          |> put_flash(:error, "User not created")
+          |> put_flash(:error, "User not updated")
 
         {:noreply, assign(socket, :changeset, changeset)}
     end

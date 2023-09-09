@@ -493,6 +493,7 @@ TurnStile.Repo.transaction(fn ->
     date_of_birth: Date.from_iso8601!("1900-01-11")
   }
   {:ok, user8} = TurnStile.Patients.create_user_w_assocs(employee9, user8, role9, organization2)
+
   user12 = %{
     first_name: "Joe12",
     last_name: "Schmoe",
@@ -503,13 +504,26 @@ TurnStile.Repo.transaction(fn ->
     date_of_birth: Date.from_iso8601!("1900-01-12")
   }
 
+  user13 = %{
+    first_name: "Joe",
+    last_name: "Schmoe100",
+    phone: "3065190138",
+    email: "arssonist123@yahoo.com",
+    alert_format_set: "sms",
+    health_card_num: 6677,
+    date_of_birth: Date.from_iso8601!("1900-01-01")
+  }
+
   {:ok, user12} = TurnStile.Patients.create_user_w_assocs(employee10, user12, role10, organization2)
+
+  {:ok, user13} = TurnStile.Patients.create_user_w_assocs(employee9, user13, role9, organization2)
 
   {:ok, user5} = TurnStile.Patients.insert_user_struct(user5)
   {:ok, user6} = TurnStile.Patients.insert_user_struct(user6)
   {:ok, user7} = TurnStile.Patients.insert_user_struct(user7)
   {:ok, user8} = TurnStile.Patients.insert_user_struct(user8)
   {:ok, user12} = TurnStile.Patients.insert_user_struct(user12)
+  # {:ok, user13} = TurnStile.Patients.insert_user_struct(user13)
 
   # ALERTS
   a5 = %{

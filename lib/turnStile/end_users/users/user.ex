@@ -43,8 +43,8 @@ defmodule TurnStile.Patients.User do
     |>
     validate_alert_format_matches_alert_format_set()
     |> unique_constraint(:health_card_num, message: "A member with this number already exists. Duplicates cannot exist for this field.")
-    # to make this an error on the form use the name: field; stops server exception
-    |> unique_constraint([:phone, :organization_id, :is_active?], message: "A user with this phone number is already active. Mutiple users with the same number cannot be active.", name: :users_phone_organization_id_is_active_index)
+    # to make this an error on the form use the "name:" field; stops server exception
+    |> unique_constraint([:phone, :is_active?, :alert_format_set], message: "A user with this phone number is already active in the system. Mutiple users with the same number cannot be active.", name: :users_phone_alert_format_set_is_active_index)
   end
 
 

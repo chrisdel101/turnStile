@@ -337,35 +337,52 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  def manage_user_alert_status(user, new_alert_status) do
+  # if the user state is the correct one: it SMS follows the users, that then we knnow this must be the matching user
+  def match_user_with_correct_state(user, new_alert_status) do
     cond do
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") &&
-          new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ->
-        UserAlertStatusTypesMap.get_user_status("CONFIRMED")
-
-      # update to new status from pending
+      # update pending -> conf/ cancel
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") &&
           (new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ||
              new_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED")) ->
-        # user.user_alert_status == UserAlertStatusTypesMap.get_user_status("CONFIRMATION")
-        new_alert_status
+        {:ok, user}
 
-      # check for expired user - do nothing
-      # TODO: possible reset after expiry
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("EXPIRED") ->
-        UserAlertStatusTypesMap.get_user_status("EXPIRED")
+      # update error ->  conf/ cancel
+      user.user_alert_status == UserAlertStatusTypesMap.get_user_status("ERROR") &&
+          (new_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ||
+             new_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED")) ->
+        {:ok, user}
 
-      # check for cancelled user
-      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
-        UserAlertStatusTypesMap.get_user_status("CANCELLED")
+      # update conf -> cancel
+      user.user_alert_status == UserAlertStatusTypesMap.get_user_status("CONFIRMED") &&
+          new_alert_status == UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
+        {:ok, user}
 
+      # cannot update when cancelled
+      user.user_alert_status == UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
+        {:cancelled, nil}
+
+      #  cannot update when expired
+      user.user_alert_status == UserAlertStatusTypesMap.get_user_status("EXPIRED") ->
+        {:expired, nil}
+
+      # cannot update when still in init state
+      user.user_alert_status == UserAlertStatusTypesMap.get_user_status("UNALERTED") ->
+        {:unalerted, nil}
+
+      # no other changes allowed
       true ->
-        IO.puts("manage_user_alert_status: invalid state")
+        IO.puts(
+          "match_user_with_correct_state: misc user state does not match any state conditions"
+        )
+
+        {:not_found, nil}
     end
   end
 
   # if user state is diff that current is true
   def alert_has_changes?(user, new_alert_status) do
+    IO.inspect(user.user_alert_status, label: "user.user_alert_status")
+    IO.inspect(new_alert_status, label: "new_alert_status")
     user.user_alert_status !== new_alert_status
   end
 
@@ -389,36 +406,126 @@ defmodule TurnStileWeb.AlertController do
     |> text(IsolatedTwinML.render_response(response_body))
   end
 
-  # match_recieved_sms_to_user
+  # defp match_recieved_sms_to_user(twilio_params) do
+  #   active_users =  match_recieved_sms_to_single_user(twilio_params)
+  #   cond do
+  #     Utils.is_list_greater_that_1?(active_users) ->
+
+  #       new_alert_status = compute_new_user_alert_status(twilio_params["Body"])
+  #       match_user_with_correct_state(user, new_alert_status)
+  #       else
+  #         IO.puts("match_recieved_sms_to_user: single user match is not active")
+  #         nil
+  #     # if is just a single user
+  #     !is_nil(users_match_phone) && length(users_match_phone) === 1 ->
+  #       active_users = Utils.filter_maps_list_by_truthy(users_match_phone, "is_active?")
+  #       {:single_match, active_users}
+
+  #     #  if there are zero or nil matches
+  #     true ->
+  #       {:not_found, []}
+  #   end
+  #   #   {:single_match, users} ->
+  #   #     # is user active, what is there state
+  #   #     [user] = users
+  #   #     if user.is_active? do
+  #   #       new_alert_status = compute_new_user_alert_status(twilio_params["Body"])
+  #   #       match_user_with_correct_state(user, new_alert_status)
+  #   #     else
+  #   #       IO.puts("match_recieved_sms_to_user: single user match is not active")
+  #   #       nil
+  #   #     end
+  #   #   {:multiple_matches, active_users}->
+
+  #   #   {:not_found, []}
+
+  #   # end
+  # end
+
+  # match_recieved_sms_to_single_user
   # -handles incoming SMS messages from Twilio-
   # -only available useful param is phone number
-  # -checks for user w phone; gets last updated active user if multiple
-  # -TODO: if multiple active users active now, and no solution, reqiuire employee action to resolve
+  # -narrows down to most likey single user that matches
+  # -returns user struct or nil
 
-  defp match_recieved_sms_to_user(twilio_params) do
+  def match_recieved_sms_to_single_user(nil), do: nil
+  def match_recieved_sms_to_single_user(%{}), do: nil
+  def match_recieved_sms_to_single_user(twilio_params) do
     # remove starting "+"
     number = Utils.remove_first_string_char(twilio_params["From"], "+")
 
     # IO.inspect(number, label: "number")
     users_match_phone = Patients.get_all_users_by_phone(number)
     # IO.inspect(users_match_phone, label: "users_match_phone")
+    # filter for active users only
+    active_matching_users = Utils.filter_maps_list_by_truthy(users_match_phone, "is_active?")
+    # IO.inspect(active_matching_users, label: "active_matching_users")
 
     cond do
-      # if more than one use w that number
-      Utils.is_list_greater_that_1?(users_match_phone) ->
-        # check if active
-        active_users = Utils.filter_maps_list_by_truthy(users_match_phone, "is_active?")
-        # require staff action here
-        {:multiple_matches, active_users}
+      # if multiple active user with phone num
+      Utils.is_list_greater_that_1?(active_matching_users) ->
+        # check alert formats set to SMS
+        users_in_SMS_mode =
+          Enum.filter(active_matching_users, fn user ->
+            user.alert_format_set === AlertFormatTypesMap.get_alert("SMS")
+          end)
 
-      # if is just a single user
-      !is_nil(users_match_phone) && length(users_match_phone) === 1 ->
-        {:ok, hd(users_match_phone)}
+        cond do
+          # if mutiple with SMS mode - business logic should block mutiple users with SMS mode from being active
+          Utils.is_list_greater_that_1?(users_in_SMS_mode) ->
+            new_alert_status = compute_new_user_alert_status(twilio_params["Body"])
+            # filter out users with correct matching state
+            actives_stateful_users =
+              Enum.filter(users_in_SMS_mode, fn user ->
+                match_user_with_correct_state(user, new_alert_status) ===
+                  {:ok, %TurnStile.Patients.User{} = user}
+              end)
 
+            cond do
+              # multple active, SMS mode, w correct state - this should never happen
+              Utils.is_list_greater_that_1?(actives_stateful_users) ->
+                IO.puts(
+                  "match_recieved_sms_to_single_user: No matching users_in_SMS_mode found.")
+                nil
+              # out of matches single is: active, SMS mode, w correct state
+             length(actives_stateful_users) === 1 ->
+                # this should not happen either
+                hd(actives_stateful_users)
+              true ->
+                IO.puts(
+                  "match_recieved_sms_to_single_user: No matching actives_stateful_users found")
+                nil
+            end
+          length(users_in_SMS_mode) === 1 ->
+            hd(users_in_SMS_mode)
+
+          true ->
+            IO.puts(
+              "match_recieved_sms_to_single_user: zero users_in_SMS_mode found")
+            nil
+        end
+
+      # should go here: if only single active user with phone num
+      !is_nil(active_matching_users) && length(active_matching_users) === 1 ->
+        new_alert_status = compute_new_user_alert_status(twilio_params["Body"])
+        # extract single user
+        [user] = active_matching_users
+        # returns a user or nil
+        with {:ok, user} <- match_user_with_correct_state(user, new_alert_status) do
+          user
+        else
+          # returns failed state we can see reason for no return
+          {action, nil} ->
+            IO.inspect(action,
+              label: "match_recieved_sms_to_single_user: user state does not match action"
+            )
+
+            nil
+        end
       #  if there are zero or nil matches
       true ->
-        msg = "INFO: No matching user found for SMS response."
-        {:not_found, msg}
+        IO.puts("match_recieved_sms_to_single_user: No matching users found.")
+        nil
     end
   end
 
@@ -435,7 +542,7 @@ defmodule TurnStileWeb.AlertController do
     end
   end
 
-  defp compute_new_user_alert_status(response_value) do
+  def compute_new_user_alert_status(response_value) do
     # body = twilio_params["Body"]
 
     case response_value do
@@ -464,6 +571,8 @@ defmodule TurnStileWeb.AlertController do
       if @json["match_incoming_request"][alert_format][response_value], do: true, else: false
     end
   end
+
+  # def is_liveView_connected({:isconnected}, socket)
 end
 
 # isolate in separate module - duplicate render function in both causes ambiguity error
