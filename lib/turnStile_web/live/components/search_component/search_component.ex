@@ -49,7 +49,7 @@ defmodule TurnStileWeb.UserLive.SearchComponent do
   # TODO: rotate thru 2-by-2 checking all names
   def handle_user_search(socket, input_value) do
     current_employee = socket.assigns[:current_employee]
-    organization_id = current_employee.current_organization_id
+    organization_id = current_employee.current_organization_login_id
     # slugigy param
     lower_user_name = String.downcase(input_value)
     split_names_list = String.split(lower_user_name)

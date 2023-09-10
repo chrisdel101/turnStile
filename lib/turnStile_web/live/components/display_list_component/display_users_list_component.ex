@@ -76,11 +76,10 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
     {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :display_existing_users, current_employee.current_organization_login_id, current_employee.id))}
     {:noreply, socket}
   end
-  def handle_event("handle_display_click",  %{"type" => type, "user_id" => user_id, "is_active?" => is_active?}, socket) do
-    # IO.inspect(params, label: "handle_display_click")
+  def handle_event("handle_display_click",  %{"display_type" => display_type, "user_id" => user_id, "is_active?" => is_active?}, socket) do
     # IO.inspect(is_active?, label: "handle_display_click")
     cond do
-      type === DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST") ->
+      display_type === DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST") ->
         if is_active? == "true" do
           IO.inspect(is_active?, label: "handle_display_click")
           {:noreply,
@@ -91,21 +90,9 @@ defmodule TurnStileWeb.UserLive.DisplayUsersList do
           # redirect to :new form
           {:noreply, push_patch(socket, to: Routes.user_index_path(socket, :select, current_employee.current_organization_login_id, current_employee.id, user_id: user_id))}
         end
-      type === DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST") ->
-        IO.puts("AREA TO REMOVE")
-        # SHOULD NEVER OCCUR
-        # TODO: remove logic assoc with multi match incloming alert
-        # user = Patients.get_user(user_id)
-        # attrs = Alerts.build_alert_specfic_attrs(
-        #   user,
-        #   AlertCategoryTypesMap.get_alert("RE-INITIAL"),
-        #   AlertFormatTypesMap.get_alert("SMS")
-        # )
-        # changeset = Alerts.create_new_alert(%Alert{}, attrs)
-        # #pass along user in socket
-        # socket = assign(socket, :user, Patients.get_user(user_id))
-        # TurnStileWeb.AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
-
+      true ->
+        IO.puts("Invalid display type in handle_event:handle_display_click")
+        {:noreply, socket}
     end
   end
   # send msg back to index handle_msg

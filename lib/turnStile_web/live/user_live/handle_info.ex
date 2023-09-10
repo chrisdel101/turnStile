@@ -1,12 +1,9 @@
 defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   use Phoenix.Component
   # use TurnStileWeb, :live_component
-  alias TurnStile.Utils
-  alias TurnStileWeb.AlertController
+
   alias TurnStile.Patients
-  # alias TurnStile.Alerts
-  # alias TurnStile.Alerts.Alert
-  # alias TurnStileWeb.AlertUtils
+
 
 
   # receives pubsub subscription from user self registation form
@@ -77,10 +74,9 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   def handle_users_found_from_search({:users_found, %{"existing_users_found" => existing_users_found}}, socket) do
 
     # IO.inspect(existing_users_found, label: "message in handle_info")
-    # call update to refresh state on :display
-    send_update(DisplayListComponent, id: "display")
+    # call update to refresh state on :display - to show displayed results
+    send_update(TurnStileWeb.UserLive.DisplayUsersList, id: "display")
     {:noreply, assign(socket, :existing_users_found, existing_users_found)}
-    # IO.inspect(socket.assigns.existing_users_found, label: "message in handle_info rAFTER")
   end
 
   # called from :new match is found

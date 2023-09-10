@@ -47,7 +47,7 @@
         class={"display-list-user #{if user.is_active?, do: "display-user-active", else: "display-user-inactive"}"}  phx-click={"handle_display_click"}
         phx-target={@myself}
         phx-value-is_active?={if user.is_active?, do: "true",  else: "false"} 
-        phx-value-type={@type} 
+        phx-value-display_type={DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST")} 
         phx-value-user_id={user.id}
         >
         <h6><%= if user.is_active?, do: "Active", else: "Inactive" %></h6>

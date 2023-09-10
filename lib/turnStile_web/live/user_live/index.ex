@@ -451,19 +451,19 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:user_changeset, Map.get(socket.assigns, :user_changeset))
     |> assign(:users, socket.assigns.users)
     |> assign(:existing_users_found, Map.get(socket.assigns, :existing_users_found))
-    |> assign(:type, DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST"))
+    |> assign(:display_type, DisplayListComponentTypesMap.get_type("FOUND_USERS_LIST"))
   end
     # :display_existing_users - from event user_alert_match_review
     defp apply_action(socket, :display_existing_users, _params) do
       # IO.inspect(params, label: "apply_action :display_existing_users2")
-      # IO.inspect(socket.assigns.unmatched_SMS_users, label: "apply_action on display")
+      # IO.inspect(socket.assigns.unmatched_SMS_users, label: "applyd_action on display")
       socket
       |> assign(:display_instruction, "There is no way to auto-reconcile this since issue. Messages cannot be sent or recieved by multiple users with indentical phone numbers. Review the users in the list. Deactivate any users that are not actually in user. Otherwise you will need to change at least one user phone, or revert  to using email alerts.")
       |> assign(:display_message, "Employee Attention Required: A user reply has matched the phone number on multiple active user. accounts.")
       |> assign(:page_title, "Mutli User Match Found")
       |> assign(:users, socket.assigns.users)
       |> assign(:existing_users_found, Map.get(socket.assigns, :unmatched_SMS_users))
-      |> assign(:type, DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST"))
+      |> assign(:display_type, DisplayListComponentTypesMap.get_type("MATCHED_USERS_LIST"))
 
      # IO.inspect(socket.assigns.unmatched_SMS_users, label: "apply_action on display")
     end
