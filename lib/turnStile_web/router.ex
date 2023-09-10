@@ -29,7 +29,6 @@ defmodule TurnStileWeb.Router do
 
     post "/sms_messages", TurnStileWeb.AlertController, :receive_sms_alert
   end
-
   # Enables LiveDashboard only for development
   #
   # If you want to use the LiveDashboard in production, you should put
@@ -179,6 +178,7 @@ defmodule TurnStileWeb.Router do
       UserRegistrationController, :quick_send
     end
   end
+  # user verification home page
   scope "/code", TurnStileWeb do
     pipe_through [:browser]
     get "/", UserRegistrationController, :index
@@ -203,7 +203,7 @@ defmodule TurnStileWeb.Router do
     get "/:user_id/:token", UserAuth, :handle_validate_email_token
   end
 
-  scope "organizations/:organization_id/users", TurnStileWeb do
+  scope "/organizations/:organization_id/users", TurnStileWeb do
     pipe_through [:browser, :require_authenticated_user,
     :ensure_organization_matches_current_user,
     :ensure_user_id_param_matches_current_user

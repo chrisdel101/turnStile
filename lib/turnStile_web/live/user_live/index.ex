@@ -233,7 +233,6 @@ defmodule TurnStileWeb.UserLive.Index do
   def handle_event("user_registration_data_reject", params, socket) do
     # get id from button value field
     message_id = params["value"]
-    IO.inspect("fired")
     # find msg in list
     message =
       Enum.find(socket.assigns.user_registration_messages, fn msg ->
@@ -502,10 +501,11 @@ defmodule TurnStileWeb.UserLive.Index do
   # - when clicked on an existing user and redirecting
   # called - from employee popup review
   # - send user info to form for review before submit
-  defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset},opts) do
+  # - apply_action has opts
+  defp apply_action(socket, :insert, %{"user_changeset" => %Ecto.Changeset{} = user_changeset}, opts) do
     subtitle = Keyword.get(opts, :subtitle)
     page_title = Keyword.get(opts, :page_title)
-    IO.inspect(subtitle, label: "apply_action :insert changeset2XXXX")
+    # IO.inspect(user_changeset, label: "apply_action :insert changeset2XXXX")
     socket
     |> assign(:page_title, page_title || "Insert Existing User")
     |> assign(:subtitle, subtitle || nil)

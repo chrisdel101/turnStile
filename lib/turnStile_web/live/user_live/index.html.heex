@@ -3,7 +3,6 @@
       <h2>Notification</h2>
   <% end %>
   <%= for message <- @user_registration_messages do %>
-  <% IO.inspect(assigns) %>
    <TurnStileWeb.PopUpItem.render
         module={TurnStileWeb.UserLive.TurnStileWeb.PopUpItem}
         id={TurnStileWeb.UserLive.Index.IndexUtils.extract_message_popup_index(message)}

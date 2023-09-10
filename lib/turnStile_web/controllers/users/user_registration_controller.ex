@@ -137,15 +137,7 @@ defmodule TurnStileWeb.UserRegistrationController do
               PubSubTopicsMap.get_topic("USER_REGISTRATION"),
               {:user_registation_form,
                %{
-                 user_params: %{
-                   first_name: "Joe",
-                   last_name: "Schmoe",
-                   phone: "3065190138",
-                   email: "arssonist@yahoo.com",
-                   alert_format_set: "email",
-                   health_card_num: 9999,
-                   date_of_birth: Date.from_iso8601!("1900-01-01")
-                 }
+                 user_params: user_params
                }}
             )
 

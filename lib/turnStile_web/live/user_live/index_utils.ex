@@ -213,7 +213,7 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     case Patients.build_and_insert_user_verification_code_token(code, current_employee.current_organization_login_id
     ) do
       {user_url, _token, encoded_token} ->
-        IO.inspect(user_url)
+        IO.inspect(user_url, label: "handle_generate_verification_code")
         IO.inspect(code)
         IO.inspect(encoded_token)
         # optional pass user url here, maybe generate QR codes
@@ -326,13 +326,19 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     IO.inspect(message, label: "extract_message_popup_user_params")
     # get values side of map - is a list
     values = Map.values(message)
+    IO.inspect(values, label: "extract_message_popup_user_params2")
     # make sure list is 1 item
     if length(values) === 1 do
       # extact single item from list
       {:ok, value} = Enum.fetch(values, 0)
       # confirm single item is a map
       if is_map(value) do
-        value
+        # make sure it's not an arrow map
+        if TurnStile.Utils.is_arrow_map?(value) do
+          TurnStile.Utils.convert_arrow_map_to_atom(value)
+        else
+          value
+        end
       else
         IO.puts(
           "Error: extract_message_popup_user_params - message is not a single key value pair"

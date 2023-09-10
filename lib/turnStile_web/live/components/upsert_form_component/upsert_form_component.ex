@@ -101,7 +101,7 @@ defmodule TurnStileWeb.UserLive.UpsertFormComponent do
       end
     end
   end
-  def handle_event("generate", _params, socket) do
+  def handle_event("generate_code", _params, socket) do
     # append a code to the socket
     case IndexUtils.handle_generate_verification_code(socket) do
       {:ok, socket} ->

@@ -1,8 +1,6 @@
 defmodule TurnStileWeb.UserLive.DisplayUsersList do
   use TurnStileWeb, :live_component
-  alias TurnStile.Alerts.Alert
-  alias TurnStile.Alerts
-  alias TurnStile.Patients
+
   @test_users [%TurnStile.Patients.User{
     id: 13,
     email: "arssonist@yahoo.com",
