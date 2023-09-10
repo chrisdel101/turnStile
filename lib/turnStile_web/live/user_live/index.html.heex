@@ -3,15 +3,17 @@
       <h2>Notification</h2>
   <% end %>
   <%= for message <- @user_registration_messages do %>
-   <TurnStileWeb.PopUpItem.render
-        module={TurnStileWeb.UserLive.TurnStileWeb.PopUpItem}
-        id={elem(message, 0)}
-        action={@live_action}
-        popup_title={assigns[:popup_message_title]}
-        popup_body={assigns[:popup_message_body]}
-        popup_data={elem(message, 1)}
-        />
+    <%= if TurnStileWeb.UserLive.Index.IndexUtils.show_user_registration_message(message, @current_employee.current_organization_login_id) do  %>
+      <TurnStileWeb.PopUpItem.render
+            module={TurnStileWeb.UserLive.TurnStileWeb.PopUpItem}
+            id={elem(message, 0)}
+            action={@live_action}
+            popup_title={assigns[:popup_message_title]}
+            popup_body={assigns[:popup_message_body]}
+            popup_data={elem(message, 1)}/>
+
     <% end %>
+  <% end %>
   <%= if TurnStile.Utils.is_list_greater_that_1?( @unmatched_SMS_users) do %>
     <h2>Notification</h2>
   <%!-- <% IO.inspect(user_tuple, label: 'XXX') %> --%>

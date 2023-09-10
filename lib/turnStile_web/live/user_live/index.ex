@@ -76,7 +76,7 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
   def handle_info(params, socket) do
     case params do
-      {:user_registation_form, %{user_params: _user_params}} ->
+      {:user_registation_form, %{user_params: _user_params, organization_id: _organization_id}} ->
         HandleInfo.handle_user_registation_form(params, socket)
       %{user_alert_status: _user_alert_status} ->
         HandleInfo.handle_user_alert_status(params, socket, filter_active_users_mins: @filter_active_users_mins)
@@ -174,16 +174,16 @@ defmodule TurnStileWeb.UserLive.Index do
 
 
 
-      # {:noreply, socket} =
-      #   handle_info(
-      #     {:user_registation_form, %{user_params: Enum.at(@user_registatrion_messages, 1)}},
-      #     socket
-      #   )
-
+      {:noreply, socket} =
+        handle_info(
+          {:user_registation_form, %{user_params: Enum.at(@user_registatrion_messages, 1), organization_id: 1}},
+          socket
+        )
+      {:noreply, socket}
       # IO.inspect(params, label: "handle_params main index: no changeset")
       # all other calls
       # :display_existing_users on event user_alert_match_review
-      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      # {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
   end
 
@@ -205,14 +205,14 @@ defmodule TurnStileWeb.UserLive.Index do
     # get id from button value field
     message_id = params["value"]
     # match id to msg key id
+    IO.inspect(socket.assigns.user_registration_messages, label: "ZZZ")
     message =
       Enum.find(socket.assigns.user_registration_messages, fn msg ->
-        (Map.keys(msg) === [message_id]) || (Map.keys(msg) === [String.to_integer(message_id)])
+        ((elem(msg, 0) === message_id) || (elem(msg,0) === String.to_integer(message_id)))
       end)
-
+      # IO.inspect(message, label: "CCCC")
     # send msg to upsert form
-    user_params = Map.values(message)
-    {:ok, user_params} = Enum.fetch(user_params, 0)
+    user_params = elem(message, 1)
     IO.inspect(message, label: "user_registration_accept")
     # build new user
     changeset = Patients.create_user(user_params)
@@ -510,5 +510,4 @@ defmodule TurnStileWeb.UserLive.Index do
     |> assign(:subtitle, subtitle || nil)
     |> assign(:user_changeset, user_changeset)
   end
-
 end

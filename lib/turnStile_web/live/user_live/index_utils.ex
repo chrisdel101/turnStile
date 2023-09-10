@@ -277,10 +277,6 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
         users
     end
   end
-
-
-
-
   def maybe_assign_code(socket, %{"code" => code}) do
     socket
     |> assign(:code, code)
@@ -296,5 +292,10 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
     # add incoming message to storage
     # msg are formed like {"0", %{...}, 1}
     Enum.concat(message_list, [currrent_message])
+  end
+  # display user registration message when it matches the organization
+  def show_user_registration_message(message, current_org_id) do
+    {_index, _user_params, organization_id} = message
+    current_org_id === organization_id
   end
 end
