@@ -292,7 +292,7 @@ defmodule TurnStileWeb.AlertController do
 
         # no matches found
         nil ->
-          IO.puts("Alert info: phone failed to find match")
+          IO.puts("Alert info: no match of match state params failed")
           # TODO send popup modal to get employee to resolve
 
           send_manual_system_response(conn, "Error: User account not found.")
@@ -302,8 +302,12 @@ defmodule TurnStileWeb.AlertController do
       send_computed_SMS_system_response(conn, twilio_params)
     end
   end
-
-  # if the user state is the correct one: it SMS follows the users, that then we knnow this must be the matching user
+  @doc """
+  match_user_with_correct_state
+  -checks incoming state against current user state
+  # -if the user state is the correct one: if SMS follows the users, that then we knnow this must be the matching user
+  - return tuple with state
+  """
   def match_user_with_correct_state(user, new_alert_status) do
     cond do
       # update pending -> conf/ cancel
@@ -346,14 +350,14 @@ defmodule TurnStileWeb.AlertController do
   end
 
   # if user state is diff that current is true
-  def alert_has_changes?(user, new_alert_status) do
+  defp alert_has_changes?(user, new_alert_status) do
     IO.inspect(user, label: "user.user_alert_status")
     IO.inspect(new_alert_status, label: "new_alert_status")
     user.user_alert_status !== new_alert_status
   end
 
   # twlilio webhook in resonse to user reply
-  def send_computed_SMS_system_response(conn, twilio_params) do
+  defp send_computed_SMS_system_response(conn, twilio_params) do
     conn
     |> put_resp_content_type("text/xml")
     # |> maybe_write_alert_cookie(token)
@@ -479,7 +483,8 @@ defmodule TurnStileWeb.AlertController do
         with {:ok, user} <- match_user_with_correct_state(user, new_alert_status) do
           user
         else
-          # returns failed state we can see reason for no return
+          # failed state case
+          # print so can see reason for no nil return
           {action, nil} ->
             IO.inspect(action,
               label: "match_recieved_sms_to_single_user: user state does not match action"

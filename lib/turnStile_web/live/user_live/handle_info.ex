@@ -8,43 +8,6 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   # alias TurnStile.Alerts.Alert
   # alias TurnStileWeb.AlertUtils
 
-  # mutli user match recieived from twilio
-  # comes from alert controller via PUBSUB
-  # non_idle_matching_users is a list of active user with active state
-  def handle_mutli_match_twilio_users(%{
-    mutli_match_twilio_users: users_match_phone_list}, socket) do
-    # users match org_id, is_active?, and active state - discard non-active
-    matched_users = match_users_to_organization(users_match_phone_list, socket)
-    # combine w default empty list
-    unmtached_users = Enum.concat(socket.assigns.unmatched_SMS_users, matched_users)
-    # IO.inspect(unmtached_users, label: "handle_mutli_match_twilio_users")
-
-    # # update these users states
-    # Enum.each(unmtached_users, fn user ->
-    #   # update user state
-    #   Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("VERIFY-MATCH"))
-    #   # user = Patients.get_user(user.user_id)
-    #   attrs = Alerts.build_alert_specfic_attrs(
-    #     user,
-    #     AlertCategoryTypesMap.get_alert("RE-INITIAL"),
-    #     AlertFormatTypesMap.get_alert("SMS")
-    #   )
-    #   changeset = Alerts.create_new_alert(%Alert{}, attrs)
-    #   #pass along user in socket
-    #   socket = assign(socket, :user, user)
-    #   AlertUtils.handle_sending_alert("send_re_initial_alert", changeset, socket)
-    # end)
-    send(self(), :update)
-    {:noreply,
-    socket
-    |> assign(:unmatched_SMS_users, unmtached_users)
-    |> assign(:popup_hero_title,"Multi-User Match - Employee Attention Required ."
-     )
-     |> assign(
-       :popup_hero_body,
-       "Incoming user response matches  multiple users accounts in your organizaion. Review to reconcile the issue."
-     )}
-  end
 
   # receives pubsub subscription from user self registation form
   # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
@@ -65,15 +28,6 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
        :popup_message_body,
        "The following user registration form was recieved. Please review and accept the user to register them."
      )}
-  end
-  def handle_send_response_params(%{send_response_params: %{
-    twilio_params: twilio_params,
-    conn: conn
-  }}, socket) do
-    IO.inspect(twilio_params, label: "PUBSUB: message in handle_send_response_params")
-    AlertController.send_computed_SMS_system_response(conn, twilio_params)
-
-    {:noreply, socket}
   end
   def handle_user_alert_status(%{user_alert_status: _user_alert_status}, socket, opts) do
     # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
@@ -173,35 +127,5 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
     {:noreply,
      socket
      |> push_patch(to: redirect_to)}
-  end
-  defp match_users_to_organization(users_list, socket) do
-    # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    current_employee = socket.assigns.current_employee
-    organization_id = current_employee.current_organization_login_id
-    IO.inspect(users_list)
-    # get users match current org
-    users_match_org_list = Enum.filter(users_list, fn x -> x.organization_id === organization_id end)
-    # get active matching users
-    active_pending_users = Utils.filter_maps_list_by_truthy(users_match_org_list, "is_active?")
-    # IO.inspect(users_match_org_list, label: "match_users_to_organization users_match_org_list")
-     # check non-idle state
-    f = &is_user_alert_status_idle?/1
-    # loop over all users - reject user idle w states
-    non_idle_users = Enum.reject(active_pending_users, f)
-    # IO.inspect(non_idle_users, label: "non_idle_users")
-    # make into list w index
-    # indexed_tuples = Enum.with_index(non_idle_users)
-    # IO.inspect(indexed_tuples, label: "PUBSUB: indexed_tuples LIST in handle_info")
-    non_idle_users
-  end
-  defp is_user_alert_status_idle?(user) do
-    # check for both syntax types
-    user_alert_status = Map.get(user, "user_alert_status")
- ||  Map.get(user, :user_alert_status)
-    # check if it matches one of the invalid states
-    user_alert_status in [
-      UserAlertStatusTypesMap.get_user_status("UNALERTED"),
-      UserAlertStatusTypesMap.get_user_status("CANCELLED"),
-      UserAlertStatusTypesMap.get_user_status("EXPIRED")]
   end
 end

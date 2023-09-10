@@ -14,70 +14,8 @@ defmodule TurnStileWeb.UserLive.Index do
   # live_actions [:new, :index, :alert, :edit]
   @interval 100000
   @filter_active_users_mins 30
-  # @dialyzer {:nowarn_function, handle_event: 3}
   @dialyzer {:no_match, handle_event: 3}
-  @non_idle_matching_users [
-    %TurnStile.Patients.User{
-      id: 1,
-      email: "arssonist@yahoo.com",
-      first_name: "Joe",
-      health_card_num: 9999,
-      last_name: "Schmoe",
-      phone: "3065190138",
-      date_of_birth: ~D[1900-01-01],
-      is_active?: true,
-      user_alert_status: "confirmed",
-      alert_format_set: "email",
-      employee_id: 1,
-      organization_id: 1,
-      confirmed_at: nil,
-      activated_at: ~N[2023-08-25 18:42:02],
-      deactivated_at: nil,
-      inserted_at: ~N[2023-08-25 18:43:45],
-      updated_at: ~N[2023-08-28 17:40:21]
 
-    },
-    %TurnStile.Patients.User{
-      id: 15,
-      email: nil,
-      first_name: "Sue ",
-      health_card_num: 113423,
-      last_name: "Jones",
-      phone: "3065190138",
-      date_of_birth: nil,
-      is_active?: true,
-      user_alert_status: "pending",
-      alert_format_set: "sms",
-      employee_id: 1,
-      organization_id: 1,
-      confirmed_at: nil,
-      activated_at: ~N[2023-08-30 03:24:58],
-      deactivated_at: nil,
-      inserted_at: ~N[2023-08-31 21:48:54],
-      updated_at: ~N[2023-08-31 21:48:56]
-    },
-    %TurnStile.Patients.User{
-      id: 16,
-      email: nil,
-      first_name: "Sue ",
-      health_card_num: 324324,
-      last_name: "Thompson",
-      phone: "3065190138",
-      date_of_birth: nil,
-      is_active?: true,
-      user_alert_status: "unalerted",
-      alert_format_set: "sms",
-      employee_id: 1,
-      organization_id: 1,
-      confirmed_at: nil,
-      activated_at: ~N[2023-08-30 03:24:58],
-      deactivated_at: nil,
-      inserted_at: ~N[2023-08-31 21:49:23],
-      updated_at: ~N[2023-08-31 21:49:23]
-
-
-    }
-  ]
   @user_registatrion_messages [
     %{
       first_name: "Joe",
@@ -113,9 +51,6 @@ defmodule TurnStileWeb.UserLive.Index do
       # - delegates to handle_info funcs when called w params
       Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("STATUS_UPDATE")) # goes to :update
       Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("USER_REGISTRATION")) # goes to :handle_info
-      Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("SEND_SMS_SYSTEM_RESPONSE")) # goes to :handle_info
-      Phoenix.PubSub.subscribe(TurnStile.PubSub, PubSubTopicsMap.get_topic("MULTI_USER_TWILIO_MATCH")) # goes to :handle_info
-
     end
     main_index_users_list = Patients.filter_active_users_x_mins_past_last_update(organization_id, @filter_active_users_mins)
     # IO.inspect(socket.assigns, label: "INDEX: socket.assigns")
@@ -141,15 +76,8 @@ defmodule TurnStileWeb.UserLive.Index do
   @impl true
   def handle_info(params, socket) do
     case params do
-      %{
-        mutli_match_twilio_users: _users_match_phone} ->
-        HandleInfo.handle_mutli_match_twilio_users(params, socket)
       {:user_registation_form, %{user_params: _user_params}} ->
         HandleInfo.handle_user_registation_form(params, socket)
-      %{send_response_params: %{
-        twilio_params: _twilio_params,
-        conn: _conn}} ->
-          HandleInfo.handle_send_response_params(params, socket)
       %{user_alert_status: _user_alert_status} ->
         HandleInfo.handle_user_alert_status(params, socket, filter_active_users_mins: @filter_active_users_mins)
       %{"existing_users" => _existing_users, "user_changeset" => _user_changeset} ->

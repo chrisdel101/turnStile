@@ -99,6 +99,13 @@ Temlating syntax notes:
  <%= radio_button(f, :alert_format_set, :sms, phx_change: "radio_click", checked: Ecto.Changeset.get_field(@changeset, :alert_format_set) == AlertFormatTypesMap.get_alert("SMS"), disabled: @disable_input, title: @disabled_hover_info)%>
 ```
 
+LiveView Messaging Methods
+- PUBSUB: subscrber in the liveView mount and broadcaster in the outer process.
+- send: 
+ - Process.send used to send from child to parent and is caught in handle_info
+ - Kernel.send
+- send_update: Liveview.send_update used to update component
+
 #### Handling Associations
 
 __1-Many__
