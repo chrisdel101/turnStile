@@ -205,7 +205,7 @@ defmodule TurnStileWeb.UserAuth do
           Patients.delete_email_token(user_token)
           IO.puts("user_auth:  token expired and deleted")
           # update user alert status
-          handle_expired_user_alert_status(conn, user_id)
+          handle_expired_user_alert_status(conn, user_id, current_user.organization_id)
 
           conn
           |> put_flash(
@@ -349,6 +349,7 @@ defmodule TurnStileWeb.UserAuth do
 
   def handle_validate_session_token(conn) do
     if conn.assigns[:current_user] do
+      current_user = conn.assigns[:current_user]
       # get user_token from session
       user_token = get_session(conn, :user_token)
       # make sure it's valid
@@ -369,7 +370,7 @@ defmodule TurnStileWeb.UserAuth do
 
         {:expired, user} ->
           IO.puts("handle_validate_session_token: user session expired")
-          handle_expired_user_alert_status(conn, user.id)
+          handle_expired_user_alert_status(conn, user.id, current_user.organization_id)
           conn
           |> put_flash(
             :info,
@@ -396,9 +397,9 @@ defmodule TurnStileWeb.UserAuth do
   # handle_expired_user_alert_status
   # - updates user alert status to EXPIRED
   # - calls Phoenix.PubSub.broadcast to send update to UI
-  defp handle_expired_user_alert_status(_conn, user_id) do
+  defp handle_expired_user_alert_status(_conn, user_id, organization_id) do
     # update user alert status
-    user = Patients.get_user(user_id)
+    user = Patients.get_user(user_id, organization_id)
 
     {:ok, updated_user} =
       Patients.update_alert_status(user, UserAlertStatusTypesMap.get_user_status("EXPIRED"))
@@ -407,7 +408,8 @@ defmodule TurnStileWeb.UserAuth do
     Phoenix.PubSub.broadcast(
       TurnStile.PubSub,
       PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-      %{user_alert_status: updated_user.user_alert_status}
+      %{ user_alert_status: updated_user.user_alert_status,
+      user_id: updated_user.id}
     )
   end
 

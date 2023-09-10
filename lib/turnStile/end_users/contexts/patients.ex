@@ -98,11 +98,22 @@ defmodule TurnStile.Patients do
 
       iex> get_user(456)
       ** (Ecto.NoResultsError)
-
+  - 2 versions
+  - one take org_id and one does not
   """
+  def get_user(id, organization_id) do
+    q =
+      from user in user_organization_base_query(organization_id),
+        where: user.id == ^id,
+        preload: [:employee, :organization]
+
+    Repo.one(q) |> Repo.preload([:employee, :organization])
+  end
+
   def get_user(id) do
     Repo.get(User, id) |> Repo.preload([:employee, :organization])
   end
+  # TODO
   @doc """
   get_users_by_field
   - check if a user has a key value pair

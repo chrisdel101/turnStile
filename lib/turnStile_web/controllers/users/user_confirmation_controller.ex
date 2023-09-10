@@ -51,7 +51,7 @@ defmodule TurnStileWeb.UserConfirmationController do
       {:ok, alert} ->
         # deactivate user; remove from queue
 
-        TurnStile.Patients.deactivate_user(Patients.get_user(user_id))
+        TurnStile.Patients.deactivate_user(Patients.get_user(user_id, current_user.organization_id))
         conn
         |> put_flash(:warning, alert.system_response.body)
         |> UserAuth.log_out_user()

@@ -26,16 +26,22 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
        "The following user registration form was recieved. Please review and accept the user to register them."
      )}
   end
-  def handle_user_alert_status(%{user_alert_status: _user_alert_status}, socket, opts) do
-    # IO.inspect(user_alert_status, label: "PUBSUB: message in handle_info")
-
-    users =
-      Patients.filter_active_users_x_mins_past_last_update(
-        socket.assigns.current_employee.current_organization_login_id,
-        Keyword.get(opts, :filter_active_users_mins)
-      )
-
+  # when user_alert_status is updated, refresh the page
+  def handle_user_alert_status(%{user_alert_status: _user_alert_status, user_id: user_id}, socket, opts) do
+    # IO.inspect(user_id, label: "PUBSUB: message in handle_info")
+    # check if user is in organization
+    current_employee = socket.assigns.current_employee
+    organization_id = current_employee.current_organization_login_id
+    if !is_nil(Patients.get_user(user_id, organization_id)) do
+      users =
+        Patients.filter_active_users_x_mins_past_last_update(
+          socket.assigns.current_employee.current_organization_login_id,
+          Keyword.get(opts, :filter_active_users_mins)
+        )
     {:noreply, assign(socket, :users, users)}
+    else
+      {:noreply, socket}
+    end
   end
 
   # comes via send :upsert from :new

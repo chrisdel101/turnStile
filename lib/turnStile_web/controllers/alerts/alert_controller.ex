@@ -43,7 +43,8 @@ defmodule TurnStileWeb.AlertController do
               Phoenix.PubSub.broadcast(
                 TurnStile.PubSub,
                 PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                %{user_alert_status: updated_user.user_alert_status}
+                %{ user_alert_status: updated_user.user_alert_status,
+                user_id: updated_user.id}
               )
 
             # udate user account error failure
@@ -82,7 +83,10 @@ defmodule TurnStileWeb.AlertController do
                     Phoenix.PubSub.broadcast(
                       TurnStile.PubSub,
                       PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                      %{user_alert_status: updated_user.user_alert_status}
+                      %{
+                        user_alert_status: updated_user.user_alert_status,
+                        user_id: updated_user.id
+                      }
                     )
 
                     # send reply back to user screen
@@ -101,7 +105,8 @@ defmodule TurnStileWeb.AlertController do
                         Phoenix.PubSub.broadcast(
                           TurnStile.PubSub,
                           PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                          %{user_alert_status: updated_user.user_alert_status}
+                          %{ user_alert_status: updated_user.user_alert_status,
+                          user_id: updated_user.id}
                         )
 
                       # update user account error failure
@@ -130,7 +135,8 @@ defmodule TurnStileWeb.AlertController do
                   Phoenix.PubSub.broadcast(
                     TurnStile.PubSub,
                     PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                    %{user_alert_status: updated_user.user_alert_status}
+                    %{ user_alert_status: updated_user.user_alert_status,
+                    user_id: updated_user.id}
                   )
 
                 # udate user account error failure
@@ -196,7 +202,8 @@ defmodule TurnStileWeb.AlertController do
                         Phoenix.PubSub.broadcast(
                           TurnStile.PubSub,
                           PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                          %{user_alert_status: updated_user.user_alert_status}
+                          %{ user_alert_status: updated_user.user_alert_status,
+                          user_id: updated_user.id}
                         )
                       # update_alert_status error; but update alert was :ok
                       {:error, error} ->
@@ -208,7 +215,8 @@ defmodule TurnStileWeb.AlertController do
                         Phoenix.PubSub.broadcast(
                           TurnStile.PubSub,
                           PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                          %{user_alert_status: user.user_alert_status}
+                          %{ user_alert_status: user.user_alert_status,
+                          user_id: user.id}
                         )
                     end
                     # send response no matter status update error
@@ -234,7 +242,8 @@ defmodule TurnStileWeb.AlertController do
                       Phoenix.PubSub.broadcast(
                         TurnStile.PubSub,
                         PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                        %{user_alert_status: updated_user.user_alert_status}
+                        %{ user_alert_status: updated_user.user_alert_status,
+                        user_id: updated_user.id}
                       )
 
                     # update user account failure
@@ -266,7 +275,8 @@ defmodule TurnStileWeb.AlertController do
                     Phoenix.PubSub.broadcast(
                       TurnStile.PubSub,
                       PubSubTopicsMap.get_topic("STATUS_UPDATE"),
-                      %{user_alert_status: updated_user.user_alert_status}
+                      %{ user_alert_status: updated_user.user_alert_status,
+                        user_id: updated_user.id}
                     )
 
                   # udate user account error failure
