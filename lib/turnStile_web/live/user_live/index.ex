@@ -188,7 +188,6 @@ defmodule TurnStileWeb.UserLive.Index do
   end
 
   @impl true
-  # called - from popup match review button on-click
   def handle_event("user_alert_match_review", %{"value" => ""}, socket) do
 
     {:noreply, socket |> push_patch(to: Routes.user_index_path(socket, :display_existing_users, socket.assigns.current_employee.current_organization_login_id, socket.assigns.current_employee.id))}
