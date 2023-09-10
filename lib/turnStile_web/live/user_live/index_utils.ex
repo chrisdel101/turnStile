@@ -287,68 +287,14 @@ defmodule TurnStileWeb.UserLive.Index.IndexUtils do
   end
 
   def maybe_assign_code(socket, nil), do: socket
-
-  # msg is formed like %{"0" => %{...}}
-  def extract_message_popup_index(message) do
-    if !is_nil(message) do
-      # get key from message; is an int
-      key_single_list = Map.keys(message)
-      # saftey check to avoid error
-      if length(key_single_list) === 1 do
-        # returns key as int
-        {:ok, key} = Enum.fetch(key_single_list, 0)
-        key
-      else
-        IO.puts("Error: extract_message_popup_index - message is not a single key value pair")
-        # TODO: think of better soluton
-        9999
-      end
-    end
-  end
-  # user is formed like {%{...}, 0}
-  def extract_user_popup_index(user_tuple) do
-    if !is_nil(user_tuple) do
-      {_user, index} = user_tuple
-      index
-    end
-  end
-  def extract_user_popup_content(user_tuple) do
-    # IO.inspect(user_tuple, label: "extract_user_popup_content")
-    if !is_nil(user_tuple) do
-      {user, _index} = user_tuple
-      user
-    end
-  end
-
-  def extract_message_popup_user_params(nil), do: nil
-
-  def extract_message_popup_user_params(message) do
-    IO.inspect(message, label: "extract_message_popup_user_params")
-    # get values side of map - is a list
-    values = Map.values(message)
-    IO.inspect(values, label: "extract_message_popup_user_params2")
-    # make sure list is 1 item
-    if length(values) === 1 do
-      # extact single item from list
-      {:ok, value} = Enum.fetch(values, 0)
-      # confirm single item is a map
-      if is_map(value) do
-        # make sure it's not an arrow map
-        if TurnStile.Utils.is_arrow_map?(value) do
-          TurnStile.Utils.convert_arrow_map_to_atom(value)
-        else
-          value
-        end
-      else
-        IO.puts(
-          "Error: extract_message_popup_user_params - message is not a single key value pair"
-        )
-
-        "User Name Not Found"
-      end
-    else
-      IO.puts("Error: extract_message_popup_user_params - message is not a single key value pair")
-      nil
-    end
+  #  - adding msgs one at a time, starting with empty list
+  # - use list length before add to get current index
+  # msg are formed like {"0", %{...}, 1}
+  def construct_user_registration_messages(message_list, user_params, organization_id) do
+    index = length(message_list)
+    currrent_message = {index, user_params, organization_id}
+    # add incoming message to storage
+    # msg are formed like {"0", %{...}, 1}
+    Enum.concat(message_list, [currrent_message])
   end
 end

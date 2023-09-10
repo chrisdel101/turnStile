@@ -3,19 +3,13 @@ defmodule TurnStileWeb.UserLive.Index.HandleInfo do
   # use TurnStileWeb, :live_component
 
   alias TurnStile.Patients
-
+  alias TurnStileWeb.UserLive.Index.IndexUtils
 
 
   # receives pubsub subscription from user self registation form
   # TODO: maybe optimize https://hexdocs.pm/phoenix_live_view/dom-patching.html#temporary-assigns
-  def handle_user_registation_form({:user_registation_form, %{user_params: user_params}}, socket) do
-    # adding msgs one at a time, starting with empty list
-    index = length(socket.assigns.user_registration_messages)
-    # use list length before add to get index
-    currrent_message = %{index => user_params}
-    # add incoming message to storage
-    messages = Enum.concat(socket.assigns.user_registration_messages, [currrent_message])
-    # msg are formed like %{"0" => %{...}}
+  def handle_user_registation_form({:user_registation_form, %{user_params: user_params, organization_id: organization_id}}, socket) do
+    messages = IndexUtils.construct_user_registration_messages(socket.assigns.user_registration_messages, user_params, organization_id)
 
     {:noreply,
      socket
