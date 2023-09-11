@@ -134,6 +134,7 @@ defmodule TurnStile.Patients do
           Repo.all(q)
       else
         IO.puts("get_users_by_field: field must be an atom")
+        []
       end
     end
   end
@@ -151,6 +152,7 @@ defmodule TurnStile.Patients do
         Repo.all(q)
       else
         IO.puts("get_users_by_field: field must be an atom")
+        []
       end
     end
   end
@@ -716,9 +718,23 @@ defmodule TurnStile.Patients do
       else
         {:error, "Error: update_alert_status: invalid alert status type"}
       end
-
     end
   end
+
+  # def process_action_alert(user) do
+  #   if !is_nil(user) do
+  #     cond do
+  #       # start pending users toward action alert
+  #       System.get_env("USER_ALLOW_PENDING_ACTION_ALERT") ->
+  #         user.user_alert_status === (AlertCategoryTypesMap.get_alert("PENDING") || AlertCategoryTypesMap.get_alert("CONFIRMATION")) ->
+
+  #     # only confrimed users start action alert
+  #       user.user_alert_status === AlertCategoryTypesMap.get_alert("CONFIRMATION") ->
+  #     true ->
+
+  #     end
+  #   end
+  # end
 
   @doc """
   deliver_user_email_alert_reply_instructions

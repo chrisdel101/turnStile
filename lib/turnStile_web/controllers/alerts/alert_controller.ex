@@ -32,7 +32,7 @@ defmodule TurnStileWeb.AlertController do
         {:error, error_msg} ->
           # alert save failure
           IO.inspect(error_msg, label: "receive_email_alert error in save_received_email_alert")
-          # update user account as ERROR status in DB
+          # PRIMARY: update user account as ERROR status in DB
           case Patients.update_alert_status(
                  current_user,
                  UserAlertStatusTypesMap.get_user_status("ERROR")
@@ -75,7 +75,7 @@ defmodule TurnStileWeb.AlertController do
               # only send change updates if valid
               if changeset.valid? && changeset.changes !== %{} do
                 IO.inspect(changeset, label: "changesetXXXX")
-                # update user account in DB
+                # PRIMARY: update user account in DB
                 case Patients.update_alert_status(current_user, user_alert_status) do
                   {:ok, updated_user} ->
                     # IO.inspect(updated_user, label: "updated_user")
@@ -94,7 +94,7 @@ defmodule TurnStileWeb.AlertController do
 
                   {:error, error} ->
                     IO.inspect(error, label: "receive_email_alert error in update_user")
-                    # update user account as ERROR status
+                    # SECONDARY: update user account as ERROR status - need some other solutions for this
                     case Patients.update_alert_status(
                            current_user,
                            UserAlertStatusTypesMap.get_user_status("ERROR")
@@ -124,7 +124,7 @@ defmodule TurnStileWeb.AlertController do
             # alert update failure
             {:error, error} ->
               IO.inspect(error, label: "receive_sms_alert error in update_alert")
-              # update user account as ERROR status
+              # PRIMARY: update user account as ERROR status
               case Patients.update_alert_status(
                      current_user,
                      UserAlertStatusTypesMap.get_user_status("ERROR")
@@ -194,7 +194,7 @@ defmodule TurnStileWeb.AlertController do
                   # only send change updates if valid
                   # if changeset.valid? && changeset.changes !== %{} do
                   if changeset.valid? do
-                    # update user account in DB
+                    # PRIMARY: update user account in DB
                     case Patients.update_alert_status(user, user_alert_status) do
                       {:ok, updated_user} ->
                         # IO.inspect(updated_user, label: "updated_user")
@@ -231,7 +231,7 @@ defmodule TurnStileWeb.AlertController do
                 # update_alert in DB failure - change to error status
                 {:error, error} ->
                   IO.inspect(error, label: "receive_sms_alert error in update_alert")
-                  # update user account as ERROR status
+                  # PRIMARY: update user account as ERROR status
                   case Patients.update_alert_status(
                          user,
                          UserAlertStatusTypesMap.get_user_status("ERROR")
@@ -264,7 +264,7 @@ defmodule TurnStileWeb.AlertController do
             else
               {:error, error} ->
                 IO.inspect(error, label: "receive_sms_alert error in save_received_SMS_alert")
-                # update user account as ERROR status in DB
+                # PRIMARY: update user account as ERROR status in DB
                 case Patients.update_alert_status(
                        user,
                        UserAlertStatusTypesMap.get_user_status("ERROR")
