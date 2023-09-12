@@ -13,10 +13,6 @@ defmodule TurnStile.ActionGenServer do
   defp unshift(pid, element) do
     GenServer.call(pid, {:unshift, element})
   end
-  # remove item to front of list
-  defp shift(pid) do
-    GenServer.call(pid, :shift)
-  end
 
   def print_all(pid) do
     GenServer.call(pid, :print_all)
@@ -24,7 +20,7 @@ defmodule TurnStile.ActionGenServer do
 
 
   def delete(pid, user) do
-    GenServer.cast(pid, {:delete, user})
+    GenServer.call(pid, {:delete, user})
   end
 
   def delete_all(pid) do
@@ -61,13 +57,7 @@ defmodule TurnStile.ActionGenServer do
   @impl true # syncrounous
   def handle_call({:unshift, element}, _from, state) do
     new_state = [element | state]
-    {:noreply, _from, new_state}
-  end
-
-  def handle_call(:shift, _from, state) do
-    [to_caller | new_state] = state
-    IO.inspect(to_caller, label: "to_caller")
-    {:reply, to_caller, new_state}
+    {:reply, :ok, new_state}
   end
 
   # just prints the list
@@ -80,18 +70,18 @@ defmodule TurnStile.ActionGenServer do
     found_user = Enum.find(state, fn user -> user.id === user_id end)
     {:reply, found_user, state}
   end
-
+  # delete user from the list
+  # List.delete doesn't work
   def handle_call({:delete, user}, _from, state) do
-    state = List.delete(state, user)
-    IO.inspect(state, label: "new state")
-    {:reply, state, state}
+    # elixirforum.com/t/delete-map-from-list-of-maps-where-we-dont-care-about-map-value-for-some-key/16271
+    new_state = Enum.reject(state, fn u -> u.id === user.id end)
+    {:reply, :ok, new_state}
   end
 
   @impl true # asyncrounous
-
   def handle_cast({:delete_all, nil}, _state) do
     new_state = []
-    {:noreply, new_state}
+    {:noreply,  new_state}
   end
 
   @impl true
