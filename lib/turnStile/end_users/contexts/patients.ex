@@ -4,6 +4,7 @@ defmodule TurnStile.Patients do
   """
 
   import Ecto.Query, warn: false
+  alias TurnStile.ActionGenServer
   alias TurnStile.Patients.UserNotifier
   alias TurnStile.Repo
   alias TurnStile.Patients.User
@@ -705,7 +706,8 @@ defmodule TurnStile.Patients do
   end
 
   #  NO preloading - may cause error later
-  def update_alert_status(user, new_alert_status) do
+  # - callback is process_action_alert
+  def update_alert_status(user, new_alert_status, callback \\ nil) do
     if !is_nil(user) do
       # IO.inspect(user)
       # IO.inspect(new_alert_status)
@@ -714,27 +716,57 @@ defmodule TurnStile.Patients do
            UserAlertStatusTypesMap.get_user_statuses_enum(),
            String.to_atom(new_alert_status)
          ) do
-        update_user(user, %{user_alert_status: new_alert_status})
-      else
+          {:ok, user} = update_user(user, %{user_alert_status: new_alert_status})
+          if is_function(callback) do
+            callback.(user)
+          end
+        else
         {:error, "Error: update_alert_status: invalid alert status type"}
       end
     end
   end
 
-  # def process_action_alert(user) do
-  #   if !is_nil(user) do
-  #     cond do
-  #       # start pending users toward action alert
-  #       System.get_env("USER_ALLOW_PENDING_ACTION_ALERT") ->
-  #         user.user_alert_status === (AlertCategoryTypesMap.get_alert("PENDING") || AlertCategoryTypesMap.get_alert("CONFIRMATION")) ->
-
-  #     # only confrimed users start action alert
-  #       user.user_alert_status === AlertCategoryTypesMap.get_alert("CONFIRMATION") ->
-  #     true ->
-
-  #     end
-  #   end
-  # end
+  def process_action_alert(user) do
+    if !is_nil(user) do
+      # add user to alert action state
+      cond do
+      # only confrimed users not pending
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ->
+         # add user to state list - if not alreay in list
+         with {:ok, user} <- ActionGenServer.add(:action_server, user) do
+          IO.inspect(user, label: "process_action_alert: user456")
+        else
+          # if in list already will fail
+          {:error, error} ->
+            IO.inspect(error, label: "process_action_alert: error")
+        end
+      # remove from action list
+      user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
+        IO.inspect("HERE")
+          # add user to state list - if not alreay in list
+          with :ok <- ActionGenServer.delete(:action_server, user) do
+            IO.inspect("user", label: "process_action_alert: user780")
+          else
+            # if in list already will fail
+            {:error, error} ->
+              IO.inspect(error, label: "process_action_alert: error")
+          end
+      # if pending is allowed and is pending state
+    System.get_env("USER_ALLOW_PENDING_ACTION_ALERT") && user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") ->
+        # add user to state list
+        IO.inspect(user.user_alert_status, label: "process_action_alert: user")
+        with {:ok, user} <- ActionGenServer.add(:action_server, user) do
+          IO.inspect(user, label: "process_action_alert: user123")
+        else
+          {:error, error} ->
+            IO.inspect(error, label: "process_action_alert: error")
+        end
+      true ->
+        IO.inspect("", label: "process_action_alert: user12341")
+        nil
+      end
+    end
+  end
 
   @doc """
   deliver_user_email_alert_reply_instructions

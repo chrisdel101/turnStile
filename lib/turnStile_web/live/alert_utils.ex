@@ -1,5 +1,6 @@
 defmodule TurnStileWeb.AlertUtils do
   use Phoenix.Component
+  alias TurnStile.Patients
   alias TurnStile.Alerts.Alert
   alias TurnStile.Alerts
   alias TurnStile.Staff
@@ -297,15 +298,20 @@ defmodule TurnStileWeb.AlertUtils do
       end
     end
   end
-
-  def handle_update_user_alert_status_based_on_category(user, alert_category, opts \\ []) do
+  @doc """
+  handle_update_status_from_category
+  - updates user alert_status to next state current
+  - gets current state out of user with map_event_to_category
+  """
+  def handle_update_status_from_category(user, alert_category, opts \\ []) do
     cond do
       # send intital alert w instructions
       AlertCategoryTypesMap.get_alert("INITIAL") === alert_category ->
         # update user account
         TurnStile.Patients.update_alert_status(
           user,
-          UserAlertStatusTypesMap.get_user_status("PENDING")
+          UserAlertStatusTypesMap.get_user_status("PENDING"),
+          &Patients.process_action_alert(&1)
         )
       AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
         update_status = Keyword.get(opts, :update_status)
@@ -313,13 +319,15 @@ defmodule TurnStileWeb.AlertUtils do
           # set to manual status
           TurnStile.Patients.update_alert_status(
             user,
-            UserAlertStatusTypesMap.get_user_status(String.upcase(update_status))
+            UserAlertStatusTypesMap.get_user_status(String.upcase(update_status)),
+            &Patients.process_action_alert(&1)
           )
         else
           #  assume inital alert (i.e email) and set to pending
           TurnStile.Patients.update_alert_status(
             user,
-            UserAlertStatusTypesMap.get_user_status("PENDING")
+            UserAlertStatusTypesMap.get_user_status("PENDING"),
+            &Patients.process_action_alert(&1)
           )
         end
 
@@ -328,11 +336,12 @@ defmodule TurnStileWeb.AlertUtils do
         # update user account
         TurnStile.Patients.update_alert_status(
           user,
-          UserAlertStatusTypesMap.get_user_status("PENDING")
+          UserAlertStatusTypesMap.get_user_status("PENDING"),
+          &Patients.process_action_alert(&1)
         )
 
       true ->
-        {:error, "Error: invalid alert_category in handle_update_user_alert_status_based_on_category"}
+        {:error, "Error: invalid alert_category in handle_update_status_from_category"}
     end
   end
   @doc """
@@ -348,7 +357,7 @@ defmodule TurnStileWeb.AlertUtils do
           case send_email_alert(alert) do
             {:ok, _email_msg} ->
               # IO.inspect(email_msg, label: "email_msgXXX")
-              case handle_update_user_alert_status_based_on_category(
+              case handle_update_status_from_category(
                      socket.assigns.user,
                      map_event_to_category(event)
                    ) do
@@ -363,7 +372,7 @@ defmodule TurnStileWeb.AlertUtils do
                     |> put_flash(:success, "Alert sent successfully")
                   }
 
-                # handle_update_user_alert_status_based_on_category error
+                # handle_update_status_from_category error
                 {:error, error} ->
                   IO.inspect(error, label: "email index alert error in handle_event")
 
@@ -405,7 +414,7 @@ defmodule TurnStileWeb.AlertUtils do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg, label: "twilio_msg")
 
-              case handle_update_user_alert_status_based_on_category(
+              case handle_update_status_from_category(
                      socket.assigns.user,
                      map_event_to_category(event)
                    ) do

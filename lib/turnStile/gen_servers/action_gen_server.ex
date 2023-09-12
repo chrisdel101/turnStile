@@ -11,7 +11,7 @@ defmodule TurnStile.ActionGenServer do
 
   # add item to front of list
   defp unshift(pid, element) do
-    GenServer.cast(pid, {:unshift, element})
+    GenServer.call(pid, {:unshift, element})
   end
   # remove item to front of list
   defp shift(pid) do
@@ -22,14 +22,20 @@ defmodule TurnStile.ActionGenServer do
     GenServer.call(pid, :print_all)
   end
 
+
+  def delete(pid, user) do
+    GenServer.cast(pid, {:delete, user})
+  end
+
   def delete_all(pid) do
     GenServer.cast(pid, {:delete_all, nil})
   end
+
   defp lookup(pid, user_id) do
     GenServer.call(pid, {:lookup, user_id})
   end
 
-  def add_new_user(pid, user) do
+  def add(pid, user) do
     case lookup(pid, user.id) do
       # user is not in list yet
       nil ->
@@ -39,7 +45,7 @@ defmodule TurnStile.ActionGenServer do
         # user already exists
       %User{} = _user ->
         msg = "INFO: Cannot add user to state. User already exists in"
-        IO.puts(msg)
+        # IO.puts(msg)
         {:error, msg}
     end
   end
@@ -47,13 +53,17 @@ defmodule TurnStile.ActionGenServer do
   # Server
 
   @impl true
-  @spec init(any) :: {:ok, []}
   def init(_start_string) do
     schedule_work()
     {:ok, []}
   end
 
-  @impl true
+  @impl true # syncrounous
+  def handle_call({:unshift, element}, _from, state) do
+    new_state = [element | state]
+    {:noreply, _from, new_state}
+  end
+
   def handle_call(:shift, _from, state) do
     [to_caller | new_state] = state
     IO.inspect(to_caller, label: "to_caller")
@@ -71,11 +81,13 @@ defmodule TurnStile.ActionGenServer do
     {:reply, found_user, state}
   end
 
-  @impl true
-  def handle_cast({:unshift, element}, state) do
-    new_state = [element | state]
-    {:noreply, new_state}
+  def handle_call({:delete, user}, _from, state) do
+    state = List.delete(state, user)
+    IO.inspect(state, label: "new state")
+    {:reply, state, state}
   end
+
+  @impl true # asyncrounous
 
   def handle_cast({:delete_all, nil}, _state) do
     new_state = []
