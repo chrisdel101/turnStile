@@ -4,7 +4,7 @@ defmodule TurnStile.Patients do
   """
 
   import Ecto.Query, warn: false
-  alias TurnStile.ActionGenServer
+  alias TurnStile.Queue
   alias TurnStile.Patients.UserNotifier
   alias TurnStile.Repo
   alias TurnStile.Patients.User
@@ -733,7 +733,7 @@ defmodule TurnStile.Patients do
       # only confrimed users not pending
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ->
          # add user to state list - if not alreay in list
-         with {:ok, user} <- ActionGenServer.add(:action_server, user) do
+         with {:ok, user} <- Queue.add(:action_server, user) do
           IO.inspect(user, label: "process_action_alert: user456")
         else
           # if in list already will fail
@@ -744,7 +744,7 @@ defmodule TurnStile.Patients do
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
         IO.inspect("HERE")
           # add user to state list - if not alreay in list
-          with :ok <- ActionGenServer.delete(:action_server, user) do
+          with :ok <- Queue.delete(:action_server, user) do
             IO.inspect("user", label: "process_action_alert: user780")
           else
             # if in list already will fail
@@ -755,7 +755,7 @@ defmodule TurnStile.Patients do
     System.get_env("USER_ALLOW_PENDING_ACTION_ALERT") && user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") ->
         # add user to state list
         IO.inspect(user.user_alert_status, label: "process_action_alert: user")
-        with {:ok, user} <- ActionGenServer.add(:action_server, user) do
+        with {:ok, user} <- Queue.add(:action_server, user) do
           IO.inspect(user, label: "process_action_alert: user123")
         else
           {:error, error} ->

@@ -1,4 +1,4 @@
-defmodule TurnStile.ActionGenServer do
+defmodule TurnStile.Queue do
   use GenServer
   alias TurnStile.Patients.User
   # client
@@ -9,9 +9,19 @@ defmodule TurnStile.ActionGenServer do
     GenServer.start_link(__MODULE__, default, name: :action_server)
   end
 
-  # add item to front of list
+  # add item to front of queue
   defp unshift(pid, element) do
     GenServer.call(pid, {:unshift, element})
+  end
+
+  # remove item from front of queue
+  defp shift(pid, element) do
+    GenServer.call(pid, {:unshift, element})
+  end
+
+  # add item to end of queue
+  defp push(pid, element) do
+    GenServer.call(pid, {:push, element})
   end
 
   def print_all(pid) do
@@ -35,7 +45,7 @@ defmodule TurnStile.ActionGenServer do
     case lookup(pid, user.id) do
       # user is not in list yet
       nil ->
-        with :ok <- unshift(pid, user) do
+        with :ok <- push(pid, user) do
           {:ok, user}
         end
         # user already exists
@@ -57,6 +67,11 @@ defmodule TurnStile.ActionGenServer do
   @impl true # syncrounous
   def handle_call({:unshift, element}, _from, state) do
     new_state = [element | state]
+    {:reply, :ok, new_state}
+  end
+
+  def handle_call({:push, element}, _from, state) do
+    new_state = [state | element]
     {:reply, :ok, new_state}
   end
 

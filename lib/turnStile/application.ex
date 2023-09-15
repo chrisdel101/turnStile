@@ -19,7 +19,7 @@ defmodule TurnStile.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: TurnStile.PubSub},
       # start the action GenServer
-      {TurnStile.ActionGenServer, "start"},
+      {TurnStile.Queue, "start"},
       # Start the Endpoint (http/https)
       TurnStileWeb.Endpoint
       # Start a worker by calling: TurnStile.Worker.start_link(arg)
