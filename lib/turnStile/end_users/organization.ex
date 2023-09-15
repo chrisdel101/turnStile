@@ -42,7 +42,7 @@ defmodule TurnStile.Company.Organization do
 
   def changeset(organization, attrs) do
     organization
-    |> cast(attrs, [:name, :email, :phone, :slug, :timezone])
+    |> cast(attrs, [:name, :email, :phone, :slug, :timezone, :require_init_employee_confirmation, :employee_create_setup_is_required, :employee_create_init_auto_login, :employee_create_auto_login, :employee_confirm_auto_login, :user_allow_pending_into_queue])
     |> validate_required([:name, :slug])
     |> validate_email()
   end

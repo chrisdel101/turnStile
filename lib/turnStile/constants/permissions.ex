@@ -94,6 +94,7 @@ defmodule EmployeePermissionThresholds do
     "viewer" => 6
   }
   # all values <= (GT_E) have write permissions
+  @edit_organization_permissions_threshold 3
   @is_admin_employee_threshold 3
   @edit_employee_permissions_threshold 3
   @register_employee_permissions_threshold 3
@@ -115,6 +116,7 @@ defmodule EmployeePermissionThresholds do
   def edit_user_permissions_threshold, do: @edit_user_permissions_threshold
   def send_alert_permissions_threshold, do: @send_alert_permissions_threshold
   def remove_user_permissions_threshold, do: @remove_user_permissions_threshold
+  def edit_organization_permissions_threshold, do: @edit_organization_permissions_threshold
 end
 
 defmodule EmployeeManagerRolesEnum do

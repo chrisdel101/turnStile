@@ -266,7 +266,6 @@ defmodule TurnStileWeb.OrganizationController do
   end
 
   def show(conn, %{"id" => id}) do
-    IO.inspect("SHOW")
     organization = Company.get_organization(id)
 
     if !organization do

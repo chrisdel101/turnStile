@@ -17,14 +17,49 @@
     <%= @organization.phone %>
   </li>
 
+  <h3>Config Settings</h3>
+
+  <li>
+    <strong>require_init_employee_confirmation:</strong>
+    <%= @organization.require_init_employee_confirmation %>
+  </li>
+
+  <li>
+    <strong>employee_create_setup_is_required:</strong>
+    <%= @organization.employee_create_setup_is_required %>
+  </li>
+
+  <li>
+    <strong>employee_create_init_auto_login:</strong>
+    <%= @organization.employee_create_init_auto_login %>
+  </li>
+  <li>
+    <strong>employee_create_auto_login:</strong>
+    <%= @organization.employee_create_auto_login %>
+  </li>
+  <li>
+    <strong>employee_confirm_auto_login:</strong>
+    <%= @organization.employee_confirm_auto_login %>
+  </li>
+  
+  <li>
+    <strong>user_allow_pending_into_queue:</strong>
+    <%= @organization.user_allow_pending_into_queue %>
+  </li>
+  
+
 </ul>
   <%= if !@current_employee do %>
     <%= render TurnStileWeb.EmployeeSessionView, "new.html", Map.put(assigns, :action, {Routes.employee_session_path(@conn, :create, @organization_id)}) %> 
 
 <% else %>
 
+  <%= if (TurnStile.Utils.convert_to_int(@current_employee.role_value_on_current_organization)) <= (EmployeePermissionThresholds.edit_organization_permissions_threshold()) do %>
   
- 
+    
+  
+  <% end %>
+
   <%= if (TurnStile.Utils.convert_to_int(@current_employee.role_value_on_current_organization)) <= (EmployeePermissionThresholds.register_employee_permissions_threshold()) do %>
 
     <span><%= link "Register_New_Employee", to: Routes.employee_registration_path(@conn, :new, @organization_id) %></span> |

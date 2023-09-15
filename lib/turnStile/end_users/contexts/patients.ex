@@ -727,10 +727,10 @@ defmodule TurnStile.Patients do
   end
   # interact with user queue based in user state
   def pipe_action_to_user_queue(user) do
+    organization_id = user.organization_id
+    organization = TurnStile.Company.get_organization(organization_id)
     if !is_nil(user) do
-      # add user to alert action state
       cond do
-      # only confrimed users not pending
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ->
          # add user to state list - if not alreay in list
          with {:ok, user} <- UserQueue.add_user(:user_queue, user) do
@@ -751,8 +751,8 @@ defmodule TurnStile.Patients do
             {:error, error} ->
               IO.inspect(error, label: "pipe_action_to_user_queue: error")
           end
-      # if pending is allowed and is pending state
-    System.get_env("USER_ALLOW_PENDING_ACTION_ALERT") && user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") ->
+      # if pending is allowed && is in pending state
+      organization.user_allow_pending_into_queue && user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") ->
         # add user to state list
         IO.inspect(user.user_alert_status, label: "pipe_action_to_user_queue: user")
         with {:ok, user} <- UserQueue.add_user(:user_queue, user) do
