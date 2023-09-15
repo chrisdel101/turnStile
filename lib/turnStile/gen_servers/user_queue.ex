@@ -1,12 +1,12 @@
-defmodule TurnStile.Queue do
+defmodule TurnStile.UserQueue do
   use GenServer
   alias TurnStile.Patients.User
   # client
 
   # call with client APIs with server name in app code, not pid
 
-  def start_link(default) when is_binary(default) do
-    GenServer.start_link(__MODULE__, default, name: :action_server)
+  def start_link(default) do
+    GenServer.start_link(__MODULE__, default, name: :user_queue)
   end
 
   # add item to front of queue
@@ -37,12 +37,12 @@ defmodule TurnStile.Queue do
     GenServer.cast(pid, {:delete_all, nil})
   end
 
-  defp lookup(pid, user_id) do
-    GenServer.call(pid, {:lookup, user_id})
+  defp lookup_user(pid, user_id) do
+    GenServer.call(pid, {:lookup_user, user_id})
   end
 
-  def add(pid, user) do
-    case lookup(pid, user.id) do
+  def add_user(pid, user) do
+    case lookup_user(pid, user.id) do
       # user is not in list yet
       nil ->
         with :ok <- push(pid, user) do
@@ -81,7 +81,7 @@ defmodule TurnStile.Queue do
   end
 
   # check if user in list
-  def handle_call({:lookup, user_id}, _from, state) do
+  def handle_call({:lookup_user, user_id}, _from, state) do
     found_user = Enum.find(state, fn user -> user.id === user_id end)
     {:reply, found_user, state}
   end

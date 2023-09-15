@@ -4,7 +4,7 @@ defmodule TurnStile.Patients do
   """
 
   import Ecto.Query, warn: false
-  alias TurnStile.Queue
+  alias TurnStile.UserQueue
   alias TurnStile.Patients.UserNotifier
   alias TurnStile.Repo
   alias TurnStile.Patients.User
@@ -706,7 +706,7 @@ defmodule TurnStile.Patients do
   end
 
   #  NO preloading - may cause error later
-  # - callback is process_action_alert
+  # - callback is pipe_action_to_user_queue
   def update_alert_status(user, new_alert_status, callback \\ nil) do
     if !is_nil(user) do
       # IO.inspect(user)
@@ -725,44 +725,44 @@ defmodule TurnStile.Patients do
       end
     end
   end
-
-  def process_action_alert(user) do
+  # interact with user queue based in user state
+  def pipe_action_to_user_queue(user) do
     if !is_nil(user) do
       # add user to alert action state
       cond do
       # only confrimed users not pending
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ->
          # add user to state list - if not alreay in list
-         with {:ok, user} <- Queue.add(:action_server, user) do
-          IO.inspect(user, label: "process_action_alert: user456")
+         with {:ok, user} <- UserQueue.add_user(:user_queue, user) do
+          IO.inspect(user, label: "pipe_action_to_user_queue: user456")
         else
           # if in list already will fail
           {:error, error} ->
-            IO.inspect(error, label: "process_action_alert: error")
+            IO.inspect(error, label: "pipe_action_to_user_queue: error")
         end
       # remove from action list
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
         IO.inspect("HERE")
           # add user to state list - if not alreay in list
-          with :ok <- Queue.delete(:action_server, user) do
-            IO.inspect("user", label: "process_action_alert: user780")
+          with :ok <- UserQueue.delete(:user_queue, user) do
+            IO.inspect("user", label: "pipe_action_to_user_queue: user780")
           else
             # if in list already will fail
             {:error, error} ->
-              IO.inspect(error, label: "process_action_alert: error")
+              IO.inspect(error, label: "pipe_action_to_user_queue: error")
           end
       # if pending is allowed and is pending state
     System.get_env("USER_ALLOW_PENDING_ACTION_ALERT") && user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") ->
         # add user to state list
-        IO.inspect(user.user_alert_status, label: "process_action_alert: user")
-        with {:ok, user} <- Queue.add(:action_server, user) do
-          IO.inspect(user, label: "process_action_alert: user123")
+        IO.inspect(user.user_alert_status, label: "pipe_action_to_user_queue: user")
+        with {:ok, user} <- UserQueue.add_user(:user_queue, user) do
+          IO.inspect(user, label: "pipe_action_to_user_queue: user123")
         else
           {:error, error} ->
-            IO.inspect(error, label: "process_action_alert: error")
+            IO.inspect(error, label: "pipe_action_to_user_queue: error")
         end
       true ->
-        IO.inspect("", label: "process_action_alert: user12341")
+        IO.inspect("", label: "pipe_action_to_user_queue: user12341")
         nil
       end
     end

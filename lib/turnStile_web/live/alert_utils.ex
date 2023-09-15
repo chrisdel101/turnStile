@@ -311,7 +311,7 @@ defmodule TurnStileWeb.AlertUtils do
         TurnStile.Patients.update_alert_status(
           user,
           UserAlertStatusTypesMap.get_user_status("PENDING"),
-          &Patients.process_action_alert(&1)
+          &Patients.pipe_action_to_user_queue(&1)
         )
       AlertCategoryTypesMap.get_alert("CUSTOM") === alert_category ->
         update_status = Keyword.get(opts, :update_status)
@@ -320,14 +320,14 @@ defmodule TurnStileWeb.AlertUtils do
           TurnStile.Patients.update_alert_status(
             user,
             UserAlertStatusTypesMap.get_user_status(String.upcase(update_status)),
-            &Patients.process_action_alert(&1)
+            &Patients.pipe_action_to_user_queue(&1)
           )
         else
           #  assume inital alert (i.e email) and set to pending
           TurnStile.Patients.update_alert_status(
             user,
             UserAlertStatusTypesMap.get_user_status("PENDING"),
-            &Patients.process_action_alert(&1)
+            &Patients.pipe_action_to_user_queue(&1)
           )
         end
 
@@ -337,7 +337,7 @@ defmodule TurnStileWeb.AlertUtils do
         TurnStile.Patients.update_alert_status(
           user,
           UserAlertStatusTypesMap.get_user_status("PENDING"),
-          &Patients.process_action_alert(&1)
+          &Patients.pipe_action_to_user_queue(&1)
         )
 
       true ->
