@@ -37,7 +37,7 @@ defmodule TurnStile.UserQueue do
     GenServer.cast(pid, {:delete_all, nil})
   end
 
-  defp lookup_user(pid, user_id) do
+  def lookup_user(pid, user_id) do
     GenServer.call(pid, {:lookup_user, user_id})
   end
 
@@ -71,7 +71,7 @@ defmodule TurnStile.UserQueue do
   end
 
   def handle_call({:push, element}, _from, state) do
-    new_state = [state | element]
+    new_state = state ++ [element]
     {:reply, :ok, new_state}
   end
 
@@ -81,8 +81,8 @@ defmodule TurnStile.UserQueue do
   end
 
   # check if user in list
-  def handle_call({:lookup_user, user_id}, _from, state) do
-    found_user = Enum.find(state, fn user -> user.id === user_id end)
+  def handle_call({:lookup_user, user_input}, _from, state) do
+    found_user = Enum.find(state, fn user -> match_user(user, user_input) end)
     {:reply, found_user, state}
   end
   # delete user from the list
@@ -114,5 +114,11 @@ defmodule TurnStile.UserQueue do
     # We schedule the work to happen in 2 hours (written in milliseconds).
     # Alternatively, one might write :timer.hours(2)
     # Process.send_after(self(), :work, 2 * 60 * 60 * 1000)
+  end
+
+  defp match_user(user, user_input) do
+    IO.inspect(user, label: "user in match_user")
+    IO.inspect(user_input, label: "user_input in match_user")
+    user === user_input
   end
 end
