@@ -90,6 +90,11 @@ defmodule TurnStile.Utils do
     |> Jason.decode!()
   end
 
+  def convert_map_to_json(map) do
+    map
+    |> Jason.encode!()
+  end
+
   def fetch_timezones_enum do
     query_result =
       Ecto.Adapters.SQL.query(TurnStile.Repo, "select enum_range(null::timezone)", [])

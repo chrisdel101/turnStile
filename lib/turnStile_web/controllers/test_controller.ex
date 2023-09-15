@@ -64,4 +64,45 @@ defmodule TurnStileWeb.TestController do
       conn
     end
   end
+  def get_fake_triage_json(conn, _opts) do
+    triage_data = %{
+      time_per_patient: 30,
+      ordered_query: [
+        %{
+          "id" => 22,
+          "last_name" => "Sam",
+          "first_name" => "Smith",
+          "health_number" => "33221123",
+        },
+        %{
+          "id" => 33,
+          "last_name" => "Schmo",
+          "first_name" => "Joe",
+          "health_number" => "9999",
+        },
+        %{
+          "id" => 22,
+          "last_name" => "Tony",
+          "first_name" => "Kannan",
+          "health_number" => "12442",
+        },
+        %{
+          "id" => 443,
+          "last_name" => "Sam",
+          "first_name" => "Johnson",
+          "health_number" => "112232",
+        },
+        %{
+          "id" => 1111,
+          "last_name" => "Joe4",
+          "first_name" => "Schmoe",
+          "health_number" => "1212",
+        }
+      ]
+    }
+    conn
+    |> put_view(TurnStileWeb.JsonView)
+    |> render("triage.json", data: TurnStile.Utils.convert_map_to_json(triage_data))
+  end
+
 end

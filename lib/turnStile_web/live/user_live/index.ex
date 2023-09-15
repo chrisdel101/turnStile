@@ -174,11 +174,11 @@ defmodule TurnStileWeb.UserLive.Index do
 
 
 
-      {:noreply, socket} =
-        handle_info(
-          {:user_registation_form, %{user_params: Enum.at(@user_registatrion_messages, 1), organization_id: 1}},
-          socket
-        )
+      # {:noreply, socket} =
+      #   handle_info(
+      #     {:user_registation_form, %{user_params: Enum.at(@user_registatrion_messages, 1), organization_id: 1}},
+      #     socket
+      #   )
       {:noreply, socket}
       # IO.inspect(params, label: "handle_params main index: no changeset")
       # all other calls

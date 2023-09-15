@@ -29,6 +29,12 @@ defmodule TurnStileWeb.Router do
 
     post "/sms_messages", TurnStileWeb.AlertController, :receive_sms_alert
   end
+
+  scope "/api", TurnStileWeb do
+    pipe_through :api
+
+    get "/triage", TestController, :get_fake_triage_json
+  end
   # Enables LiveDashboard only for development
   #
   # If you want to use the LiveDashboard in production, you should put
