@@ -36,7 +36,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
       } = params
 
     current_employee = conn.assigns[:current_employee]
-
+    organization = TurnStile.Staff.get_organization(organization_id)
     if current_employee do
       # check confirm token is NOT same as logged in
       current_token = EmployeeAuth.get_employee_token(conn)
@@ -65,7 +65,7 @@ defmodule TurnStileWeb.EmployeeConfirmationController do
                "password_confirmation" => password_confirmation
              }) do
           {:ok, employee} ->
-            if System.get_env("EMPLOYEE_CONFIRM_AUTO_LOGIN") === "true" do
+            if organization.employee_confirm_auto_login do
               params = %{flash: "Account confirmed."}
 
               conn

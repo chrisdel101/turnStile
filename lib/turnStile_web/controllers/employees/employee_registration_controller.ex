@@ -128,8 +128,8 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
                         IO.inspect(employee)
                         # require email account confirmation
                         cond do
-                          System.get_env("EMPLOYEE_CREATE_SETUP_IS_REQUIRED") === "false" ->
-                            # just send welcomemail; no setup required
+                          organization.employee_create_setup_is_required ->
+                            # just send welcome email; no setup required
                             case Staff.deliver_init_employee_welcome_email(employee) do
                               {:ok, _email_body} ->
                                 conn
@@ -204,9 +204,9 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
     organization_id = Map.get(organization, "id") || Map.get(organization, :id)
     # check if org already exist - it was just created
-    organizations = Company.get_organization(organization_id)
+    organization = Company.get_organization(organization_id)
     # check if org already exist
-    if organizations do
+    if organization do
       # double-confirm exists, but has no members yet
       members? = Company.organization_has_members?(organization_id)
       # if member, send error; cannot have members already
@@ -219,7 +219,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
             IO.inspect("YYYYYY")
             IO.inspect(employee)
             # require email account confirmation
-            if System.get_env("REQUIRE_INIT_EMPLOYEE_CONFIRMATION") === "true" do
+            if organization.require_init_employee_confirmation do
               zz =
                 Staff.deliver_employee_confirmation_instructions(
                   employee,
@@ -231,7 +231,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
               case zz do
                 {:ok, _email_body} ->
-                  log_in? = System.get_env("EMPLOYEE_CREATE_AUTO_LOGIN")
+                  log_in? = organization.employee_create_auto_login
                   {:ok, employee, log_in?}
 
                 {:error, error} ->
@@ -244,7 +244,7 @@ defmodule TurnStileWeb.EmployeeRegistrationController do
 
               case vv do
                 {:ok, _email_body} ->
-                  log_in = System.get_env("EMPLOYEE_CREATE_INIT_AUTO_LOGIN")
+                  log_in = organization.employee_create_init_auto_login
                   {:ok, employee, log_in}
 
                 {:error, error} ->
