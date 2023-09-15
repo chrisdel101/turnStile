@@ -11,7 +11,8 @@ defmodule TurnStile.CompanyFixtures do
     {:ok, organization} =
       attrs
       |> Enum.into(%{
-        email: "some email",
+        email: "some@email.com",
+        slug: "some-name",
         name: "some name",
         phone: "some phone"
       })

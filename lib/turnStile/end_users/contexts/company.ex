@@ -41,7 +41,7 @@ defmodule TurnStile.Company do
 
     query =
       if preload? do
-        query |> Ecto.Query.preload([:employees])
+        query |> Ecto.Query.preload([:employees, :roles, :users])
       else
         query
       end
