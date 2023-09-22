@@ -1,13 +1,13 @@
 defmodule TurnStileWeb.PageController do
   use TurnStileWeb, :controller
   alias TurnStile.Staff
+  alias TurnStile.Utils
   # import Phoenix.LiveView
   # import Phoenix.LiveView.Utils
 
 
   def index(conn, _params) do
-      conn
-      |> assign(:employees?, Staff.list_all_employees())
+    conn
       |> render("index.html")
   end
   # called via /clear_sessions route
@@ -19,7 +19,5 @@ defmodule TurnStileWeb.PageController do
     |> put_flash(:info, "Session cleared")
     |> redirect(to: Routes.page_path(conn, :index))
   end
-
-
 
 end

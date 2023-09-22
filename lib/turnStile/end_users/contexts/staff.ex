@@ -448,22 +448,8 @@ defmodule TurnStile.Staff do
     end
   end
 
-  alias TurnStile.Staff.Employee
 
-  @doc """
-  Returns the list of employees.
 
-  ## Examples
-
-      iex> list_all_employees()
-      [%Employee{}, ...]
-
-  """
-  def list_all_employees do
-    # query all
-    query = from(a in Employee, select: a)
-    Repo.all(query)
-  end
 
   @doc """
   Return all employees list that are assoc with an organization .
@@ -477,7 +463,6 @@ defmodule TurnStile.Staff do
   def list_employee_ids_by_organization(organization_id) do
     if not is_nil(organization_id) do
       organization_id = TurnStile.Utils.convert_to_int(organization_id)
-
       q =
         from(o in "organization_employees",
           join: o1 in "organizations",
@@ -485,13 +470,26 @@ defmodule TurnStile.Staff do
           join: e in "employees",
           on: o.employee_id == e.id,
           where: o1.id == ^organization_id,
+          where: e.is_deactivated? == false,
           select: e.id
         )
-
       Repo.all(q)
     end
   end
 
+  @doc """
+  Returns the list of employees.
+  - just calls list_employee_ids_by_organization above
+
+  ## Examples
+
+      iex> list_all_employees()
+      [%Employee{}, ...]
+
+  """
+  def list_employees(organization_id) do
+    list_employee_ids_by_organization(organization_id)
+  end
   @doc """
   Find all ids in employees table and return list of employees.
 
@@ -535,7 +533,7 @@ defmodule TurnStile.Staff do
   """
   def update_employee(%Employee{} = employee, attrs) do
     employee
-    |> Employee.changeset(attrs)
+    |> Employee.update_changeset(attrs)
     |> Repo.update()
   end
 
@@ -546,18 +544,21 @@ defmodule TurnStile.Staff do
 
   @doc """
   Deletes a Employee.
-
-  ## Examples
-
-      iex> delete_employee(employee)
-      {:ok, %Employee{}}
-
-      iex> delete_employee(employee)
-      {:error, ...}
-
+  - should be largley unused
+  - used when org is deleted
+  - or by operations Admins
   """
   def delete_employee(%Employee{} = employee) do
     Repo.delete(employee)
+  end
+  @doc """
+  Deacttivates a Employee.
+  - this is the only delete method for users
+  """
+  def deactivate_employee(%Employee{} = employee) do
+   update_employee(employee,
+    %{is_deactivated?: true,
+      deactivated_at: NaiveDateTime.utc_now()})
   end
 
   @doc """
@@ -570,7 +571,7 @@ defmodule TurnStile.Staff do
 
   """
   def change_employee(%Employee{} = employee, attrs \\ %{}) do
-    Employee.changeset(employee, attrs, [hashed_password: false])
+    Employee.update_changeset(employee, attrs, [hashed_password: false])
   end
 
   @doc """

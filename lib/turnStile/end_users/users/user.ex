@@ -24,6 +24,7 @@ defmodule TurnStile.Patients.User do
     field :conf_alert_recieved_at, :naive_datetime
     field :activated_at, :naive_datetime
     field :deactivated_at, :naive_datetime
+    field :queued_at, :naive_datetime
 
     timestamps()
   end

@@ -103,8 +103,15 @@ defmodule TurnStileWeb.EmployeeController do
       end
     end
   end
-
+  @doc """
+  Mock Deletes an employee:
+  - there is no true delete employee; only Mock delete
+  - To keep all FK relationships intact
+  - delelete only deactives employee and removes from system use
+  - only when organization is deleted is employee truly deleted
+  """
   def delete(conn, %{"id" => id}) do
+
     employee_to_delete = Staff.get_employee(id)
     current_employee = conn.assigns[:current_employee]
 
@@ -114,11 +121,21 @@ defmodule TurnStileWeb.EmployeeController do
       |> put_flash(:error, "Error in employee delete. Insufficient permissions.")
       |> redirect(to: Routes.organization_path(conn, :index))
     else
-      {:ok, _employee} = Staff.delete_employee(employee_to_delete)
-      conn
-      |> put_flash(:info, "Employee deleted successfully.")
-      |> redirect(to: Routes.organization_employee_path(conn, :index,  current_employee
-      |> Map.get(:current_organization_login_id, nil)))
+      case Staff.deactivate_employee(employee_to_delete) do
+
+        {:ok, employee_to_delete} ->
+          conn
+          |> put_flash(:info, "Employee deleted successfully.")
+          |> redirect(to: Routes.organization_employee_path(conn, :index,  current_employee
+          |> Map.get(:current_organization_login_id, nil)))
+          # re-render the same page
+        {:error, %Ecto.Changeset{} = changeset} ->
+          conn
+          |> put_flash(:info, "An error occured. See dev logs or contant support.")
+          IO.inspect(changeset)
+          redirect(conn, to:  Routes.organization_employee_path(conn, :index,  current_employee || conn.request_path))
+      end
+
     end
   end
 end

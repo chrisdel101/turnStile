@@ -232,4 +232,7 @@ defmodule TurnStile.Utils do
       length(list) !== 0 && length(list) > 1
     end
   end
+  def is_map_nil?(map) do
+    is_nil(map)
+  end
 end

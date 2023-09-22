@@ -14,6 +14,18 @@ defmodule TurnStile.Operations do
   def list_all_users do
     Repo.all(User)
   end
+
+  def list_all_active_employees do
+    # query all
+    query = from(a in Employee, select: a, where: not a.is_deactivated?)
+    Repo.all(query)
+  end
+
+  def list_all_employees do
+    # query all
+    query = from(a in Employee, select: a)
+    Repo.all(query)
+  end
   # TODO
   # def list_active_users_query(organization_id) do
 

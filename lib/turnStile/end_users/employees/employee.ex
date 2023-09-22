@@ -17,12 +17,15 @@ defmodule TurnStile.Staff.Employee do
     field(:role_on_current_organization, :string, default: nil)
     field(:is_logged_in?, :boolean, default: false)
     field(:timezone, :string)
+    # employee is never deleted unless org is; just deactivate
+    field(:is_deactivated?, :boolean, default: false)
+    field(:deactivated_at, :naive_datetime, default: nil)
+
     # org has many employees within the company; employees belongs to many orgs
     many_to_many(:organizations, TurnStile.Company.Organization,
       join_through: "organization_employees",
       on_replace: :delete
     )
-
     # employee can have many roles; need limitation of one role per org
     has_many(:roles, TurnStile.Roles.Role, on_delete: :delete_all)
     # all users created by an employee
@@ -33,7 +36,7 @@ defmodule TurnStile.Staff.Employee do
   end
 
   # should be used for changing employee info - NOT during registration
-  def changeset(employee, attrs, _opts \\ []) do
+  def update_changeset(employee, attrs, _opts \\ []) do
     employee
     |> cast(attrs, [
       :email,
@@ -44,11 +47,16 @@ defmodule TurnStile.Staff.Employee do
       :current_organization_login_id,
       :role_value_on_current_organization,
       :is_logged_in?,
-      :role_on_current_organization
+      :role_on_current_organization,
+      :is_deactivated?,
+      :deactivated_at,
     ])
   end
-
-  # used for building a form when registering/creating
+  @doc """
+  creation_form_changeset
+  - handles input form when creatinng employee
+  -used for building a form when registering/creating
+  """
   def creation_form_changeset(employee, attrs, opts \\ []) do
     employee
     |> cast(attrs, [:email, :last_name, :first_name, :password, :hashed_password])
@@ -151,7 +159,9 @@ defmodule TurnStile.Staff.Employee do
       :first_name,
       :is_logged_in?,
       :current_organization_login_id,
-      :timezone
+      :timezone,
+      :is_deactivated?
+
     ])
     |> validate_required([:last_name, :first_name])
     |> validate_email()
