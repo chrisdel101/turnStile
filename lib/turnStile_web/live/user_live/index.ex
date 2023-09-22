@@ -157,33 +157,17 @@ defmodule TurnStileWeb.UserLive.Index do
          "user_changeset" => socket.assigns[:user_changeset]
        })}
     else
-      # call on load
-      # if length(socket.assigns.unmatched_SMS_users) === 0 do
-      #   IO.puts("CALL1")
-      #   # IO.inspect(@non_idle_matching_user)
-      #   {_noreply, socket} =
-      #     handle_info(%{mutli_match_twilio_users: @non_idle_matching_users,
-      #     callback_response: &IO.puts/1,
-      #     conn: %{}}, socket)
-      #     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-      #   else
-      #      IO.puts("CALL2")
-
-      #     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-      # end
-
-
 
       # {:noreply, socket} =
       #   handle_info(
       #     {:user_registation_form, %{user_params: Enum.at(@user_registatrion_messages, 1), organization_id: 1}},
       #     socket
       #   )
-      {:noreply, socket}
+      # {:noreply, socket}
       # IO.inspect(params, label: "handle_params main index: no changeset")
       # all other calls
       # :display_existing_users on event user_alert_match_review
-      # {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
     end
   end
 

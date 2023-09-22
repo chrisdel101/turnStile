@@ -299,11 +299,11 @@ defmodule TurnStileWeb.AlertUtils do
     end
   end
   @doc """
-  handle_update_status_from_category
+  handle_update_status_based_on_category
   - updates user alert_status to next state current
   - gets current state out of user with map_event_to_category
   """
-  def handle_update_status_from_category(user, alert_category, opts \\ []) do
+  def handle_update_status_based_on_category(user, alert_category, opts \\ []) do
     cond do
       # send intital alert w instructions
       AlertCategoryTypesMap.get_alert("INITIAL") === alert_category ->
@@ -341,7 +341,7 @@ defmodule TurnStileWeb.AlertUtils do
         )
 
       true ->
-        {:error, "Error: invalid alert_category in handle_update_status_from_category"}
+        {:error, "Error: invalid alert_category in handle_update_status_based_on_category"}
     end
   end
   @doc """
@@ -357,7 +357,7 @@ defmodule TurnStileWeb.AlertUtils do
           case send_email_alert(alert) do
             {:ok, _email_msg} ->
               # IO.inspect(email_msg, label: "email_msgXXX")
-              case handle_update_status_from_category(
+              case handle_update_status_based_on_category(
                      socket.assigns.user,
                      map_event_to_category(event)
                    ) do
@@ -372,7 +372,7 @@ defmodule TurnStileWeb.AlertUtils do
                     |> put_flash(:success, "Alert sent successfully")
                   }
 
-                # handle_update_status_from_category error
+                # handle_update_status_based_on_category error
                 {:error, error} ->
                   IO.inspect(error, label: "email index alert error in handle_event")
 
@@ -414,7 +414,7 @@ defmodule TurnStileWeb.AlertUtils do
             {:ok, twilio_msg} ->
               IO.inspect(twilio_msg, label: "twilio_msg")
 
-              case handle_update_status_from_category(
+              case handle_update_status_based_on_category(
                      socket.assigns.user,
                      map_event_to_category(event)
                    ) do

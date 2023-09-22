@@ -734,35 +734,39 @@ defmodule TurnStile.Patients do
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CONFIRMED") ->
          # add user to state list - if not alreay in list
          with {:ok, user} <- UserQueue.add_user(:user_queue, user) do
-          IO.inspect(user, label: "pipe_action_to_user_queue: user456")
+          IO.inspect(user, label: "pipe_action_to_user_queue OK: CONFIRMED")
+          {:ok, user}
         else
           # if in list already will fail
           {:error, error} ->
-            IO.inspect(error, label: "pipe_action_to_user_queue: error")
+            IO.inspect(error, label: "pipe_action_to_user_queue ERROR: CONFIRMED")
+            {:error, error}
         end
       # remove from action list
       user.user_alert_status === UserAlertStatusTypesMap.get_user_status("CANCELLED") ->
-        IO.inspect("HERE")
           # add user to state list - if not alreay in list
           with :ok <- UserQueue.delete(:user_queue, user) do
-            IO.inspect("user", label: "pipe_action_to_user_queue: user780")
+            IO.inspect(user, label: "pipe_action_to_user_queue: OK: CANCELLED")
           else
             # if in list already will fail
             {:error, error} ->
-              IO.inspect(error, label: "pipe_action_to_user_queue: error")
+            IO.inspect(error, label: "pipe_action_to_user_queue ERROR: CANCELLED")
+            {:error, error}
           end
       # if pending is allowed && is in pending state
       organization.user_allow_pending_into_queue && user.user_alert_status === UserAlertStatusTypesMap.get_user_status("PENDING") ->
         # add user to state list
-        IO.inspect(user.user_alert_status, label: "pipe_action_to_user_queue: user")
+        # IO.inspect(user.user_alert_status, label: "pipe_action_to_user_queue: user")
         with {:ok, user} <- UserQueue.add_user(:user_queue, user) do
-          IO.inspect(user, label: "pipe_action_to_user_queue: user123")
+          IO.inspect(error, label: "pipe_action_to_user_queue OK: PENDING")
+          {:ok, user}
         else
           {:error, error} ->
-            IO.inspect(error, label: "pipe_action_to_user_queue: error")
+            IO.inspect(error, label: "pipe_action_to_user_queue ERROR: PENDING")
+            {:error, error}
         end
       true ->
-        IO.inspect("", label: "pipe_action_to_user_queue: user12341")
+        IO.puts("pipe_action_to_user_queue nil: invalid action")
         nil
       end
     end
