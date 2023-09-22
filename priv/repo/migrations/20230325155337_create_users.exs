@@ -18,8 +18,9 @@ defmodule TurnStile.Repo.Migrations.CreateUsers do
       add :conf_alert_recieved_at, :naive_datetime
       add :activated_at, :naive_datetime
       add :deactivated_at, :naive_datetime
-      add :employee_id, references("employees"), null: false
-      add :organization_id, references("organizations"), null: false
+      add :queued_at, :naive_datetime
+      add :employee_id, references("employees", on_delete: :delete_all), null: false
+      add :organization_id, references("organizations", on_delete: :delete_all), null: false
 
       timestamps()
     end

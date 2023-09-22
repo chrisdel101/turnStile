@@ -29,8 +29,8 @@ defmodule TurnStile.Company.Organization do
     # org many employees <-> employees can belong to many orgs
     many_to_many :employees, TurnStile.Staff.Employee, join_through: "organization_employees", on_replace: :delete
      # org many roles - each role belongs to one org
-    has_many :roles, TurnStile.Roles.Role
-    has_many :users, TurnStile.Patients.User
+    has_many :roles, TurnStile.Roles.Role, on_delete: :delete_all
+    has_many :users, TurnStile.Patients.User, on_delete: :delete_all
      # org many tokens - each token belongs assoc w one org
     has_many :user_tokens, TurnStile.Patients.User
     has_many :alerts, TurnStile.Alerts.Alert

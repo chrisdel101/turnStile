@@ -24,11 +24,11 @@ defmodule TurnStile.Staff.Employee do
     )
 
     # employee can have many roles; need limitation of one role per org
-    has_many(:roles, TurnStile.Roles.Role)
+    has_many(:roles, TurnStile.Roles.Role, on_delete: :delete_all)
     # all users created by an employee
-    has_many(:users, TurnStile.Patients.User)
+    has_many(:users, TurnStile.Patients.User, on_delete: :delete_all)
     # all alerts created by an employee
-    has_many(:alerts, TurnStile.Alerts.Alert)
+    has_many(:alerts, TurnStile.Alerts.Alert, on_delete: :delete_all)
     timestamps()
   end
 

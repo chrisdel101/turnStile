@@ -9,9 +9,9 @@ defmodule TurnStile.Repo.Migrations.CreateAlerts do
       add :from, :string, null: false
       add :alert_category, :alert_category, null: false
       add :alert_format, :alert_format, null: false
-      add :employee_id, references("employees"), null: false
-      add :user_id, references("users"), null: false
-      add :organization_id, references("organizations")
+      add :employee_id, references("employees", null: false, on_delete: :delete_all)
+      add :user_id, references("users", null: false, on_delete: :delete_all)
+      add :organization_id, references("organizations",on_delete: :delete_all)
       add :system_response, :map  # tracks webhooks responses
 
       timestamps()
