@@ -1,7 +1,10 @@
 # TurnStile
 
-This is a rough draft README for assising in development.
+TurnStile is a client managment system that allows providers to send emails and text to clients. This could be used to eliminate in-person waiting. 
 
+Current implementation is the customer facing web application. The next phase of development would be implemenating a digital queueing system to keep clients in line. 
+
+### This is a rough draft README for assising in development.
 To start your Phoenix server:
   * run `create extension fuzzystrmatch` in psql. This is required to run levenstein distance queries.
   * Install dependencies with `mix deps.get`
